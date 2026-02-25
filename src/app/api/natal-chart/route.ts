@@ -2,7 +2,7 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { geocodeCity } from "@/lib/geocode";
 import { calculateNatalChart } from "@/lib/astro/calculate";
-import type { Relation, Json } from "@/types/database";
+import type { Relation } from "@/types/database";
 
 interface CreateChartBody {
   name: string;

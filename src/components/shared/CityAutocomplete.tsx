@@ -158,7 +158,6 @@ export function CityAutocomplete({ value, onChange, placeholder, error, classNam
         autoComplete="off"
         className={inputCls}
         aria-autocomplete="list"
-        aria-expanded={open}
         aria-haspopup="listbox"
       />
 
