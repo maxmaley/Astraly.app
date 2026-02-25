@@ -30,6 +30,7 @@ function Stars({ count }: { count: number }) {
 
 export async function Reviews() {
   const t = await getTranslations("landing");
+  const tp = await getTranslations("pricing");
 
   return (
     <section className="relative overflow-hidden px-4 py-24">
@@ -81,7 +82,7 @@ export async function Reviews() {
               {/* Plan badge */}
               <div className="flex items-center gap-2">
                 <span className="rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-2.5 py-0.5 text-xs text-cosmic-600 dark:text-cosmic-300">
-                  {t(`pricing.plans.${r.planKey}.name` as Parameters<typeof t>[0])}
+                  {tp(`plans.${r.planKey}.name` as Parameters<typeof tp>[0])}
                 </span>
               </div>
             </div>

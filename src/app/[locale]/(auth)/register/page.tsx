@@ -85,6 +85,7 @@ export default function RegisterPage() {
       password,
       options: {
         data: { name: birthData?.name ?? "" },
+        emailRedirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}`,
       },
     });
 
