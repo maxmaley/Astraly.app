@@ -129,7 +129,6 @@ export async function Reviews() {
             { value: "10 000+", label: "Натальных карт" },
             { value: "98%", label: "Рекомендуют" },
             { value: "4.9 ★", label: "Средний рейтинг" },
-            { value: "3 языка", label: "RU · UK · EN" },
           ].map((s) => (
             <div key={s.label} className="text-center">
               <p className="font-display text-3xl font-bold gradient-text">{s.value}</p>

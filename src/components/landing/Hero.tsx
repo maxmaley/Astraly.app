@@ -1,11 +1,22 @@
 import { getTranslations } from "next-intl/server";
 import { HeroForm } from "./HeroForm";
 
+/** Deterministic daily count — same number for all users on same day, 8 000–19 999 */
+function getDailyCount(): string {
+  const d = new Date();
+  const seed =
+    d.getFullYear() * 10000 + (d.getMonth() + 1) * 100 + d.getDate();
+  const rand = ((seed * 1664525 + 1013904223) & 0xffffffff) >>> 0;
+  const n = 8000 + (rand % 12000);
+  return n.toLocaleString("ru-RU"); // e.g. "12 847"
+}
+
 export async function Hero() {
   const t = await getTranslations("landing");
+  const dailyCount = getDailyCount();
 
   return (
-    <section className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-20">
+    <section id="hero" className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden px-4 pt-20">
       {/* Nebula glow orbs */}
       <div
         aria-hidden="true"
@@ -43,27 +54,13 @@ export async function Hero() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cosmic-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-cosmic-400" />
             </span>
-            {t("heroSocialProof")}
+            {t("heroSocialProof", { count: dailyCount })}
           </div>
 
           {/* Subheadline */}
           <p className="mt-6 text-lg leading-relaxed text-[var(--muted-foreground)] sm:text-xl">
             {t("heroSubtitle")}
           </p>
-
-          {/* Stats row */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 lg:justify-start">
-            {[
-              { icon: "🌟", label: t("heroStat1") },
-              { icon: "✨", label: t("heroStat2") },
-              { icon: "⭐", label: t("heroStat3") },
-            ].map((s) => (
-              <div key={s.label} className="flex items-center gap-2">
-                <span className="text-lg">{s.icon}</span>
-                <span className="text-sm font-medium text-[var(--muted-foreground)]">{s.label}</span>
-              </div>
-            ))}
-          </div>
         </div>
 
         {/* Right: Form */}
