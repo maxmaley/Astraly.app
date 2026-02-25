@@ -52,15 +52,23 @@ export default function LoginPage() {
   }
 
   async function handleGoogle() {
+    setError(null);
     setGoogleLoading(true);
     document.cookie = `astraly-locale=${locale}; path=/; max-age=300; SameSite=Lax`;
     const supabase = createClient();
-    await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
         redirectTo: `${window.location.origin}/api/auth/callback`,
+        skipBrowserRedirect: true,
       },
     });
+    if (error || !data.url) {
+      setError(t("errorGeneric"));
+      setGoogleLoading(false);
+      return;
+    }
+    window.location.href = data.url;
   }
 
   const inputCls = "w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 py-2.5 text-sm text-[var(--foreground)] placeholder-[var(--muted-foreground)]/60 outline-none transition-colors focus:border-cosmic-400 focus:ring-2 focus:ring-cosmic-400/15";
