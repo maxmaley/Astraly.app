@@ -34,7 +34,13 @@ export async function GET(request: NextRequest) {
       // Redirect to chart page — it will handle onboarding if chart doesn't exist yet
       return NextResponse.redirect(`${origin}/${locale}/app/chart`);
     }
+
+    console.error("[auth/callback] exchangeCodeForSession error:", error);
+    return NextResponse.redirect(
+      `${origin}/${locale}/login?error=auth_failed&reason=${encodeURIComponent(error.message)}`,
+    );
   }
 
-  return NextResponse.redirect(`${origin}/${locale}/login?error=auth_failed`);
+  console.error("[auth/callback] No code in request:", request.url);
+  return NextResponse.redirect(`${origin}/${locale}/login?error=auth_failed&reason=no_code`);
 }
