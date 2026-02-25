@@ -4,12 +4,15 @@ import { useState, useTransition } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/navigation";
 import { useLocale } from "next-intl";
+import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 
 interface BirthData {
   name: string;
   birthDate: string;
   birthTime: string;
   birthCity: string;
+  lat?: number;
+  lng?: number;
 }
 
 const inputCls = (err?: string) =>
@@ -28,11 +31,13 @@ export function HeroForm() {
     birthDate: "",
     birthTime: "",
     birthCity: "",
+    lat: undefined,
+    lng: undefined,
   });
-  const [errors, setErrors] = useState<Partial<BirthData>>({});
+  const [errors, setErrors] = useState<Partial<Record<keyof BirthData, string>>>({});
 
   function validate() {
-    const e: Partial<BirthData> = {};
+    const e: Partial<Record<keyof BirthData, string>> = {};
     if (!form.name.trim()) e.name = t("heroFormErrorName");
     if (!form.birthDate) e.birthDate = t("heroFormErrorDate");
     if (!form.birthCity.trim()) e.birthCity = t("heroFormErrorCity");
@@ -52,6 +57,16 @@ export function HeroForm() {
   function handleChange(field: keyof BirthData, value: string) {
     setForm((f) => ({ ...f, [field]: value }));
     if (errors[field]) setErrors((e) => ({ ...e, [field]: undefined }));
+  }
+
+  function handleCityChange(value: string, geo?: { lat: number; lng: number }) {
+    setForm((f) => ({
+      ...f,
+      birthCity: value,
+      lat: geo?.lat,
+      lng: geo?.lng,
+    }));
+    if (errors.birthCity) setErrors((e) => ({ ...e, birthCity: undefined }));
   }
 
   return (
@@ -125,22 +140,14 @@ export function HeroForm() {
             </div>
           </div>
 
-          {/* City */}
+          {/* City with autocomplete */}
           <div>
-            <div className="relative">
-              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]/50">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" /><circle cx="12" cy="10" r="3" />
-                </svg>
-              </span>
-              <input
-                type="text"
-                value={form.birthCity}
-                onChange={(e) => handleChange("birthCity", e.target.value)}
-                placeholder={t("heroFormCity")}
-                className={inputCls(errors.birthCity)}
-              />
-            </div>
+            <CityAutocomplete
+              value={form.birthCity}
+              onChange={handleCityChange}
+              placeholder={t("heroFormCity")}
+              error={errors.birthCity}
+            />
             {errors.birthCity && <p className="mt-1 text-[11px] text-red-400">{errors.birthCity}</p>}
           </div>
 

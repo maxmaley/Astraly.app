@@ -30,6 +30,8 @@ interface StoredBirthData {
   birthDate: string;
   birthTime: string;
   birthCity: string;
+  lat?: number;
+  lng?: number;
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -130,6 +132,8 @@ export default function ChartPage() {
         birth_date: birthData.birthDate,
         birth_time: birthData.birthTime || "",
         birth_city: birthData.birthCity,
+        lat: birthData.lat,
+        lng: birthData.lng,
       }),
     });
 
