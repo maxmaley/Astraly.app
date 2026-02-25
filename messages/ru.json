@@ -95,7 +95,19 @@
     "loginButton": "Войти",
     "googleButton": "Продолжить с Google",
     "haveAccount": "Уже есть аккаунт?",
-    "noAccount": "Нет аккаунта?"
+    "noAccount": "Нет аккаунта?",
+    "loginSubtitle": "Войди в свой аккаунт",
+    "divider": "или",
+    "birthDataLabel": "Твои данные",
+    "checkEmailTitle": "Письмо отправлено ✦",
+    "checkEmail": "Подтверждение отправлено на {email}",
+    "checkEmailHint": "После подтверждения вернись и войди",
+    "backToLogin": "Войти в аккаунт",
+    "errorInvalidCredentials": "Неверный email или пароль",
+    "errorEmailNotConfirmed": "Сначала подтверди email",
+    "errorEmailExists": "Email уже зарегистрирован",
+    "errorWeakPassword": "Пароль минимум 6 символов",
+    "errorGeneric": "Что-то пошло не так, попробуй снова"
   },
   "chat": {
     "placeholder": "Спроси что угодно...",
