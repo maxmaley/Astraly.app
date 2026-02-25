@@ -1,0 +1,128 @@
+{
+  "common": {
+    "appName": "Astraly",
+    "tagline": "Твой персональный AI астролог",
+    "start": "Начать",
+    "login": "Войти",
+    "logout": "Выйти",
+    "register": "Регистрация",
+    "settings": "Настройки",
+    "back": "Назад",
+    "save": "Сохранить",
+    "cancel": "Отмена",
+    "loading": "Загрузка...",
+    "error": "Что-то пошло не так",
+    "or": "или"
+  },
+  "nav": {
+    "newChat": "Новый чат",
+    "horoscope": "Гороскоп на сегодня",
+    "calendar": "Астрокалендарь",
+    "myChart": "Моя карта",
+    "settings": "Настройки"
+  },
+  "landing": {
+    "heroTitle": "Звёзды знают о тебе всё",
+    "heroSubtitle": "Персональная натальная карта и AI астролог, который знает твою карту и помнит каждый разговор",
+    "heroCta": "Узнать свою судьбу бесплатно →",
+    "heroFormName": "Твоё имя",
+    "heroFormDate": "Дата рождения",
+    "heroFormTime": "Время рождения",
+    "heroFormCity": "Город рождения",
+    "featuresTitle": "Всё что нужно для познания себя",
+    "pricingTitle": "Выбери свой путь",
+    "reviewsTitle": "Что говорят наши пользователи",
+    "footerSupport": "Поддержка",
+    "footerPolicy": "Политика конфиденциальности"
+  },
+  "auth": {
+    "emailLabel": "Email",
+    "emailPlaceholder": "your@email.com",
+    "passwordLabel": "Пароль",
+    "passwordPlaceholder": "Минимум 8 символов",
+    "registerTitle": "Последний шаг",
+    "registerSubtitle": "Создай аккаунт чтобы сохранить свою карту",
+    "registerButton": "Создать аккаунт",
+    "loginTitle": "С возвращением",
+    "loginButton": "Войти",
+    "googleButton": "Продолжить с Google",
+    "haveAccount": "Уже есть аккаунт?",
+    "noAccount": "Нет аккаунта?"
+  },
+  "chat": {
+    "placeholder": "Спроси что угодно...",
+    "send": "Отправить",
+    "newChat": "Новый чат",
+    "suggestCompatibility": "💑 Совместимость",
+    "suggestLove": "❤️ Любовь",
+    "suggestCareer": "💼 Карьера",
+    "suggestFinance": "💰 Финансы",
+    "suggestToday": "🌙 Сегодня"
+  },
+  "chart": {
+    "myChart": "Моя карта",
+    "closeOnes": "Близкие",
+    "addPerson": "Добавить человека",
+    "explainChart": "Объяснить мою натальную карту",
+    "askAstrologer": "Спросить AI Астролога",
+    "calculating": "Вычисляем положение планет...",
+    "buildingChart": "Строим натальную карту..."
+  },
+  "pricing": {
+    "free": "Бесплатно",
+    "popular": "Самый популярный",
+    "trial": "3 дня бесплатно",
+    "perMonth": "/месяц",
+    "cancel": "Отмена в любой момент",
+    "noHidden": "Без скрытых платежей",
+    "plans": {
+      "starlight": {
+        "name": "Звёздный свет",
+        "price": "0",
+        "features": [
+          "Натальная карта для себя",
+          "5 000 токенов (3-5 сообщений)"
+        ]
+      },
+      "moonlight": {
+        "name": "Лунный свет",
+        "price": "2.99",
+        "features": [
+          "Карты для тебя и близких",
+          "50 000 токенов/месяц",
+          "Безлимитный чат с астрологом"
+        ]
+      },
+      "solar": {
+        "name": "Солнечный оракул",
+        "price": "3.99",
+        "features": [
+          "Всё из Лунного света",
+          "100 000 токенов/месяц",
+          "Ежедневный гороскоп на почту и Telegram"
+        ]
+      },
+      "cosmic": {
+        "name": "Космический разум",
+        "price": "4.99",
+        "features": [
+          "Всё из Солнечного оракула",
+          "200 000 токенов/месяц",
+          "Персональный астро-календарь",
+          "Синхронизация с Google Calendar"
+        ]
+      }
+    }
+  },
+  "settings": {
+    "account": "Аккаунт",
+    "subscription": "Подписка",
+    "notifications": "Уведомления",
+    "language": "Язык",
+    "theme": "Тема",
+    "themeLight": "Светлая",
+    "themeDark": "Тёмная",
+    "notifEmail": "Email уведомления",
+    "notifTelegram": "Telegram уведомления"
+  }
+}
