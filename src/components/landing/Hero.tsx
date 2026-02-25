@@ -51,7 +51,7 @@ export async function Hero() {
           </div>
 
           {/* Headline */}
-          <h1 className="font-display text-4xl font-bold leading-tight tracking-tight sm:text-5xl lg:text-6xl">
+          <h1 className="font-display text-3xl font-bold leading-tight tracking-tight sm:text-4xl lg:text-5xl">
             <span className="gradient-text text-glow">{t("heroTitle")}</span>
             <br />
             <span className="text-[var(--foreground)]">{t("heroTitleLine2")}</span>
