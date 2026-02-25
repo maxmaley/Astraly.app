@@ -40,16 +40,6 @@ export function Header() {
           <span className="font-display text-cosmic-400">.app</span>
         </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-6 md:flex">
-          <a
-            href="#features"
-            className="text-sm text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
-          >
-            {t("landing.featuresTitle").split(" ").slice(0, 2).join(" ")}
-          </a>
-        </nav>
-
         {/* Right side */}
         <div className="flex items-center gap-2">
           <ThemeToggle />
@@ -93,9 +83,6 @@ export function Header() {
       {menuOpen && (
         <div className="border-t border-[var(--border)] bg-[var(--background)]/95 px-4 py-4 backdrop-blur-xl sm:hidden">
           <div className="flex flex-col gap-3">
-            <a href="#features" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-[var(--muted-foreground)]">
-              Возможности
-            </a>
             <div className="mt-2 flex flex-col gap-2">
               <Link href="/login" locale={locale} className="rounded-xl border border-[var(--border)] py-2.5 text-center text-sm font-medium">
                 {t("common.login")}
