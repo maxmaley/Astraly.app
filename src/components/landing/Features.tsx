@@ -22,6 +22,7 @@ export async function Features() {
       subtitle: t("featureChartSubtitle"),
       desc: t("featureChartDesc"),
       bullets: [t("featureChartB1"), t("featureChartB2"), t("featureChartB3")],
+      cta: t("featureChartCta"),
       graphic: <NatalChartSvg />,
       reverse: false,
       accent: "from-cosmic-500/20 to-nebula-500/10",
@@ -32,6 +33,7 @@ export async function Features() {
       subtitle: t("featureAiSubtitle"),
       desc: t("featureAiDesc"),
       bullets: [t("featureAiB1"), t("featureAiB2"), t("featureAiB3")],
+      cta: t("featureAiCta"),
       graphic: <ChatMockup />,
       reverse: true,
       accent: "from-nebula-500/20 to-cosmic-500/10",
@@ -42,6 +44,7 @@ export async function Features() {
       subtitle: t("featureCalSubtitle"),
       desc: t("featureCalDesc"),
       bullets: [t("featureCalB1"), t("featureCalB2"), t("featureCalB3")],
+      cta: t("featureCalCta"),
       graphic: <CalendarMockup />,
       reverse: false,
       accent: "from-cosmic-600/20 to-starlight-500/10",
@@ -97,6 +100,13 @@ export async function Features() {
                   </li>
                 ))}
               </ul>
+
+              <a
+                href="#hero"
+                className="mt-2 inline-flex items-center self-start rounded-full bg-gradient-to-r from-cosmic-500 to-nebula-500 px-5 py-2.5 text-sm font-semibold text-white shadow-glow transition-all hover:scale-105 hover:shadow-cosmic"
+              >
+                {f.cta}
+              </a>
             </div>
 
             {/* Graphic side */}

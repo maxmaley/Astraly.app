@@ -34,12 +34,10 @@ export function Header() {
         <Link
           href="/"
           locale={locale}
-          className="flex items-center gap-2 text-lg font-bold tracking-tight text-[var(--foreground)]"
+          className="flex items-center text-xl font-bold tracking-tight"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 text-sm text-white shadow-glow">
-            ✦
-          </span>
-          <span className="font-display gradient-text">Astraly</span>
+          <span className="font-display text-[var(--foreground)]">Astraly</span>
+          <span className="font-display text-cosmic-400">.app</span>
         </Link>
 
         {/* Desktop nav */}
@@ -49,12 +47,6 @@ export function Header() {
             className="text-sm text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
           >
             {t("landing.featuresTitle").split(" ").slice(0, 2).join(" ")}
-          </a>
-          <a
-            href="#pricing"
-            className="text-sm text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)]"
-          >
-            {t("pricing.free") === "Бесплатно" ? "Цены" : t("pricing.free") === "Free" ? "Pricing" : "Ціни"}
           </a>
         </nav>
 
@@ -103,9 +95,6 @@ export function Header() {
           <div className="flex flex-col gap-3">
             <a href="#features" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-[var(--muted-foreground)]">
               Возможности
-            </a>
-            <a href="#pricing" onClick={() => setMenuOpen(false)} className="py-2 text-sm text-[var(--muted-foreground)]">
-              Цены
             </a>
             <div className="mt-2 flex flex-col gap-2">
               <Link href="/login" locale={locale} className="rounded-xl border border-[var(--border)] py-2.5 text-center text-sm font-medium">
