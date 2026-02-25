@@ -1,15 +1,27 @@
-import { notFound } from "next/navigation";
 import { getRequestConfig } from "next-intl/server";
+import { routing, type Locale } from "./routing";
 
-export const locales = ["ru", "uk", "en"] as const;
-export type Locale = (typeof locales)[number];
-export const defaultLocale: Locale = "ru";
+// Re-export for backward compat with existing imports
+export const locales = routing.locales;
+export const defaultLocale = routing.defaultLocale;
+export type { Locale };
 
-export default getRequestConfig(async ({ locale }) => {
-  if (!locales.includes(locale as Locale)) notFound();
+export default getRequestConfig(async ({ requestLocale }) => {
+  // v4 API: requestLocale is a Promise
+  let locale = await requestLocale;
 
-  return {
-    locale: locale as string,
-    messages: (await import(`../messages/${locale}.json`)).default,
-  };
+  // Fall back to default if locale is invalid
+  if (!locale || !routing.locales.includes(locale as Locale)) {
+    locale = routing.defaultLocale;
+  }
+
+  // Static imports so webpack can bundle all three files
+  const messages =
+    locale === "ru"
+      ? (await import("../messages/ru.json")).default
+      : locale === "uk"
+        ? (await import("../messages/uk.json")).default
+        : (await import("../messages/en.json")).default;
+
+  return { locale, messages };
 });

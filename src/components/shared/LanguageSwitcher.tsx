@@ -2,7 +2,7 @@
 
 import { useLocale } from "next-intl";
 import { usePathname, useRouter } from "@/navigation";
-import { locales, type Locale } from "@/i18n";
+import { routing, type Locale } from "@/routing";
 import { useState, useRef, useEffect } from "react";
 
 const LANG_LABELS: Record<Locale, string> = {
@@ -57,7 +57,7 @@ export function LanguageSwitcher() {
 
       {open && (
         <div className="absolute right-0 top-11 z-50 min-w-[140px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] py-1 shadow-cosmic">
-          {locales.map((l) => (
+          {routing.locales.map((l) => (
             <button
               key={l}
               onClick={() => switchLocale(l)}
