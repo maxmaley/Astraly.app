@@ -6,7 +6,7 @@ import type { Database } from "@/types/database";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
-  const locale = searchParams.get("locale") ?? "ru";
+  const locale = request.cookies.get("astraly-locale")?.value ?? "ru";
 
   if (code) {
     const cookieStore = await cookies();

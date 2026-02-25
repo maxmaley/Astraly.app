@@ -85,7 +85,7 @@ export default function RegisterPage() {
       password,
       options: {
         data: { name: birthData?.name ?? "" },
-        emailRedirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}`,
+        emailRedirectTo: `${window.location.origin}/api/auth/callback`,
       },
     });
 
@@ -106,11 +106,12 @@ export default function RegisterPage() {
 
   async function handleGoogle() {
     setGoogleLoading(true);
+    document.cookie = `astraly-locale=${locale}; path=/; max-age=300; SameSite=Lax`;
     const supabase = createClient();
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: {
-        redirectTo: `${window.location.origin}/api/auth/callback?locale=${locale}`,
+        redirectTo: `${window.location.origin}/api/auth/callback`,
       },
     });
   }
