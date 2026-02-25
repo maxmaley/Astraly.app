@@ -30,16 +30,21 @@ export async function Hero() {
       <div className="relative z-10 flex w-full max-w-6xl flex-col items-center gap-10 lg:flex-row lg:items-center lg:justify-between lg:gap-16">
         {/* Left: Text */}
         <div className="flex flex-col items-center text-center lg:items-start lg:text-left lg:max-w-xl">
-          {/* Badge */}
-          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-xs font-medium text-cosmic-300">
-            <span className="animate-pulse-slow">✦</span>
-            AI Астролог нового поколения
-          </div>
-
           {/* Headline */}
           <h1 className="font-display text-5xl font-bold leading-tight tracking-tight sm:text-6xl lg:text-7xl">
             <span className="gradient-text text-glow">{t("heroTitle")}</span>
+            <br />
+            <span className="text-[var(--foreground)]">{t("heroTitleLine2")}</span>
           </h1>
+
+          {/* Social proof */}
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-sm font-medium text-cosmic-300">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cosmic-400 opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-cosmic-400" />
+            </span>
+            {t("heroSocialProof")}
+          </div>
 
           {/* Subheadline */}
           <p className="mt-6 text-lg leading-relaxed text-[var(--muted-foreground)] sm:text-xl">

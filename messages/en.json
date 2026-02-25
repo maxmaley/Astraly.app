@@ -2,7 +2,9 @@
   "common": { "appName": "Astraly", "tagline": "Your personal AI astrologer", "start": "Get Started", "login": "Log In", "logout": "Log Out", "register": "Register", "settings": "Settings", "back": "Back", "save": "Save", "cancel": "Cancel", "loading": "Loading...", "error": "Something went wrong", "or": "or" },
   "nav": { "newChat": "New Chat", "horoscope": "Today's Horoscope", "calendar": "Astro Calendar", "myChart": "My Chart", "settings": "Settings" },
   "landing": {
-    "heroTitle": "The Stars Know Everything About You",
+    "heroTitle": "The Stars Knew Everything About You.",
+    "heroTitleLine2": "Even before you were born.",
+    "heroSocialProof": "12,847 women already discovered their chart today",
     "heroSubtitle": "Your personal natal chart and AI astrologer who knows your chart and remembers every conversation",
     "heroCta": "Discover your destiny for free →",
     "heroFormTitle": "Build my chart",
