@@ -28,9 +28,9 @@ export function HeroForm() {
 
   function validate() {
     const e: Partial<BirthData> = {};
-    if (!form.name.trim()) e.name = "Введи своё имя";
-    if (!form.birthDate) e.birthDate = "Укажи дату рождения";
-    if (!form.birthCity.trim()) e.birthCity = "Укажи город рождения";
+    if (!form.name.trim()) e.name = t("heroFormErrorName");
+    if (!form.birthDate) e.birthDate = t("heroFormErrorDate");
+    if (!form.birthCity.trim()) e.birthCity = t("heroFormErrorCity");
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -146,7 +146,7 @@ export function HeroForm() {
                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                 <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
               </svg>
-              Загружаем...
+              {t("heroFormLoading")}
             </span>
           ) : (
             <span className="flex items-center justify-center gap-2">
@@ -157,7 +157,7 @@ export function HeroForm() {
       </div>
 
       <p className="mt-4 text-center text-xs text-[var(--muted-foreground)]">
-        🔒 Бесплатно · Без кредитной карты
+        {t("heroFormFree")}
       </p>
     </form>
   );

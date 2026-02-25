@@ -1,4 +1,4 @@
-import { getTranslations } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { NatalChartSvg } from "./NatalChartSvg";
 import { ChatMockup } from "./ChatMockup";
 import { CalendarMockup } from "./CalendarMockup";
@@ -14,6 +14,7 @@ function CheckIcon() {
 
 export async function Features() {
   const t = await getTranslations("landing");
+  const locale = await getLocale();
 
   const features = [
     {
@@ -34,7 +35,7 @@ export async function Features() {
       desc: t("featureAiDesc"),
       bullets: [t("featureAiB1"), t("featureAiB2"), t("featureAiB3")],
       cta: t("featureAiCta"),
-      graphic: <ChatMockup />,
+      graphic: <ChatMockup locale={locale} />,
       reverse: true,
       accent: "from-nebula-500/20 to-cosmic-500/10",
     },
@@ -45,7 +46,7 @@ export async function Features() {
       desc: t("featureCalDesc"),
       bullets: [t("featureCalB1"), t("featureCalB2"), t("featureCalB3")],
       cta: t("featureCalCta"),
-      graphic: <CalendarMockup />,
+      graphic: <CalendarMockup locale={locale} />,
       reverse: false,
       accent: "from-cosmic-600/20 to-starlight-500/10",
     },
@@ -55,8 +56,8 @@ export async function Features() {
     <section id="features" className="relative px-4 py-24">
       {/* Section header */}
       <div className="mx-auto mb-20 max-w-2xl text-center">
-        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-xs font-medium text-cosmic-300">
-          ✦ Возможности
+        <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-xs font-medium text-cosmic-600 dark:text-cosmic-300">
+          ✦ {t("sectionFeatures")}
         </div>
         <h2 className="font-display text-4xl font-bold sm:text-5xl">
           <span className="gradient-text">{t("featuresTitle")}</span>

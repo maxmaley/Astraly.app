@@ -16,10 +16,10 @@ export function NatalChartSvg() {
         <circle cx="160" cy="160" r="150" fill="none" stroke="rgba(139,92,246,0.3)" strokeWidth="1" />
         {/* Middle circle */}
         <circle cx="160" cy="160" r="110" fill="none" stroke="rgba(139,92,246,0.2)" strokeWidth="1" />
-        {/* Inner circle */}
-        <circle cx="160" cy="160" r="70" fill="rgba(15,15,46,0.8)" stroke="rgba(139,92,246,0.4)" strokeWidth="1.5" />
+        {/* Inner circle — CSS var adapts to light/dark */}
+        <circle cx="160" cy="160" r="70" fill="var(--card)" stroke="rgba(139,92,246,0.4)" strokeWidth="1.5" />
         {/* Core */}
-        <circle cx="160" cy="160" r="30" fill="rgba(139,92,246,0.15)" stroke="rgba(217,70,239,0.5)" strokeWidth="1" />
+        <circle cx="160" cy="160" r="30" fill="rgba(139,92,246,0.12)" stroke="rgba(217,70,239,0.5)" strokeWidth="1" />
 
         {/* 12 house dividers */}
         {Array.from({ length: 12 }).map((_, i) => {

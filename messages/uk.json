@@ -16,6 +16,18 @@
     "heroFormCity": "Місто народження",
     "heroFormCityPlaceholder": "Наприклад, Київ",
     "heroFormSubmit": "Дізнатись свою долю →",
+    "heroFormErrorName": "Введи своє ім'я",
+    "heroFormErrorDate": "Вкажи дату народження",
+    "heroFormErrorCity": "Вкажи місто народження",
+    "heroFormLoading": "Завантажуємо...",
+    "heroFormFree": "🔒 Безкоштовно · Без картки",
+    "sectionFeatures": "Можливості",
+    "sectionPricing": "Тарифи",
+    "sectionReviews": "Відгуки",
+    "reviewsCharts": "Натальних карт",
+    "reviewsRecommend": "Рекомендують",
+    "reviewsRating": "Середній рейтинг",
+    "pricingSecure": "Безпечна оплата через Lemon Squeezy",
     "heroStat1": "10 000+ карт",
     "heroStat2": "98% рекомендують",
     "heroStat3": "4.9 ★ рейтинг",
@@ -57,10 +69,10 @@
   "pricing": {
     "free": "Безкоштовно", "popular": "Найпопулярніший", "trial": "3 дні безкоштовно", "perMonth": "/міс", "cancel": "Скасування в будь-який момент", "noHidden": "Без прихованих платежів", "startFree": "Почати безкоштовно", "startTrial": "Спробувати 3 дні безкоштовно",
     "plans": {
-      "starlight": { "name": "Зоряне світло", "price": "0", "features": ["Натальна карта для себе", "5 000 токенів (3-5 повідомлень)", "Базовий AI астролог (DeepSeek)"] },
-      "moonlight": { "name": "Місячне світло", "price": "2.99", "features": ["Карти для тебе і близьких", "50 000 токенів/місяць", "Безлімітний чат з астрологом", "Базовий AI астролог (DeepSeek)"] },
-      "solar": { "name": "Сонячний оракул", "price": "3.99", "features": ["Все з Місячного світла", "100 000 токенів/місяць", "Щоденний гороскоп на пошту + Telegram", "Продвинутий AI (Claude Sonnet)"] },
-      "cosmic": { "name": "Космічний розум", "price": "4.99", "features": ["Все з Сонячного оракула", "200 000 токенів/місяць", "Персональний астро-календар", "Синхронізація з Google Calendar"] }
+      "starlight": { "name": "Зоряне світло", "price": "0", "features": ["Натальна карта для себе", "Знайомство з AI астрологом", "Базовий AI астролог (DeepSeek)"] },
+      "moonlight": { "name": "Місячне світло", "price": "2.99", "features": ["Карти для тебе і близьких", "Регулярні консультації", "Безлімітний чат з астрологом", "Базовий AI астролог (DeepSeek)"] },
+      "solar": { "name": "Сонячний оракул", "price": "3.99", "features": ["Все з Місячного світла", "Активний щоденний діалог", "Щоденний гороскоп на пошту + Telegram", "Продвинутий AI (Claude Sonnet)"] },
+      "cosmic": { "name": "Космічний розум", "price": "4.99", "features": ["Все з Сонячного оракула", "Пріоритетний доступ до AI", "Персональний астро-календар", "Синхронізація з Google Calendar"] }
     }
   },
   "settings": { "account": "Акаунт", "subscription": "Підписка", "notifications": "Сповіщення", "language": "Мова", "theme": "Тема", "themeLight": "Світла", "themeDark": "Темна", "notifEmail": "Email сповіщення", "notifTelegram": "Telegram сповіщення" }
