@@ -42,6 +42,7 @@ export type Json =
   | Json[];
 
 export interface Database {
+  PostgrestVersion: "12";
   public: {
     Tables: {
       users: {
