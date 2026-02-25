@@ -49,7 +49,7 @@ export async function Hero() {
           </h1>
 
           {/* Social proof */}
-          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-sm font-medium text-cosmic-300">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-sm font-medium text-cosmic-600 dark:text-cosmic-300">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-cosmic-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-cosmic-400" />

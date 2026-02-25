@@ -27,8 +27,8 @@ export async function Pricing() {
       <div className="relative mx-auto max-w-6xl">
         {/* Header */}
         <div className="mx-auto mb-16 max-w-2xl text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-xs font-medium text-cosmic-300">
-            ✦ Тарифы
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-4 py-1.5 text-xs font-medium text-cosmic-600 dark:text-cosmic-300">
+            ✦ {t("landing.sectionPricing")}
           </div>
           <h2 className="font-display text-4xl font-bold sm:text-5xl">
             <span className="gradient-text">{t("landing.pricingTitle")}</span>
@@ -56,20 +56,21 @@ export async function Pricing() {
             return (
               <div
                 key={id}
-                className={`relative flex flex-col rounded-2xl p-6 transition-transform duration-300 hover:-translate-y-1 ${
+                className={`relative flex flex-col rounded-2xl transition-transform duration-300 hover:-translate-y-1 ${
                   isPopular
                     ? "border-2 border-cosmic-500 bg-gradient-to-b from-cosmic-500/15 to-[var(--card)] shadow-cosmic"
                     : "border border-[var(--border)] bg-[var(--card)] hover:border-cosmic-500/40"
                 }`}
               >
-                {/* Popular badge */}
-                {isPopular && (
-                  <div className="absolute -top-3.5 left-1/2 -translate-x-1/2">
-                    <span className="rounded-full bg-gradient-to-r from-cosmic-500 to-nebula-500 px-4 py-1 text-xs font-bold text-white shadow-glow">
-                      {t("pricing.popular")}
-                    </span>
+                {/* Popular banner — inline at top of card */}
+                {isPopular ? (
+                  <div className="-mx-px -mt-px mb-0 flex items-center justify-center gap-1.5 rounded-t-2xl bg-gradient-to-r from-cosmic-500 to-nebula-500 py-2 text-xs font-bold text-white">
+                    ✦ {t("pricing.popular")}
                   </div>
+                ) : (
+                  <div className="py-2" /> /* spacer so all cards align */
                 )}
+                <div className="flex flex-1 flex-col p-6 pt-4">
 
                 {/* Icon + Name */}
                 <div className="mb-4 flex items-center gap-3">
@@ -126,11 +127,12 @@ export async function Pricing() {
                       ? "bg-gradient-to-r from-cosmic-500 to-nebula-500 text-white shadow-glow hover:shadow-cosmic hover:scale-[1.02]"
                       : isFree
                       ? "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]"
-                      : "border border-cosmic-500/50 text-cosmic-300 hover:bg-cosmic-500/10"
+                      : "border border-cosmic-500/50 text-cosmic-600 dark:text-cosmic-300 hover:bg-cosmic-500/10"
                   }`}
                 >
                   {isFree ? t("pricing.startFree") : t("pricing.startTrial")}
                 </Link>
+                </div>{/* end inner flex */}
               </div>
             );
           })}
@@ -138,7 +140,7 @@ export async function Pricing() {
 
         {/* Bottom note */}
         <p className="mt-8 text-center text-sm text-[var(--muted-foreground)]">
-          {t("pricing.cancel")} · {t("pricing.noHidden")} · Безопасная оплата через Lemon Squeezy
+          {t("pricing.cancel")} · {t("pricing.noHidden")} · {t("landing.pricingSecure")}
         </p>
       </div>
     </section>

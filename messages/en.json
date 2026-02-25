@@ -16,6 +16,18 @@
     "heroFormCity": "City of birth",
     "heroFormCityPlaceholder": "e.g. London",
     "heroFormSubmit": "Discover my destiny →",
+    "heroFormErrorName": "Please enter your name",
+    "heroFormErrorDate": "Please enter your birth date",
+    "heroFormErrorCity": "Please enter your birth city",
+    "heroFormLoading": "Loading...",
+    "heroFormFree": "🔒 Free · No credit card required",
+    "sectionFeatures": "Features",
+    "sectionPricing": "Pricing",
+    "sectionReviews": "Reviews",
+    "reviewsCharts": "Natal Charts",
+    "reviewsRecommend": "Recommend",
+    "reviewsRating": "Average Rating",
+    "pricingSecure": "Secure payment via Lemon Squeezy",
     "heroStat1": "10,000+ charts",
     "heroStat2": "98% recommend",
     "heroStat3": "4.9 ★ rating",
@@ -57,10 +69,10 @@
   "pricing": {
     "free": "Free", "popular": "Most Popular", "trial": "3 days free", "perMonth": "/mo", "cancel": "Cancel anytime", "noHidden": "No hidden fees", "startFree": "Start for free", "startTrial": "Try 3 days free",
     "plans": {
-      "starlight": { "name": "Starlight", "price": "0", "features": ["Natal chart for yourself", "5,000 tokens (3-5 messages)", "Basic AI astrologer (DeepSeek)"] },
-      "moonlight": { "name": "Moonlight", "price": "2.99", "features": ["Charts for you & loved ones", "50,000 tokens/month", "Unlimited chat with astrologer", "Basic AI astrologer (DeepSeek)"] },
-      "solar": { "name": "Solar Oracle", "price": "3.99", "features": ["Everything in Moonlight", "100,000 tokens/month", "Daily horoscope via email & Telegram", "Advanced AI (Claude Sonnet)"] },
-      "cosmic": { "name": "Cosmic Mind", "price": "4.99", "features": ["Everything in Solar Oracle", "200,000 tokens/month", "Personal astro calendar", "Google Calendar sync"] }
+      "starlight": { "name": "Starlight", "price": "0", "features": ["Natal chart for yourself", "Introduction to AI Astrologer", "Basic AI astrologer (DeepSeek)"] },
+      "moonlight": { "name": "Moonlight", "price": "2.99", "features": ["Charts for you & loved ones", "Regular consultations", "Unlimited chat with astrologer", "Basic AI astrologer (DeepSeek)"] },
+      "solar": { "name": "Solar Oracle", "price": "3.99", "features": ["Everything in Moonlight", "Active daily dialogue", "Daily horoscope via email & Telegram", "Advanced AI (Claude Sonnet)"] },
+      "cosmic": { "name": "Cosmic Mind", "price": "4.99", "features": ["Everything in Solar Oracle", "Priority AI access", "Personal astro calendar", "Google Calendar sync"] }
     }
   },
   "settings": { "account": "Account", "subscription": "Subscription", "notifications": "Notifications", "language": "Language", "theme": "Theme", "themeLight": "Light", "themeDark": "Dark", "notifEmail": "Email notifications", "notifTelegram": "Telegram notifications" }

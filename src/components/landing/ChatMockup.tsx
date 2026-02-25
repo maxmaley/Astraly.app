@@ -1,18 +1,42 @@
 // Decorative chat interface mockup
-export function ChatMockup() {
+interface ChatMockupProps {
+  locale: string;
+}
+
+const CONTENT = {
+  ru: {
+    title: "AI Астролог ✦",
+    msg1: "Привет, Анастасия! ✨ Я вижу, что твоё Солнце в Стрельце создаёт удивительную энергию...",
+    msg2: "Расскажи мне о моей карьере",
+    msg3: "💼 С Марсом в 10-м доме ты рождена для лидерства! Сатурн транзит укрепляет позицию...",
+    prompts: ["💑 Совместимость", "❤️ Любовь", "💼 Карьера"],
+    placeholder: "Спроси что угодно...",
+  },
+  uk: {
+    title: "AI Астролог ✦",
+    msg1: "Привіт, Анастасіє! ✨ Я бачу, що твоє Сонце у Стрільці створює дивовижну енергію...",
+    msg2: "Розкажи мені про мою кар'єру",
+    msg3: "💼 З Марсом у 10-му будинку ти народжена для лідерства! Транзит Сатурна зміцнює позицію...",
+    prompts: ["💑 Сумісність", "❤️ Кохання", "💼 Кар'єра"],
+    placeholder: "Запитай що завгодно...",
+  },
+  en: {
+    title: "AI Astrologer ✦",
+    msg1: "Hi, Anastasia! ✨ I can see your Sun in Sagittarius is creating amazing energy...",
+    msg2: "Tell me about my career",
+    msg3: "💼 With Mars in the 10th house, you were born to lead! Saturn transit strengthens your position...",
+    prompts: ["💑 Compatibility", "❤️ Love", "💼 Career"],
+    placeholder: "Ask anything...",
+  },
+} as const;
+
+export function ChatMockup({ locale }: ChatMockupProps) {
+  const c = CONTENT[locale as keyof typeof CONTENT] ?? CONTENT.ru;
+
   const messages = [
-    {
-      role: "assistant",
-      text: "Привет, Анастасия! ✨ Я вижу, что твоё Солнце в Стрельце создаёт удивительную энергию...",
-    },
-    {
-      role: "user",
-      text: "Расскажи мне о моей карьере",
-    },
-    {
-      role: "assistant",
-      text: "💼 С Марсом в 10-м доме ты рождена для лидерства! Сатурн транзит укрепляет твою позицию...",
-    },
+    { role: "assistant", text: c.msg1 },
+    { role: "user", text: c.msg2 },
+    { role: "assistant", text: c.msg3 },
   ];
 
   return (
@@ -26,7 +50,7 @@ export function ChatMockup() {
             <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" />
             <div className="h-2.5 w-2.5 rounded-full bg-green-500/60" />
           </div>
-          <span className="mx-auto text-xs text-[var(--muted-foreground)]">AI Астролог ✦</span>
+          <span className="mx-auto text-xs text-[var(--muted-foreground)]">{c.title}</span>
         </div>
 
         {/* Messages */}
@@ -69,10 +93,10 @@ export function ChatMockup() {
 
         {/* Quick prompts */}
         <div className="flex flex-wrap gap-1.5 px-4 pb-3">
-          {["💑 Совместимость", "❤️ Любовь", "💼 Карьера"].map((p) => (
+          {c.prompts.map((p) => (
             <span
               key={p}
-              className="rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-2.5 py-1 text-xs text-cosmic-300"
+              className="rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-2.5 py-1 text-xs text-cosmic-600 dark:text-cosmic-300"
             >
               {p}
             </span>
@@ -82,7 +106,7 @@ export function ChatMockup() {
         {/* Input bar */}
         <div className="flex items-center gap-2 rounded-b-xl border-t border-[var(--border)] px-3 py-2.5">
           <div className="flex-1 rounded-xl bg-[var(--input)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
-            Спроси что угодно...
+            {c.placeholder}
           </div>
           <div className="flex h-7 w-7 items-center justify-center rounded-full bg-cosmic-500 text-white">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
