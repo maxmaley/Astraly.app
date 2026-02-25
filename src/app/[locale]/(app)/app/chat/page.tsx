@@ -1,4 +1,5 @@
-// Placeholder — Step 3: App UI
+import { ChatInterface } from "@/components/chat/ChatInterface";
+
 export default function ChatPage() {
-  return <div className="p-8"><p>chat — coming in Step 3</p></div>;
+  return <ChatInterface />;
 }
