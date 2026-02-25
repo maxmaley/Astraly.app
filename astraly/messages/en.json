@@ -1,128 +1,62 @@
 {
-  "common": {
-    "appName": "Astraly",
-    "tagline": "Your personal AI astrologer",
-    "start": "Get Started",
-    "login": "Log In",
-    "logout": "Log Out",
-    "register": "Register",
-    "settings": "Settings",
-    "back": "Back",
-    "save": "Save",
-    "cancel": "Cancel",
-    "loading": "Loading...",
-    "error": "Something went wrong",
-    "or": "or"
-  },
-  "nav": {
-    "newChat": "New Chat",
-    "horoscope": "Today's Horoscope",
-    "calendar": "Astro Calendar",
-    "myChart": "My Chart",
-    "settings": "Settings"
-  },
+  "common": { "appName": "Astraly", "tagline": "Your personal AI astrologer", "start": "Get Started", "login": "Log In", "logout": "Log Out", "register": "Register", "settings": "Settings", "back": "Back", "save": "Save", "cancel": "Cancel", "loading": "Loading...", "error": "Something went wrong", "or": "or" },
+  "nav": { "newChat": "New Chat", "horoscope": "Today's Horoscope", "calendar": "Astro Calendar", "myChart": "My Chart", "settings": "Settings" },
   "landing": {
     "heroTitle": "The Stars Know Everything About You",
     "heroSubtitle": "Your personal natal chart and AI astrologer who knows your chart and remembers every conversation",
     "heroCta": "Discover your destiny for free →",
+    "heroFormTitle": "Build my chart",
     "heroFormName": "Your name",
+    "heroFormNamePlaceholder": "e.g. Anastasia",
     "heroFormDate": "Date of birth",
     "heroFormTime": "Time of birth",
+    "heroFormTimePlaceholder": "Optional",
     "heroFormCity": "City of birth",
+    "heroFormCityPlaceholder": "e.g. London",
+    "heroFormSubmit": "Discover my destiny →",
+    "heroStat1": "10,000+ charts",
+    "heroStat2": "98% recommend",
+    "heroStat3": "4.9 ★ rating",
     "featuresTitle": "Everything you need for self-discovery",
-    "pricingTitle": "Choose your path",
-    "reviewsTitle": "What our users say",
+    "featureChartTitle": "Natal Chart",
+    "featureChartSubtitle": "Discover who you were born to be",
+    "featureChartDesc": "We build an accurate natal chart from your date, time and place of birth. Every planet, every house — with a full interpretation in your language.",
+    "featureChartB1": "10 planets, ascendant, 12 houses",
+    "featureChartB2": "Automatic AI interpretation",
+    "featureChartB3": "Charts for loved ones & compatibility",
+    "featureAiTitle": "AI Astrologer",
+    "featureAiSubtitle": "Your personal astrologer available 24/7",
+    "featureAiDesc": "Ask anything — about love, career, finances. The astrologer knows your chart and remembers every conversation, like a real personal consultant.",
+    "featureAiB1": "Remembers your full conversation history",
+    "featureAiB2": "Knows your natal chart deeply",
+    "featureAiB3": "Suggests what to ask next",
+    "featureCalTitle": "Astro Calendar",
+    "featureCalSubtitle": "Live in the rhythm of the stars",
+    "featureCalDesc": "A personal calendar with astro events for the year ahead, synced with Google Calendar. Know the best days for decisions, meetings and rest.",
+    "featureCalB1": "Planet transits mapped to your chart",
+    "featureCalB2": "Google Calendar sync",
+    "featureCalB3": "Notifications for important days",
+    "pricingTitle": "Choose your path to the stars",
+    "pricingSubtitle": "3 days free on all paid plans",
+    "reviewsTitle": "They already know their destiny",
+    "reviewsSubtitle": "10,000+ women trust Astraly",
+    "footerTagline": "Your AI astrologer with personal memory",
     "footerSupport": "Support",
-    "footerPolicy": "Privacy Policy"
+    "footerPolicy": "Privacy Policy",
+    "footerTerms": "Terms of Service",
+    "footerRights": "All rights reserved"
   },
-  "auth": {
-    "emailLabel": "Email",
-    "emailPlaceholder": "your@email.com",
-    "passwordLabel": "Password",
-    "passwordPlaceholder": "Minimum 8 characters",
-    "registerTitle": "One last step",
-    "registerSubtitle": "Create an account to save your chart",
-    "registerButton": "Create Account",
-    "loginTitle": "Welcome back",
-    "loginButton": "Log In",
-    "googleButton": "Continue with Google",
-    "haveAccount": "Already have an account?",
-    "noAccount": "Don't have an account?"
-  },
-  "chat": {
-    "placeholder": "Ask anything...",
-    "send": "Send",
-    "newChat": "New Chat",
-    "suggestCompatibility": "💑 Compatibility",
-    "suggestLove": "❤️ Love",
-    "suggestCareer": "💼 Career",
-    "suggestFinance": "💰 Finance",
-    "suggestToday": "🌙 Today"
-  },
-  "chart": {
-    "myChart": "My Chart",
-    "closeOnes": "Close Ones",
-    "addPerson": "Add Person",
-    "explainChart": "Explain my natal chart",
-    "askAstrologer": "Ask AI Astrologer",
-    "calculating": "Calculating planet positions...",
-    "buildingChart": "Building your natal chart..."
-  },
+  "auth": { "emailLabel": "Email", "emailPlaceholder": "your@email.com", "passwordLabel": "Password", "passwordPlaceholder": "Minimum 8 characters", "registerTitle": "One last step", "registerSubtitle": "Create an account to save your chart", "registerButton": "Create Account", "loginTitle": "Welcome back", "loginButton": "Log In", "googleButton": "Continue with Google", "haveAccount": "Already have an account?", "noAccount": "Don't have an account?" },
+  "chat": { "placeholder": "Ask anything...", "send": "Send", "newChat": "New Chat", "suggestCompatibility": "💑 Compatibility", "suggestLove": "❤️ Love", "suggestCareer": "💼 Career", "suggestFinance": "💰 Finance", "suggestToday": "🌙 Today" },
+  "chart": { "myChart": "My Chart", "closeOnes": "Close Ones", "addPerson": "Add Person", "explainChart": "Explain my natal chart", "askAstrologer": "Ask AI Astrologer", "calculating": "Calculating planet positions...", "buildingChart": "Building your natal chart..." },
   "pricing": {
-    "free": "Free",
-    "popular": "Most Popular",
-    "trial": "3 days free",
-    "perMonth": "/month",
-    "cancel": "Cancel anytime",
-    "noHidden": "No hidden fees",
+    "free": "Free", "popular": "Most Popular", "trial": "3 days free", "perMonth": "/mo", "cancel": "Cancel anytime", "noHidden": "No hidden fees", "startFree": "Start for free", "startTrial": "Try 3 days free",
     "plans": {
-      "starlight": {
-        "name": "Starlight",
-        "price": "0",
-        "features": [
-          "Natal chart for yourself",
-          "5,000 tokens (3-5 messages)"
-        ]
-      },
-      "moonlight": {
-        "name": "Moonlight",
-        "price": "2.99",
-        "features": [
-          "Charts for you and loved ones",
-          "50,000 tokens/month",
-          "Unlimited chat with astrologer"
-        ]
-      },
-      "solar": {
-        "name": "Solar Oracle",
-        "price": "3.99",
-        "features": [
-          "Everything in Moonlight",
-          "100,000 tokens/month",
-          "Daily horoscope via email & Telegram"
-        ]
-      },
-      "cosmic": {
-        "name": "Cosmic Mind",
-        "price": "4.99",
-        "features": [
-          "Everything in Solar Oracle",
-          "200,000 tokens/month",
-          "Personal astro calendar",
-          "Google Calendar sync"
-        ]
-      }
+      "starlight": { "name": "Starlight", "price": "0", "features": ["Natal chart for yourself", "5,000 tokens (3-5 messages)", "Basic AI astrologer (DeepSeek)"] },
+      "moonlight": { "name": "Moonlight", "price": "2.99", "features": ["Charts for you & loved ones", "50,000 tokens/month", "Unlimited chat with astrologer", "Basic AI astrologer (DeepSeek)"] },
+      "solar": { "name": "Solar Oracle", "price": "3.99", "features": ["Everything in Moonlight", "100,000 tokens/month", "Daily horoscope via email & Telegram", "Advanced AI (Claude Sonnet)"] },
+      "cosmic": { "name": "Cosmic Mind", "price": "4.99", "features": ["Everything in Solar Oracle", "200,000 tokens/month", "Personal astro calendar", "Google Calendar sync"] }
     }
   },
-  "settings": {
-    "account": "Account",
-    "subscription": "Subscription",
-    "notifications": "Notifications",
-    "language": "Language",
-    "theme": "Theme",
-    "themeLight": "Light",
-    "themeDark": "Dark",
-    "notifEmail": "Email notifications",
-    "notifTelegram": "Telegram notifications"
-  }
+  "settings": { "account": "Account", "subscription": "Subscription", "notifications": "Notifications", "language": "Language", "theme": "Theme", "themeLight": "Light", "themeDark": "Dark", "notifEmail": "Email notifications", "notifTelegram": "Telegram notifications" }
 }
