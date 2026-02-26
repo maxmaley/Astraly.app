@@ -114,10 +114,11 @@ export default function ChartPage() {
     });
 
     if (!res.ok) {
-      const json = await res.json() as { error?: string };
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      console.error("[chart] POST /api/natal-chart failed", res.status, json);
       const msg = json.error?.includes("City not found")
         ? t("cityError")
-        : t("errorGeneric");
+        : `Ошибка ${res.status}: ${json.error ?? t("errorGeneric")}`;
       setError(msg);
       setState("ready_to_build");
       return;
@@ -133,7 +134,13 @@ export default function ChartPage() {
   const loadChart = useCallback(async () => {
     setState("loading");
     const res = await fetch("/api/natal-chart");
-    if (!res.ok) { setState("no_data"); return; }
+    if (!res.ok) {
+      const json = await res.json().catch(() => ({})) as { error?: string };
+      console.error("[chart] GET /api/natal-chart failed", res.status, json);
+      setError(`Ошибка ${res.status}: ${json.error ?? "неизвестно"}`);
+      setState("error");
+      return;
+    }
     const json = await res.json() as { charts: ChartRecord[] };
     if (json.charts?.length) {
       setChart(json.charts[0]);
