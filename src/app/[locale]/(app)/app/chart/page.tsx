@@ -22,7 +22,7 @@ interface ChartRecord {
   birth_city: string;
   planets_json: Record<string, PlanetData>;
   houses_json: Array<{ house: number; sign: string; degree: number }>;
-  ascendant: { sign: string; degree: number };
+  ascendant: { sign: string; degree: number; mc_sign?: string; mc_degree?: number };
 }
 
 interface StoredBirthData {
@@ -285,16 +285,36 @@ export default function ChartPage() {
           <div aria-hidden="true" className="pointer-events-none absolute right-0 top-0 h-32 w-32 rounded-full bg-cosmic-500/10 blur-[60px]" />
 
           <div className="relative">
-            <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
-              {t("ascendant")}
-            </p>
-            <div className="mt-1 flex items-baseline gap-2">
-              <span className="text-4xl text-cosmic-400" aria-hidden="true">
-                {SIGN_SYMBOLS[asc.sign] ?? "✦"}
-              </span>
-              <h1 className="font-display text-2xl font-bold text-[var(--foreground)]">
-                {tS(asc.sign as Parameters<typeof tS>[0])} {formatDeg(asc.degree)}
-              </h1>
+            {/* ASC + MC row */}
+            <div className="flex flex-wrap gap-6">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
+                  {t("ascendant")}
+                </p>
+                <div className="mt-1 flex items-baseline gap-2">
+                  <span className="text-3xl text-cosmic-400" aria-hidden="true">
+                    {SIGN_SYMBOLS[asc.sign] ?? "✦"}
+                  </span>
+                  <h1 className="font-display text-xl font-bold text-[var(--foreground)]">
+                    {tS(asc.sign as Parameters<typeof tS>[0])} {formatDeg(asc.degree)}
+                  </h1>
+                </div>
+              </div>
+              {asc.mc_sign && (
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">
+                    MC
+                  </p>
+                  <div className="mt-1 flex items-baseline gap-2">
+                    <span className="text-3xl text-nebula-400" aria-hidden="true">
+                      {SIGN_SYMBOLS[asc.mc_sign] ?? "✦"}
+                    </span>
+                    <p className="font-display text-xl font-bold text-[var(--foreground)]">
+                      {tS(asc.mc_sign as Parameters<typeof tS>[0])} {formatDeg(asc.mc_degree ?? 0)}
+                    </p>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Big Three: Sun · Moon · Rising */}
