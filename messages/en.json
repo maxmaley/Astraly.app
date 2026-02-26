@@ -142,7 +142,8 @@
     "inputHint": "AI can make mistakes — verify important information",
     "chartWidget": "Natal Chart",
     "chartWidgetSubtitle": "Tap to view full chart",
-    "explainPrompt": "Please give me a detailed and personalized reading of my natal chart. Tell me about each planet in its sign and house — what it means for my personality, talents, relationships, and life path. Pay special attention to the Sun, Moon, Ascendant, and Mercury. Write warmly and vividly, like a true astrologer."
+    "explainPrompt": "Please give me a detailed and personalized reading of my natal chart. Tell me about each planet in its sign and house — what it means for my personality, talents, relationships, and life path. Pay special attention to the Sun, Moon, Ascendant, and Mercury. Write warmly and vividly, like a true astrologer.",
+    "horoscopePrompt": "Tell me more about my horoscope for today — what should I keep in mind, what to expect, and how to best use today's energy?"
   },
   "chart": {
     "myChart": "My Chart",
@@ -293,6 +294,20 @@
   },
   "specialPoints": {
     "title": "Special Points"
+  },
+  "horoscope": {
+    "title": "Today's Horoscope",
+    "overview": "Overall Energy",
+    "love": "Love & Relationships",
+    "career": "Career & Finance",
+    "advice": "Tip of the Day",
+    "keyTransits": "Key Transits",
+    "discuss": "Discuss with Astrologer",
+    "loading": "Reading the stars...",
+    "noChart": "Build your natal chart to get a personalized horoscope",
+    "noChartCta": "Create Chart →",
+    "error": "Failed to load horoscope",
+    "retry": "Try Again"
   },
   "reviews": {
     "r1": "Finally understood why I couldn't find fulfilling work — it was all in my natal chart. The AI explained in 5 minutes what I'd been searching for for years. Now I know which direction to go!",

@@ -4,11 +4,16 @@ import { ChatInterface } from "@/components/chat/ChatInterface";
 export default async function ChatPage({
   searchParams,
 }: {
-  searchParams: { explain?: string };
+  searchParams: { explain?: string; horoscope?: string };
 }) {
-  const isExplain = searchParams.explain === "1";
-  const t = isExplain ? await getTranslations("chat") : null;
-  const initialPrompt = isExplain && t ? t("explainPrompt") : undefined;
+  const t = await getTranslations("chat");
+
+  let initialPrompt: string | undefined;
+  if (searchParams.explain === "1") {
+    initialPrompt = t("explainPrompt");
+  } else if (searchParams.horoscope === "1") {
+    initialPrompt = t("horoscopePrompt");
+  }
 
   return <ChatInterface initialPrompt={initialPrompt} />;
 }
