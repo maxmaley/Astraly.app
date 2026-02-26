@@ -48,7 +48,11 @@ export function HeroForm() {
   function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
-    sessionStorage.setItem("astraly_birth_data", JSON.stringify(form));
+    const serialized = JSON.stringify(form);
+    sessionStorage.setItem("astraly_birth_data", serialized);
+    // Also persist to localStorage so logged-in users who get redirected
+    // past /register still have their birth data available on /app/chart
+    localStorage.setItem("astraly_birth_data", serialized);
     startTransition(() => {
       router.push("/register", { locale });
     });
