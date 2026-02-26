@@ -2,7 +2,6 @@ import { notFound }          from "next/navigation";
 import Link                  from "next/link";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { PLANS, PLAN_ORDER, formatPrice } from "@/lib/plans";
-import type { SubscriptionTier } from "@/types/database";
 import {
   changePlanAction,
   resetTokensAction,
