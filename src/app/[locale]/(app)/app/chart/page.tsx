@@ -304,7 +304,7 @@ export default function ChartPage() {
   const planets = chart.planets_json;
 
   return (
-    <div className="h-full overflow-y-auto px-4 py-8 md:px-8 lg:px-12">
+    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-8 md:px-8 lg:px-12">
       <div className="mx-auto max-w-3xl space-y-6 pb-8">
 
         {/* ── ASC + MC header ──────────────────────────────────────────────── */}
