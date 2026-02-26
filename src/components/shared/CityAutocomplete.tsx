@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useLocale } from "next-intl";
 
 export interface CityOption {
   name: string;      // display label, e.g. "Москва, Россия"
@@ -18,38 +17,36 @@ interface Props {
   className?: string;
 }
 
-interface PhotonFeature {
-  geometry: { coordinates: [number, number] };
-  properties: {
-    name?: string;
+interface NominatimResult {
+  lat: string;
+  lon: string;
+  display_name: string;
+  name: string;
+  address: {
     city?: string;
+    town?: string;
+    village?: string;
+    municipality?: string;
     state?: string;
     country?: string;
-    osm_value?: string;
   };
+  type: string;
+  class: string;
 }
 
-// Photon supports only de/fr/it/en — fall back to en for ru/uk
-const PHOTON_LANG: Record<string, string> = {
-  en: "en", de: "de", fr: "fr", it: "it",
-};
-
 export function CityAutocomplete({ value, onChange, placeholder, error, className }: Props) {
-  const locale = useLocale();
-  const lang = PHOTON_LANG[locale] ?? "en";
-
   const [query, setQuery] = useState(value);
   const [options, setOptions] = useState<CityOption[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [selected, setSelected] = useState(false); // true when user picked from dropdown
+  const [selected, setSelected] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Sync external value reset (e.g. form reset)
+  // Sync external value reset
   useEffect(() => { setQuery(value); }, [value]);
 
-  // Close dropdown when clicking outside
+  // Close dropdown on outside click
   useEffect(() => {
     function onOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
@@ -64,51 +61,59 @@ export function CityAutocomplete({ value, onChange, placeholder, error, classNam
     if (q.trim().length < 2) { setOptions([]); return; }
     setLoading(true);
     try {
-      const url = `https://photon.komoot.io/api/?q=${encodeURIComponent(q)}&limit=6&lang=${lang}`;
-      const res = await fetch(url);
+      const url = new URL("https://nominatim.openstreetmap.org/search");
+      url.searchParams.set("q", q);
+      url.searchParams.set("format", "json");
+      url.searchParams.set("limit", "6");
+      url.searchParams.set("addressdetails", "1");
+      url.searchParams.set("featuretype", "city,town,village,municipality");
+      url.searchParams.set("accept-language", "ru,uk,en");
+
+      const res = await fetch(url.toString(), {
+        headers: { "User-Agent": "Astraly.app/1.0 (contact@astraly.app)" },
+      });
       if (!res.ok) return;
-      const json = await res.json() as { features: PhotonFeature[] };
+      const results = await res.json() as NominatimResult[];
 
       const opts: CityOption[] = [];
-      for (const f of json.features ?? []) {
-        const p = f.properties;
-        // Only show cities, towns, municipalities — skip streets, POIs
-        if (
-          p.osm_value &&
-          !["city", "town", "village", "municipality", "borough", "suburb", "hamlet"].includes(p.osm_value)
-        ) continue;
+      for (const r of results) {
+        // Skip non-settlement results
+        if (!["city", "town", "village", "hamlet", "municipality"].includes(r.type) &&
+            r.class !== "place") continue;
 
-        const cityName = p.name ?? p.city ?? "";
+        const cityName = r.address.city ?? r.address.town ?? r.address.village ?? r.address.municipality ?? r.name;
         if (!cityName) continue;
 
-        // Build readable label: "Москва, Московская область, Россия"
-        const parts = [cityName, p.state, p.country].filter(Boolean);
-        const [lng, lat] = f.geometry.coordinates;
+        const parts = [cityName, r.address.state, r.address.country].filter(Boolean);
 
-        // Deduplicate by city name
         if (!opts.find((o) => o.city.toLowerCase() === cityName.toLowerCase())) {
-          opts.push({ name: parts.join(", "), city: cityName, lat, lng });
+          opts.push({
+            name: parts.join(", "),
+            city: cityName,
+            lat: parseFloat(r.lat),
+            lng: parseFloat(r.lon),
+          });
         }
         if (opts.length >= 5) break;
       }
       setOptions(opts);
       setOpen(opts.length > 0);
     } catch {
-      // Photon unavailable — user can still type manually
+      // Nominatim unavailable — user can still type manually
     } finally {
       setLoading(false);
     }
-  }, [lang]);
+  }, []);
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;
     setQuery(v);
     setSelected(false);
-    onChange(v); // propagate text without geo (geo will come from selection)
+    onChange(v);
 
     if (timerRef.current) clearTimeout(timerRef.current);
     if (v.trim().length >= 2) {
-      timerRef.current = setTimeout(() => search(v), 350);
+      timerRef.current = setTimeout(() => search(v), 400);
     } else {
       setOptions([]);
       setOpen(false);
@@ -173,7 +178,7 @@ export function CityAutocomplete({ value, onChange, placeholder, error, classNam
               role="option"
               aria-selected={false}
               onMouseDown={(e) => {
-                e.preventDefault(); // prevent input blur before select fires
+                e.preventDefault();
                 handleSelect(opt);
               }}
               className="flex cursor-pointer items-start gap-2.5 px-3 py-2.5 transition-colors hover:bg-[var(--muted)] first:rounded-t-xl last:rounded-b-xl"
