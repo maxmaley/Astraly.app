@@ -1,13 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useLocale } from "next-intl";
+import type { PlaceOption } from "@/app/api/places/route";
 
-export interface CityOption {
-  name: string;      // display label, e.g. "Москва, Россия"
-  city: string;      // just the city name to store, e.g. "Москва"
-  lat: number;
-  lng: number;
-}
+export type CityOption = PlaceOption;
 
 interface Props {
   value: string;
@@ -17,24 +14,8 @@ interface Props {
   className?: string;
 }
 
-interface NominatimResult {
-  lat: string;
-  lon: string;
-  display_name: string;
-  name: string;
-  address: {
-    city?: string;
-    town?: string;
-    village?: string;
-    municipality?: string;
-    state?: string;
-    country?: string;
-  };
-  type: string;
-  class: string;
-}
-
 export function CityAutocomplete({ value, onChange, placeholder, error, className }: Props) {
+  const locale = useLocale();
   const [query, setQuery] = useState(value);
   const [options, setOptions] = useState<CityOption[]>([]);
   const [open, setOpen] = useState(false);
@@ -61,49 +42,17 @@ export function CityAutocomplete({ value, onChange, placeholder, error, classNam
     if (q.trim().length < 2) { setOptions([]); return; }
     setLoading(true);
     try {
-      const url = new URL("https://nominatim.openstreetmap.org/search");
-      url.searchParams.set("q", q);
-      url.searchParams.set("format", "json");
-      url.searchParams.set("limit", "6");
-      url.searchParams.set("addressdetails", "1");
-      url.searchParams.set("featuretype", "city,town,village,municipality");
-      url.searchParams.set("accept-language", "ru,uk,en");
-
-      const res = await fetch(url.toString(), {
-        headers: { "User-Agent": "Astraly.app/1.0 (contact@astraly.app)" },
-      });
+      const res = await fetch(`/api/places?q=${encodeURIComponent(q)}&lang=${locale}`);
       if (!res.ok) return;
-      const results = await res.json() as NominatimResult[];
-
-      const opts: CityOption[] = [];
-      for (const r of results) {
-        // Skip non-settlement results
-        if (!["city", "town", "village", "hamlet", "municipality"].includes(r.type) &&
-            r.class !== "place") continue;
-
-        const cityName = r.address.city ?? r.address.town ?? r.address.village ?? r.address.municipality ?? r.name;
-        if (!cityName) continue;
-
-        const parts = [cityName, r.address.state, r.address.country].filter(Boolean);
-
-        if (!opts.find((o) => o.city.toLowerCase() === cityName.toLowerCase())) {
-          opts.push({
-            name: parts.join(", "),
-            city: cityName,
-            lat: parseFloat(r.lat),
-            lng: parseFloat(r.lon),
-          });
-        }
-        if (opts.length >= 5) break;
-      }
+      const opts = await res.json() as CityOption[];
       setOptions(opts);
       setOpen(opts.length > 0);
     } catch {
-      // Nominatim unavailable — user can still type manually
+      // geocoding unavailable — user can still type manually
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [locale]);
 
   function handleInput(e: React.ChangeEvent<HTMLInputElement>) {
     const v = e.target.value;
