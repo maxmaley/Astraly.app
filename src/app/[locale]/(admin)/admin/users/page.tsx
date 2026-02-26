@@ -30,10 +30,10 @@ export default async function UsersPage({
   const page = Math.max(1, Number(searchParams.page ?? 1));
   const offset = (page - 1) * PAGE_SIZE;
 
-  const admin = createAdminClient();
-
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  let query: any = admin
+  const admin = createAdminClient() as any;
+
+  let query = admin
     .from("users")
     .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, created_at", { count: "exact" })
     .order("created_at", { ascending: false })

@@ -35,7 +35,8 @@ export default async function AdminDashboard({
 }: {
   params: { locale: string };
 }) {
-  const admin = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const admin = createAdminClient() as any;
 
   // Fetch all users (compact — only fields needed for stats)
   const { data: allUsers } = await admin
