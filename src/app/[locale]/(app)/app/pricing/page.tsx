@@ -5,7 +5,7 @@ import { useLocale }                     from "next-intl";
 import { createClient }                  from "@/lib/supabase/client";
 import {
   PLANS, PLAN_ORDER, formatPrice,
-  canAccess, type Feature,
+  canAccess,
 }                                        from "@/lib/plans";
 import type { SubscriptionTier }         from "@/types/database";
 
