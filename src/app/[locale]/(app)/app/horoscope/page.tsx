@@ -98,6 +98,24 @@ export default function HoroscopePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<"no_chart" | "failed" | null>(null);
 
+  // ── Client-side session cache ──────────────────────────────────────────────
+  // Prevents re-fetching on every navigation within the same browser session.
+  // The API has its own DB cache (one generation per user per day), but
+  // every mount still triggered a network round-trip + skeleton flash.
+
+  const SESSION_KEY = `astraly:horoscope:${new Date().toLocaleDateString("en-CA")}`;
+
+  function readCache(): HoroscopeData | null {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      return raw ? (JSON.parse(raw) as HoroscopeData) : null;
+    } catch { return null; }
+  }
+
+  function writeCache(data: HoroscopeData) {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(data)); } catch { /* ignore */ }
+  }
+
   async function fetchHoroscope() {
     setLoading(true);
     setError(null);
@@ -109,7 +127,9 @@ export default function HoroscopePage() {
         return;
       }
       const { horoscope: raw } = await res.json();
-      setHoroscope(JSON.parse(raw) as HoroscopeData);
+      const parsed = JSON.parse(raw) as HoroscopeData;
+      writeCache(parsed);
+      setHoroscope(parsed);
     } catch {
       setError("failed");
     } finally {
@@ -118,6 +138,12 @@ export default function HoroscopePage() {
   }
 
   useEffect(() => {
+    const cached = readCache();
+    if (cached) {
+      setHoroscope(cached);
+      setLoading(false);
+      return;
+    }
     fetchHoroscope();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

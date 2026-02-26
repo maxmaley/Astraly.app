@@ -20,7 +20,7 @@ export function AppShell({
         onClose={() => setSidebarOpen(false)}
       />
 
-      <main className="flex min-w-0 flex-1 flex-col overflow-hidden">
+      <main className="flex min-w-0 flex-1 flex-col overflow-y-auto">
         {/* Mobile header */}
         <header className="flex shrink-0 items-center gap-3 border-b border-[var(--border)] bg-[var(--background)]/80 px-4 py-3 backdrop-blur-sm lg:hidden">
           <button
