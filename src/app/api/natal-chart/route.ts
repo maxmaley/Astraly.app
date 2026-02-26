@@ -11,8 +11,6 @@ function localToUTC(
   hour: number, minute: number,
   tzName: string,
 ): Date {
-  // Use Intl to get the UTC offset at this date/time in the target timezone.
-  // We probe with a naive-UTC date and iterate once to correct for DST edge cases.
   const naiveMs = Date.UTC(year, month - 1, day, hour, minute);
   const probe = new Date(naiveMs);
 
@@ -24,7 +22,7 @@ function localToUTC(
 
   const get = (t: string) => parseInt(parts.find(p => p.type === t)?.value ?? "0");
   const tzMs = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"));
-  const offsetMs = tzMs - naiveMs; // tz local - UTC = offset
+  const offsetMs = tzMs - naiveMs;
   return new Date(naiveMs - offsetMs);
 }
 
@@ -34,7 +32,7 @@ interface CreateChartBody {
   birth_date: string;    // "YYYY-MM-DD"
   birth_time?: string;   // "HH:MM" or "" (unknown)
   birth_city: string;
-  lat?: number;          // optional — geocoded from birth_city if absent
+  lat?: number;
   lng?: number;
 }
 
@@ -90,8 +88,6 @@ export async function POST(request: NextRequest) {
     localMinute = m;
   }
 
-  // Look up the exact IANA timezone for the birth coordinates, then convert
-  // local birth time → UTC properly (handles DST, historical offsets, etc.)
   const tzResults = findTimezone(lat, lng);
   const tzName = tzResults[0] ?? "UTC";
   const utcDate = localToUTC(year, month, day, localHour, localMinute, tzName);
@@ -106,13 +102,25 @@ export async function POST(request: NextRequest) {
   try {
     chartResult = calculateNatalChart(utcYear, utcMonth, utcDay, hour, minute, lat, lng);
   } catch (err) {
-    console.error("Chart calculation failed:", err);
-    return NextResponse.json({ error: "Calculation failed" }, { status: 500 });
+    const msg = err instanceof Error ? err.message : String(err);
+    console.error("[natal-chart] Calculation failed:", msg);
+    return NextResponse.json({ error: `Calculation failed: ${msg}` }, { status: 500 });
+  }
+
+  // ── Ensure user row exists (safety net if DB trigger wasn't set up) ───────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+  const { error: upsertUserError } = await db
+    .from("users")
+    .upsert({ id: user.id, email: user.email }, { onConflict: "id", ignoreDuplicates: true });
+
+  if (upsertUserError) {
+    // Non-fatal: log but continue — user row might already exist
+    console.warn("[natal-chart] User upsert warning:", upsertUserError.message ?? upsertUserError);
   }
 
   // ── Save to DB ────────────────────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const { data: chart, error } = await (supabase as any)
+  const { data: chart, error } = await db
     .from("natal_charts")
     .insert({
       user_id: user.id,
@@ -131,8 +139,9 @@ export async function POST(request: NextRequest) {
     .single();
 
   if (error) {
-    console.error("DB insert failed:", error);
-    return NextResponse.json({ error: "Failed to save chart" }, { status: 500 });
+    const msg = error.message ?? error.code ?? JSON.stringify(error);
+    console.error("[natal-chart] DB insert failed:", msg);
+    return NextResponse.json({ error: `DB error: ${msg}` }, { status: 500 });
   }
 
   return NextResponse.json({ chart }, { status: 201 });
@@ -147,14 +156,17 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  const { data: charts, error } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: charts, error } = await (supabase as any)
     .from("natal_charts")
     .select("*")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: "Failed to fetch charts" }, { status: 500 });
+    const msg = error.message ?? error.code ?? JSON.stringify(error);
+    console.error("[natal-chart] GET failed:", msg);
+    return NextResponse.json({ error: `DB error: ${msg}` }, { status: 500 });
   }
 
   return NextResponse.json({ charts });
