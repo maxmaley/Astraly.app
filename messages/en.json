@@ -259,6 +259,38 @@
     "Saturn": "Saturn",
     "Uranus": "Uranus",
     "Neptune": "Neptune",
-    "Pluto": "Pluto"
+    "Pluto": "Pluto",
+    "NorthNode": "North Node",
+    "SouthNode": "South Node",
+    "Lilith": "Lilith"
+  },
+  "aspects": {
+    "title": "Aspects",
+    "Conjunction": "Conjunction",
+    "Opposition": "Opposition",
+    "Trine": "Trine",
+    "Square": "Square",
+    "Sextile": "Sextile",
+    "Quincunx": "Quincunx",
+    "orb": "orb"
+  },
+  "housesTable": {
+    "title": "House Table",
+    "houseCol": "House",
+    "h1": "I · Asc",
+    "h2": "II",
+    "h3": "III",
+    "h4": "IV · IC",
+    "h5": "V",
+    "h6": "VI",
+    "h7": "VII · Dsc",
+    "h8": "VIII",
+    "h9": "IX",
+    "h10": "X · MC",
+    "h11": "XI",
+    "h12": "XII"
+  },
+  "specialPoints": {
+    "title": "Special Points"
   }
 }

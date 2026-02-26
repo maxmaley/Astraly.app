@@ -67,6 +67,9 @@ export interface ChartResult {
     Uranus: PlanetData;
     Neptune: PlanetData;
     Pluto: PlanetData;
+    NorthNode: PlanetData;
+    SouthNode: PlanetData;
+    Lilith: PlanetData;
   };
   ascendant: AscendantData;
   houses: HouseData[];
@@ -342,6 +345,23 @@ export function calculateNatalChart(
   const plutoPrec = precess({ lon: plutoGeoJ2000, lat: 0 }, 2000.0, epochNow);
   const plutoLon = norm(plutoPrec.lon + Δψ);
 
+  // ── Special points ───────────────────────────────────────────────────────
+  //
+  // T = Julian centuries from J2000.0 (same JDE used for planets above)
+  const T = (jde - 2451545.0) / 36525.0;
+  const T2 = T * T;
+  const T3 = T2 * T;
+
+  // Mean Ascending Lunar Node (North Node) — Meeus Ch. 22, Table 22.a
+  const northNodeLon = normDeg(125.0445479 - 1934.1362608 * T + 0.0020754 * T2 + 0.0000022 * T3) * DEG;
+  // South Node is always exactly opposite
+  const southNodeLon = norm(northNodeLon + Math.PI);
+
+  // Mean Black Moon Lilith (mean lunar apogee) — derived from Meeus Ch. 22/47
+  // Mean longitude of lunar perigee: ω̄ = 83.3532465 + 4069.0137287·T - ...
+  // Lilith (apogee) = perigee + 180°
+  const lilithLon = normDeg(83.3532465 + 4069.0137287 * T - 0.0103200 * T2 - T3 / 80053 + 180) * DEG;
+
   // ── Ascendant & MC ───────────────────────────────────────────────────────
   const gastSec  = gast(jde);
   const lastSec  = pmod(gastSec + lng * 240, 86400);
@@ -367,16 +387,19 @@ export function calculateNatalChart(
 
   return {
     planets: {
-      Sun:     planet(sunLon, false),
-      Moon:    planet(moonLon, false),
-      Mercury: planet(mercury.lon, mercury.retrograde),
-      Venus:   planet(venus.lon,   venus.retrograde),
-      Mars:    planet(mars.lon,    mars.retrograde),
-      Jupiter: planet(jupiter.lon, jupiter.retrograde),
-      Saturn:  planet(saturn.lon,  saturn.retrograde),
-      Uranus:  planet(uranus.lon,  uranus.retrograde),
-      Neptune: planet(neptune.lon, neptune.retrograde),
-      Pluto:   planet(plutoLon,   false),
+      Sun:       planet(sunLon, false),
+      Moon:      planet(moonLon, false),
+      Mercury:   planet(mercury.lon, mercury.retrograde),
+      Venus:     planet(venus.lon,   venus.retrograde),
+      Mars:      planet(mars.lon,    mars.retrograde),
+      Jupiter:   planet(jupiter.lon, jupiter.retrograde),
+      Saturn:    planet(saturn.lon,  saturn.retrograde),
+      Uranus:    planet(uranus.lon,  uranus.retrograde),
+      Neptune:   planet(neptune.lon, neptune.retrograde),
+      Pluto:     planet(plutoLon,    false),
+      NorthNode: planet(northNodeLon, false),
+      SouthNode: planet(southNodeLon, false),
+      Lilith:    planet(lilithLon,    false),
     },
     ascendant: {
       sign:     ascSignDeg.sign,

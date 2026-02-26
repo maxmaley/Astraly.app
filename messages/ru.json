@@ -259,6 +259,38 @@
     "Saturn": "Сатурн",
     "Uranus": "Уран",
     "Neptune": "Нептун",
-    "Pluto": "Плутон"
+    "Pluto": "Плутон",
+    "NorthNode": "Сев. Узел",
+    "SouthNode": "Юж. Узел",
+    "Lilith": "Лилит"
+  },
+  "aspects": {
+    "title": "Аспекты",
+    "Conjunction": "Соединение",
+    "Opposition": "Оппозиция",
+    "Trine": "Трин",
+    "Square": "Квадрат",
+    "Sextile": "Секстиль",
+    "Quincunx": "Квинконс",
+    "orb": "орб"
+  },
+  "housesTable": {
+    "title": "Таблица домов",
+    "houseCol": "Дом",
+    "h1": "I · Асц",
+    "h2": "II",
+    "h3": "III",
+    "h4": "IV · IC",
+    "h5": "V",
+    "h6": "VI",
+    "h7": "VII · Дес",
+    "h8": "VIII",
+    "h9": "IX",
+    "h10": "X · MC",
+    "h11": "XI",
+    "h12": "XII"
+  },
+  "specialPoints": {
+    "title": "Особые точки"
   }
 }
