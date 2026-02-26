@@ -127,9 +127,9 @@ export function AppSidebar({ isOpen, onClose }: Props) {
       >
         {/* Header */}
         <div className="flex shrink-0 items-center justify-between px-4 py-4">
-          <Link href="/app/chat" className="flex items-center gap-2 group">
-            <span className="text-xl transition-transform group-hover:scale-110">✦</span>
-            <span className="gradient-text font-display text-lg font-bold">Astraly</span>
+          <Link href="/app/chat" className="flex items-center text-xl font-bold tracking-tight">
+            <span className="font-display text-[var(--foreground)]">Astraly</span>
+            <span className="font-display text-cosmic-400">.app</span>
           </Link>
           <button
             onClick={onClose}
