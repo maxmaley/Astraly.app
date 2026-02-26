@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { useRouter } from "@/navigation";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -183,15 +184,28 @@ function MessageContent({ text }: { text: string }) {
   const paragraphs = text.split(/\n\n+/);
 
   return (
-    <div className="space-y-2 text-sm leading-relaxed">
+    <div className="space-y-2.5 text-sm leading-relaxed">
       {paragraphs.map((para, pi) => {
         const lines = para.split("\n");
-        const isListBlock = lines.some((l) => l.match(/^[-•*]\s/));
 
+        // Heading: ### or ## or #
+        if (lines.length === 1) {
+          const h3 = lines[0].match(/^###\s+(.+)/);
+          const h2 = lines[0].match(/^##\s+(.+)/);
+          const h1 = lines[0].match(/^#\s+(.+)/);
+          if (h3) return <p key={pi} className="font-semibold text-[var(--foreground)]">{renderInline(h3[1])}</p>;
+          if (h2) return <p key={pi} className="font-bold text-base text-[var(--foreground)] mt-1">{renderInline(h2[1])}</p>;
+          if (h1) return <p key={pi} className="font-bold text-lg text-[var(--foreground)] mt-1">{renderInline(h1[1])}</p>;
+        }
+
+        // Multi-line block — check each line for headings or list items
+        const isListBlock = lines.some((l) => l.match(/^[-•*]\s/) || l.match(/^\d+\.\s/));
         if (isListBlock) {
           return (
             <ul key={pi} className="space-y-1.5">
               {lines.map((line, li) => {
+                const h = line.match(/^#{1,3}\s+(.+)/);
+                if (h) return <li key={li} className="list-none font-semibold text-[var(--foreground)]">{renderInline(h[1])}</li>;
                 if (line.match(/^[-•*]\s/)) {
                   return (
                     <li key={li} className="flex items-start gap-2">
@@ -200,11 +214,17 @@ function MessageContent({ text }: { text: string }) {
                     </li>
                   );
                 }
-                return (
-                  <li key={li} className="list-none">
-                    {renderInline(line)}
-                  </li>
-                );
+                if (line.match(/^\d+\.\s/)) {
+                  const num = line.match(/^(\d+)\.\s(.+)/);
+                  return (
+                    <li key={li} className="flex items-start gap-2">
+                      <span className="shrink-0 tabular-nums text-cosmic-400/70 text-xs mt-0.5">{num?.[1]}.</span>
+                      <span>{renderInline(num?.[2] ?? line)}</span>
+                    </li>
+                  );
+                }
+                if (!line.trim()) return null;
+                return <li key={li} className="list-none">{renderInline(line)}</li>;
               })}
             </ul>
           );
@@ -212,12 +232,23 @@ function MessageContent({ text }: { text: string }) {
 
         return (
           <p key={pi}>
-            {lines.map((line, li) => (
-              <span key={li}>
-                {li > 0 && <br />}
-                {renderInline(line)}
-              </span>
-            ))}
+            {lines.map((line, li) => {
+              const h = line.match(/^(#{1,3})\s+(.+)/);
+              if (h) {
+                const cls = h[1].length === 1
+                  ? "font-bold text-lg text-[var(--foreground)]"
+                  : h[1].length === 2
+                  ? "font-bold text-base text-[var(--foreground)]"
+                  : "font-semibold text-[var(--foreground)]";
+                return <span key={li} className={`block ${cls}`}>{renderInline(h[2])}</span>;
+              }
+              return (
+                <span key={li}>
+                  {li > 0 && <br />}
+                  {renderInline(line)}
+                </span>
+              );
+            })}
           </p>
         );
       })}
@@ -393,6 +424,7 @@ export function ChatInterface({
   const currentChatIdRef = useRef<string | undefined>(chatId);
   const t = useTranslations("chat");
   const locale = useLocale();
+  const router = useRouter();
 
   // Load history when chatId provided
   useEffect(() => {
@@ -487,11 +519,10 @@ export function ChatInterface({
                 newChatId = data.value;
                 if (!currentChatIdRef.current && newChatId) {
                   currentChatIdRef.current = newChatId;
-                  window.history.replaceState(
-                    null,
-                    "",
-                    `/${locale}/app/chat/${newChatId}`
-                  );
+                  // Use Next.js router so it knows about the URL change.
+                  // This makes "New Chat" work: router sees /app/chat/{id}
+                  // and properly navigates away when user clicks New Chat.
+                  router.replace(`/app/chat/${newChatId}`, { locale });
                 }
               } else if (data.type === "delta") {
                 fullContent += data.value;
@@ -523,7 +554,7 @@ export function ChatInterface({
         streamingMsgIdRef.current = null;
       }
     },
-    [isLoading, locale, t]
+    [isLoading, locale, router, t]
   );
 
   // Auto-send initial prompt (e.g. "Explain my chart") once history loads

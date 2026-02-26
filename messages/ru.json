@@ -167,7 +167,9 @@
     "planetName": "Планета",
     "signName": "Знак",
     "house": "Дом",
-    "goToChat": "Спросить AI о моей карте →"
+    "goToChat": "Спросить AI о моей карте →",
+    "editBirthData": "Изменить данные рождения",
+    "cancelEdit": "Назад к карте"
   },
   "pricing": {
     "free": "Бесплатно",

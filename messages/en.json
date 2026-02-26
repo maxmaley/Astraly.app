@@ -167,7 +167,9 @@
     "planetName": "Planet",
     "signName": "Sign",
     "house": "House",
-    "goToChat": "Ask AI about my chart →"
+    "goToChat": "Ask AI about my chart →",
+    "editBirthData": "Edit birth data",
+    "cancelEdit": "Back to chart"
   },
   "pricing": {
     "free": "Free",

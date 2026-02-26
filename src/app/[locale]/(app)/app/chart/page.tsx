@@ -186,6 +186,19 @@ export default function ChartPage() {
     buildChart(form);
   }
 
+  // ── Edit existing chart ──────────────────────────────────────────────────────
+  function openEditForm() {
+    if (!chart) return;
+    setForm({
+      name: chart.name,
+      birthDate: chart.birth_date,
+      birthTime: chart.birth_time ?? "",
+      birthCity: chart.birth_city,
+    });
+    setError(null);
+    setState("form");
+  }
+
   // ── Render: loading ─────────────────────────────────────────────────────────
   if (state === "loading") {
     return (
@@ -290,6 +303,17 @@ export default function ChartPage() {
                 <span className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />
                 <span className="relative">{t("buildButton")} ✦</span>
               </button>
+
+              {/* Cancel edit — only if an existing chart is available */}
+              {chart && (
+                <button
+                  type="button"
+                  onClick={() => setState("chart")}
+                  className="w-full text-center text-xs text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors py-1"
+                >
+                  ← {t("cancelEdit")}
+                </button>
+              )}
             </div>
           </form>
         </div>
@@ -304,8 +328,8 @@ export default function ChartPage() {
   const planets = chart.planets_json;
 
   return (
-    <div className="min-h-screen px-4 py-8 md:px-8 lg:px-12">
-      <div className="mx-auto max-w-3xl space-y-6">
+    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-8 md:px-8 lg:px-12">
+      <div className="mx-auto max-w-3xl space-y-6 pb-8">
 
         {/* ── ASC + MC header ──────────────────────────────────────────────── */}
         <div className="relative overflow-hidden rounded-2xl border border-[var(--border)] bg-gradient-to-br from-[var(--card)] via-[var(--card)]/90 to-cosmic-500/5 p-6 shadow-[0_4px_30px_rgba(139,92,246,0.08)]">
@@ -354,13 +378,23 @@ export default function ChartPage() {
                   </div>
                 );
               })}
-              {/* Birth info */}
+              {/* Birth info + edit button */}
               <div className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--muted)]/50 px-3 py-1">
                 <span className="text-xs text-[var(--muted-foreground)]">
                   {formatDate(chart.birth_date)}
                   {chart.birth_time && ` · ${chart.birth_time}`}
                   {" · "}{chart.birth_city}
                 </span>
+                <button
+                  onClick={openEditForm}
+                  title={t("editBirthData")}
+                  className="ml-0.5 text-[var(--muted-foreground)] hover:text-cosmic-400 transition-colors"
+                >
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4Z" />
+                  </svg>
+                </button>
               </div>
             </div>
           </div>
