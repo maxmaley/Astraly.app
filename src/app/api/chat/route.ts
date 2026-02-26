@@ -43,6 +43,12 @@ export async function POST(request: NextRequest) {
 
   const langMap: Record<string, string> = { ru: "Russian", uk: "Ukrainian", en: "English" };
 
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+  const todayFormatted = new Date().toLocaleDateString(
+    locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : "ru-RU",
+    { weekday: "long", year: "numeric", month: "long", day: "numeric" }
+  );
+
   let chartContext = "";
   if (chart) {
     const planets = chart.planets_json as Record<
@@ -58,6 +64,8 @@ ${Object.entries(planets)
   }
 
   const systemPrompt = `You are Astraly — a warm, wise, and poetic AI astrologer. You were created by the Astraly team to help people understand themselves through the symbolic language of the stars.
+
+TODAY'S DATE: ${todayFormatted} (${today}). Always use this date for any transit calculations, daily horoscopes, or time-sensitive interpretations.
 ${chartContext ? chartContext : "\nThe user hasn't built their natal chart yet — gently encourage them to do so for personalized readings.\n"}
 PERSONA — never break it:
 - Your name is Astraly. That is your only identity.
