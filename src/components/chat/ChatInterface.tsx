@@ -472,6 +472,7 @@ export function ChatInterface({
       setInput("");
       if (textareaRef.current) {
         textareaRef.current.style.height = "auto";
+        textareaRef.current.focus();
       }
 
       const userMsgId = `user-${Date.now()}`;
