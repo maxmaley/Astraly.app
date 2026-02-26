@@ -18,8 +18,10 @@
     "newChat": "Новий чат",
     "horoscope": "Гороскоп на сьогодні",
     "calendar": "Астрокалендар",
+    "compatibility": "Сумісність",
     "myChart": "Моя карта",
-    "settings": "Налаштування"
+    "settings": "Налаштування",
+    "comingSoon": "Незабаром"
   },
   "landing": {
     "heroTitle": "Зірки знали про тебе все.",

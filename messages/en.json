@@ -18,8 +18,10 @@
     "newChat": "New Chat",
     "horoscope": "Today's Horoscope",
     "calendar": "Astro Calendar",
+    "compatibility": "Compatibility",
     "myChart": "My Chart",
-    "settings": "Settings"
+    "settings": "Settings",
+    "comingSoon": "Soon"
   },
   "landing": {
     "heroTitle": "The Stars Knew Everything About You.",
