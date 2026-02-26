@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useTranslations, useLocale } from "next-intl";
+import { useRouter } from "@/navigation";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -423,6 +424,7 @@ export function ChatInterface({
   const currentChatIdRef = useRef<string | undefined>(chatId);
   const t = useTranslations("chat");
   const locale = useLocale();
+  const router = useRouter();
 
   // Load history when chatId provided
   useEffect(() => {
@@ -517,11 +519,10 @@ export function ChatInterface({
                 newChatId = data.value;
                 if (!currentChatIdRef.current && newChatId) {
                   currentChatIdRef.current = newChatId;
-                  window.history.replaceState(
-                    null,
-                    "",
-                    `/${locale}/app/chat/${newChatId}`
-                  );
+                  // Use Next.js router so it knows about the URL change.
+                  // This makes "New Chat" work: router sees /app/chat/{id}
+                  // and properly navigates away when user clicks New Chat.
+                  router.replace(`/app/chat/${newChatId}`, { locale });
                 }
               } else if (data.type === "delta") {
                 fullContent += data.value;
@@ -553,7 +554,7 @@ export function ChatInterface({
         streamingMsgIdRef.current = null;
       }
     },
-    [isLoading, locale, t]
+    [isLoading, locale, router, t]
   );
 
   // Auto-send initial prompt (e.g. "Explain my chart") once history loads
