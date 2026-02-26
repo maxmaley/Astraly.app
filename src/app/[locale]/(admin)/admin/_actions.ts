@@ -27,11 +27,12 @@ async function requireAdmin(): Promise<void> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthenticated");
 
-  const { data: profile } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile } = await (supabase as any)
     .from("users")
     .select("is_admin")
     .eq("id", user.id)
-    .single();
+    .single() as { data: { is_admin: boolean } | null };
 
   if (!profile?.is_admin) throw new Error("Forbidden");
 }
