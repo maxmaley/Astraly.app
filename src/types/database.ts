@@ -58,6 +58,8 @@ export interface Database {
           telegram_chat_id: string | null;
           notify_email: boolean;
           notify_telegram: boolean;
+          is_admin: boolean;
+          is_banned: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -73,6 +75,8 @@ export interface Database {
           telegram_chat_id?: string | null;
           notify_email?: boolean;
           notify_telegram?: boolean;
+          is_admin?: boolean;
+          is_banned?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -86,6 +90,8 @@ export interface Database {
           telegram_chat_id?: string | null;
           notify_email?: boolean;
           notify_telegram?: boolean;
+          is_admin?: boolean;
+          is_banned?: boolean;
           updated_at?: string;
         };
       };

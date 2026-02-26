@@ -44,6 +44,22 @@ export async function middleware(request: NextRequest) {
   // Path without locale prefix (e.g. /ru/app/chat → /app/chat)
   const pathWithoutLocale = pathname.slice(locale.length + 1) || "/";
 
+  // Protect /admin/* — must be authenticated AND is_admin
+  if (pathWithoutLocale.startsWith("/admin")) {
+    if (!user) {
+      return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
+    }
+    const { data: profile } = await supabase
+      .from("users")
+      .select("is_admin")
+      .eq("id", user.id)
+      .single();
+    if (!profile?.is_admin) {
+      return NextResponse.redirect(new URL(`/${locale}/app/chart`, request.url));
+    }
+    return response;
+  }
+
   // Protect /app/* — unauthenticated → redirect to login
   if (pathWithoutLocale.startsWith("/app") && !user) {
     const loginUrl = new URL(`/${locale}/login`, request.url);
