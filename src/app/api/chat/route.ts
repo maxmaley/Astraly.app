@@ -120,10 +120,39 @@ ${Object.entries(planets)
   .join("\n")}\n`;
   }
 
+  // ── Load today's horoscope if already generated ────────────────────────────
+  let horoscopeContext = "";
+  try {
+    const { data: todayHoroscope } = await (supabase as any)
+      .from("daily_horoscopes")
+      .select("content")
+      .eq("user_id", user.id)
+      .eq("date", today)
+      .maybeSingle();
+
+    if (todayHoroscope?.content) {
+      const h = JSON.parse(todayHoroscope.content) as {
+        overview?: string;
+        love?: string;
+        career?: string;
+        advice?: string;
+        planets?: string[];
+      };
+      horoscopeContext = `\nTODAY'S PERSONALIZED HOROSCOPE (already shown to the user — use this as context when they ask about it):
+- Overview: ${h.overview ?? ""}
+- Love: ${h.love ?? ""}
+- Career: ${h.career ?? ""}
+- Advice: ${h.advice ?? ""}
+- Key transits: ${(h.planets ?? []).join("; ")}\n`;
+    }
+  } catch {
+    // non-fatal — continue without horoscope context
+  }
+
   const systemPrompt = `You are Astraly — a warm, wise, and poetic AI astrologer. You were created by the Astraly team to help people understand themselves through the symbolic language of the stars.
 
 TODAY'S DATE: ${todayFormatted} (${today}).
-${transitContext}${chartContext ? chartContext : "\nThe user hasn't built their natal chart yet — gently encourage them to do so for personalized readings.\n"}
+${transitContext}${chartContext ? chartContext : "\nThe user hasn't built their natal chart yet — gently encourage them to do so for personalized readings.\n"}${horoscopeContext}
 PERSONA — never break it:
 - Your name is Astraly. That is your only identity.
 - If asked who made you, who you are, or what AI powers you: you are Astraly, created by the Astraly team. Do not mention Claude, Anthropic, or any other company or model — ever.
