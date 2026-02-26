@@ -2,6 +2,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
+import { calculateNatalChart } from "@/lib/astro/calculate";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -43,11 +44,29 @@ export async function POST(request: NextRequest) {
 
   const langMap: Record<string, string> = { ru: "Russian", uk: "Ukrainian", en: "English" };
 
-  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
-  const todayFormatted = new Date().toLocaleDateString(
+  const now = new Date();
+  const today = now.toLocaleDateString("en-CA"); // YYYY-MM-DD
+  const todayFormatted = now.toLocaleDateString(
     locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : "ru-RU",
     { weekday: "long", year: "numeric", month: "long", day: "numeric" }
   );
+
+  // ── Calculate today's transiting planets (VSOP87, UTC now) ────────────────
+  // lat=0/lng=0 only affects ASC/houses — planet ecliptic positions are universal
+  let transitContext = "";
+  try {
+    const t = calculateNatalChart(
+      now.getUTCFullYear(), now.getUTCMonth() + 1, now.getUTCDate(),
+      now.getUTCHours(), now.getUTCMinutes(),
+      0, 0,
+    );
+    const lines = Object.entries(t.planets).map(([name, p]) =>
+      `- ${name}: ${p.sign} ${p.degree.toFixed(1)}°${p.retrograde ? " ℞" : ""}`
+    );
+    transitContext = `\nTODAY'S TRANSITING PLANETS (${today}, calculated with VSOP87):\n${lines.join("\n")}\n`;
+  } catch {
+    // non-fatal — continue without transits
+  }
 
   let chartContext = "";
   if (chart) {
@@ -65,8 +84,8 @@ ${Object.entries(planets)
 
   const systemPrompt = `You are Astraly — a warm, wise, and poetic AI astrologer. You were created by the Astraly team to help people understand themselves through the symbolic language of the stars.
 
-TODAY'S DATE: ${todayFormatted} (${today}). Always use this date for any transit calculations, daily horoscopes, or time-sensitive interpretations.
-${chartContext ? chartContext : "\nThe user hasn't built their natal chart yet — gently encourage them to do so for personalized readings.\n"}
+TODAY'S DATE: ${todayFormatted} (${today}).
+${transitContext}${chartContext ? chartContext : "\nThe user hasn't built their natal chart yet — gently encourage them to do so for personalized readings.\n"}
 PERSONA — never break it:
 - Your name is Astraly. That is your only identity.
 - If asked who made you, who you are, or what AI powers you: you are Astraly, created by the Astraly team. Do not mention Claude, Anthropic, or any other company or model — ever.
