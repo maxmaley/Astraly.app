@@ -122,12 +122,16 @@ function checkRetrograde(
   return d < 0;
 }
 
-// Ascendant — Meeus Ch. 11, p. 99
+// Ascendant — ecliptic longitude of the eastern horizon point.
+// The analytic formula tan(A) = -cos(RAMC) / (sin ε·tan φ + cos ε·sin RAMC)
+// via atan2 gives a value that points to the WESTERN horizon (Descendant).
+// Adding π rotates it to the eastern horizon (Ascendant). Verified against
+// Einstein 1879-03-14 10:50 UTC: gives Cancer 11.65° vs Astro.com Cancer 11.3°.
 function calcAsc(lastSec: number, epsilon: number, phiRad: number): number {
   const lastRad = norm(lastSec * Math.PI / 43200);
   const [sinL, cosL] = [Math.sin(lastRad), Math.cos(lastRad)];
   const [sinE, cosE] = [Math.sin(epsilon), Math.cos(epsilon)];
-  return norm(Math.atan2(-cosL, sinE * Math.tan(phiRad) + cosE * sinL));
+  return norm(Math.atan2(-cosL, sinE * Math.tan(phiRad) + cosE * sinL) + Math.PI);
 }
 
 // MC from RAMC and obliquity
@@ -151,6 +155,18 @@ function calcMC(RAMC_deg: number, eps: number): number {
 //   λ     = atan2(sin RA / cos ε, cos RA)  — back from RA to ecliptic lon
 //
 // Solved iteratively (typically converges in < 10 steps to < 0.1 arcsec).
+//
+// Correct Placidus RA targets (SA_d = diurnal semi-arc = 90° + AD,
+//                               SA_n = nocturnal semi-arc = 90° − AD):
+//
+//   Upper (H11/H12, n=1/2): divide MC→ASC arc into thirds from MC
+//     H11: RA = RAMC + 1·SA_d/3 = RAMC +  30° + (1/3)·AD
+//     H12: RA = RAMC + 2·SA_d/3 = RAMC +  60° + (2/3)·AD
+//
+//   Lower (H2/H3, n=1/2): divide IC→ASC nocturnal arc into thirds from IC
+//     H3 (1/3 from IC): RA = RAMC − 210° + (1/3)·AD
+//     H2 (2/3 from IC): RA = RAMC − 240° + (2/3)·AD
+//   → for n=1→H2, n=2→H3: RA = RAMC − (9−n)·30° + ((3−n)/3)·AD
 
 function placidusIntermediate(
   RAMC_deg: number,
@@ -159,8 +175,11 @@ function placidusIntermediate(
   n: number,          // 1 or 2
   upper: boolean,     // true → houses 11/12; false → houses 2/3
 ): number {
-  const initialOffset = upper ? n * 30 : (n + 6) * 30;
-  let lambdaDeg = normDeg(RAMC_deg + initialOffset);
+  // Initial guess: approximate ecliptic longitude for the target RA
+  const initialLambdaDeg = upper
+    ? normDeg(RAMC_deg + n * 30)
+    : normDeg(RAMC_deg - (9 - n) * 30);
+  let lambdaDeg = initialLambdaDeg;
 
   for (let iter = 0; iter < 50; iter++) {
     const lambda = lambdaDeg * DEG;
@@ -170,15 +189,15 @@ function placidusIntermediate(
     if (Math.abs(sinDelta) > 1) break;
     const delta = Math.asin(sinDelta);
 
-    // Ascensional difference
+    // Ascensional difference  AD = arcsin(tan φ · tan δ)
     const tanProd = Math.tan(phi) * Math.tan(delta);
     if (Math.abs(tanProd) >= 1) return norm(lambda); // circumpolar
     const AD_deg = Math.asin(tanProd) / DEG;
 
     // Target RA for this cusp
     const RA_deg = upper
-      ? RAMC_deg + n * 30 + (n + 3) / 3 * AD_deg
-      : RAMC_deg + (n + 6) * 30 - (n + 3) / 3 * AD_deg;
+      ? RAMC_deg + n * 30 + (n / 3) * AD_deg
+      : RAMC_deg - (9 - n) * 30 + ((3 - n) / 3) * AD_deg;
 
     // RA → ecliptic longitude: tan(λ) = tan(RA) / cos(ε)
     const RA_rad = RA_deg * DEG;
