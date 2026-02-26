@@ -54,9 +54,9 @@ export async function middleware(request: NextRequest) {
     return redirect;
   }
 
-  // Auth pages → redirect already-logged-in users to app
+  // Landing page or auth pages → redirect already-logged-in users to app
   if (
-    (pathWithoutLocale === "/login" || pathWithoutLocale === "/register") &&
+    (pathWithoutLocale === "/" || pathWithoutLocale === "/login" || pathWithoutLocale === "/register") &&
     user
   ) {
     return NextResponse.redirect(new URL(`/${locale}/app/chart`, request.url));
