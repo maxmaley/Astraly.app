@@ -262,7 +262,8 @@
     "Pluto": "Плутон",
     "NorthNode": "Сев. Узел",
     "SouthNode": "Юж. Узел",
-    "Lilith": "Лилит"
+    "Lilith": "Лилит",
+    "Chiron": "Хирон"
   },
   "aspects": {
     "title": "Аспекты",

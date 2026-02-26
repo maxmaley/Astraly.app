@@ -103,11 +103,11 @@ const ASPECT_DEFS: AspectDef[] = [
 
 const ALL_POINT_KEYS = [
   "Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto",
-  "NorthNode","SouthNode","Lilith",
+  "NorthNode","SouthNode","Lilith","Chiron",
 ];
 
 const SPECIAL_POINT_SYMBOLS: Record<string, string> = {
-  NorthNode: "☊", SouthNode: "☋", Lilith: "⚸",
+  NorthNode: "☊", SouthNode: "☋", Lilith: "⚸", Chiron: "⚷",
 };
 
 interface AspectResult { p1: string; p2: string; def: AspectDef; orb: number }
@@ -486,7 +486,7 @@ export default function ChartPage() {
         </div>
 
         {/* ── Special points ────────────────────────────────────────────────── */}
-        {(planets.NorthNode || planets.SouthNode || planets.Lilith) && (
+        {(planets.NorthNode || planets.SouthNode || planets.Lilith || planets.Chiron) && (
           <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
             <div className="px-4 py-2.5 border-b border-[var(--border)]">
               <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">{tSP("title")}</span>
@@ -497,7 +497,7 @@ export default function ChartPage() {
               <span className="text-xs text-[var(--muted-foreground)]">{t("house")}</span>
               <span className="text-xs text-[var(--muted-foreground)] text-right">°</span>
             </div>
-            {(["NorthNode","SouthNode","Lilith"] as const).map((key, i) => {
+            {(["NorthNode","SouthNode","Lilith","Chiron"] as const).map((key, i) => {
               const p = planets[key];
               if (!p) return null;
               return (

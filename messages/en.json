@@ -262,7 +262,8 @@
     "Pluto": "Pluto",
     "NorthNode": "North Node",
     "SouthNode": "South Node",
-    "Lilith": "Lilith"
+    "Lilith": "Lilith",
+    "Chiron": "Chiron"
   },
   "aspects": {
     "title": "Aspects",
