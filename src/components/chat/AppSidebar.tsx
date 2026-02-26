@@ -5,8 +5,6 @@ import { useEffect, useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Link, usePathname, useRouter } from "@/navigation";
 import { useTranslations, useLocale } from "next-intl";
-import { ThemeToggle } from "@/components/shared/ThemeToggle";
-import { LanguageSwitcher } from "@/components/shared/LanguageSwitcher";
 
 interface ChatSummary {
   id: string;
@@ -287,17 +285,6 @@ export function AppSidebar({ isOpen, onClose }: Props) {
             {tNav("myChart")}
           </Link>
           <Link
-            href="/app/pricing"
-            onClick={onClose}
-            className={navItemCls(pathname === "/app/pricing")}
-          >
-            {/* Pricing / star icon */}
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-            </svg>
-            {tNav("pricing")}
-          </Link>
-          <Link
             href="/app/settings"
             onClick={onClose}
             className={navItemCls(pathname === "/app/settings")}
@@ -320,36 +307,29 @@ export function AppSidebar({ isOpen, onClose }: Props) {
           </Link>
         </div>
 
-        {/* Footer: theme, language, user */}
-        <div className="shrink-0 border-t border-[var(--sidebar-border)] px-3 py-3 space-y-2">
-          <div className="flex items-center gap-2">
-            <ThemeToggle />
-            <LanguageSwitcher />
-          </div>
-          <div className="flex items-center justify-between">
-            <div className="flex min-w-0 items-center gap-2">
+        {/* Footer: user row */}
+        <div className="shrink-0 border-t border-[var(--sidebar-border)] px-3 py-3">
+          <div className="flex items-center justify-between gap-2">
+            {/* Clicking avatar/email → Settings */}
+            <Link
+              href="/app/settings"
+              onClick={onClose}
+              className="flex min-w-0 items-center gap-2 rounded-lg px-1.5 py-1 transition-colors hover:bg-[var(--muted)]"
+            >
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 text-[11px] font-bold text-white">
                 {userEmail?.[0]?.toUpperCase() || "U"}
               </div>
               <span className="truncate text-xs text-[var(--muted-foreground)]">
                 {userEmail || "..."}
               </span>
-            </div>
+            </Link>
+
             <button
               onClick={handleSignOut}
               className="shrink-0 rounded-md p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
               title={tCommon("logout")}
             >
-              <svg
-                width="14"
-                height="14"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" />
               </svg>
             </button>
