@@ -163,8 +163,7 @@ interface DayPanelProps {
 }
 
 function DayPanel({ day, locale, onClose }: DayPanelProps) {
-  const t  = useTranslations("calendar");
-  const tC = useTranslations("chat");
+  const t = useTranslations("calendar");
 
   if (!day) {
     return (
@@ -181,9 +180,7 @@ function DayPanel({ day, locale, onClose }: DayPanelProps) {
     { weekday: "long", day: "numeric", month: "long" },
   );
 
-  const chatHref = `/app/chat?prompt=${encodeURIComponent(
-    tC("suggestTodayPrompt") + " " + day.date
-  )}`;
+  const chatHref = `/app/chat?date=${day.date}`;
 
   return (
     <div className="flex flex-col gap-4">
