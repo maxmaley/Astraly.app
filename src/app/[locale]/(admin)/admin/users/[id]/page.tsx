@@ -56,8 +56,9 @@ export default async function UserDetailPage({
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adminAny = admin as any;
   const [{ data: user }, { count: chartsCount }] = await Promise.all([
-    (admin as any)
+    adminAny
       .from("users")
       .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, created_at, updated_at, lang, notify_email, notify_telegram")
       .eq("id", id)
