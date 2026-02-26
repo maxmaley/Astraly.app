@@ -4,7 +4,7 @@
  * Planetary positions: VSOP87 Series B — accuracy < 1 arcminute for all planets.
  * House system: Placidus — the professional standard (used by Astro.com, Solar Fire, etc.)
  * Fallback for latitudes > 66°: Equal houses (Placidus is undefined near poles).
- * Chiron: Swiss Ephemeris (swisseph) — same engine as Astro.com.
+ * Chiron: Keplerian two-body (MPC/IAU elements) — ~1–2° accuracy, no native deps.
  */
 import { CalendarGregorianToJD } from "astronomia/julian";
 import baseModule from "astronomia/base";
@@ -23,19 +23,6 @@ import jupiterData from "astronomia/data/vsop87Bjupiter";
 import saturnData from "astronomia/data/vsop87Bsaturn";
 import uranusData from "astronomia/data/vsop87Buranus";
 import neptuneData from "astronomia/data/vsop87Bneptune";
-import path from "path";
-
-// ── Swiss Ephemeris (Chiron) ──────────────────────────────────────────────────
-// swisseph is a native Node.js module — server-side only.
-let swe: typeof import("swisseph") | null = null;
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  swe = require("swisseph") as typeof import("swisseph");
-  // Point to the bundled ephemeris data files shipped with the npm package
-  swe.swe_set_ephe_path(path.join(process.cwd(), "node_modules/swisseph/ephe"));
-} catch {
-  // Falls back gracefully: Chiron will be omitted if the native module is unavailable
-}
 
 const { pmod, JDEToJulianYear } = baseModule;
 
@@ -84,7 +71,7 @@ export interface ChartResult {
     NorthNode: PlanetData;
     SouthNode: PlanetData;
     Lilith: PlanetData;
-    Chiron?: PlanetData; // requires Swiss Ephemeris
+    Chiron: PlanetData; // Keplerian ~1–2° accuracy
   };
   ascendant: AscendantData;
   houses: HouseData[];
@@ -301,6 +288,50 @@ function findHouse(planetLon: number, cusps: number[]): number {
   return 1;
 }
 
+// ── Chiron (Keplerian two-body) ───────────────────────────────────────────────
+//
+// Osculating elements from MPC/IAU (J2000 ecliptic plane).
+// Perihelion: 1996-Feb-14 (JDE 2450128.5).  Accuracy: ~1–2° over 1900–2100.
+//
+function calcChironHelio(jde: number): { lon: number; lat: number; range: number } {
+  const a  = 13.6329;          // semi-major axis (AU)
+  const e  = 0.38220;          // eccentricity
+  const i  = 6.9226  * DEG;   // inclination (rad)
+  const Om = 208.864 * DEG;   // longitude of ascending node (rad)
+  const w  = 339.317 * DEG;   // argument of perihelion (rad)
+  const JDE_peri = 2450128.5; // perihelion epoch
+  const P_days   = 50.70 * 365.25; // orbital period (days)
+
+  let M = ((jde - JDE_peri) / P_days * TWO_PI) % TWO_PI;
+  if (M < 0) M += TWO_PI;
+
+  // Kepler's equation — Newton-Raphson
+  let E = M;
+  for (let k = 0; k < 50; k++) {
+    const dE = (M - E + e * Math.sin(E)) / (1 - e * Math.cos(E));
+    E += dE;
+    if (Math.abs(dE) < 1e-10) break;
+  }
+
+  const nu = 2 * Math.atan2(
+    Math.sqrt(1 + e) * Math.sin(E / 2),
+    Math.sqrt(1 - e) * Math.cos(E / 2),
+  );
+  const r = a * (1 - e * Math.cos(E));
+
+  // Heliocentric rectangular in J2000 ecliptic frame
+  const cosOm = Math.cos(Om), sinOm = Math.sin(Om);
+  const cosW  = Math.cos(w),  sinW  = Math.sin(w);
+  const cosI  = Math.cos(i),  sinI  = Math.sin(i);
+  const cosNu = Math.cos(nu), sinNu = Math.sin(nu);
+
+  const x = r * ((cosOm * cosW - sinOm * sinW * cosI) * cosNu + (-cosOm * sinW - sinOm * cosW * cosI) * sinNu);
+  const y = r * ((sinOm * cosW + cosOm * sinW * cosI) * cosNu + (-sinOm * sinW + cosOm * cosW * cosI) * sinNu);
+  const z = r * ((sinW * sinI) * cosNu + (cosW * sinI) * sinNu);
+
+  return { lon: Math.atan2(y, x), lat: Math.atan2(z, Math.sqrt(x * x + y * y)), range: r };
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 /**
@@ -377,18 +408,32 @@ export function calculateNatalChart(
   // Lilith (apogee) = perigee + 180°
   const lilithLon = normDeg(83.3532465 + 4069.0137287 * T - 0.0103200 * T2 - T3 / 80053 + 180) * DEG;
 
-  // Chiron (2060) — Swiss Ephemeris, same accuracy as Astro.com
-  let chironLon: number | null = null;
-  let chironRetrograde = false;
-  if (swe) {
-    try {
-      const r = swe.swe_calc_ut(jde, swe.SE_CHIRON, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
-      if ("longitude" in r) {
-        chironLon = r.longitude * DEG; // degrees → radians
-        chironRetrograde = r.longitudeSpeed < 0;
-      }
-    } catch { /* skip Chiron if swe fails */ }
-  }
+  // ── Chiron (Keplerian, ~1–2° accuracy, no native deps) ─────────────────────
+  const chironJ2000  = calcChironHelio(jde);
+  const chironGeoLon = Math.atan2(
+    toRect(chironJ2000.lon, chironJ2000.lat, chironJ2000.range).y - toRect(earthJ2000.lon, earthJ2000.lat, earthJ2000.range).y,
+    toRect(chironJ2000.lon, chironJ2000.lat, chironJ2000.range).x - toRect(earthJ2000.lon, earthJ2000.lat, earthJ2000.range).x,
+  );
+  const chironPrec = precess({ lon: chironGeoLon, lat: 0 }, 2000.0, epochNow);
+  const chironLon  = norm(chironPrec.lon + Δψ);
+
+  // Retrograde: compare geocentric J2000 longitude ±1 day
+  const chN = calcChironHelio(jde + 1);
+  const chP = calcChironHelio(jde - 1);
+  const eN  = earth.position2000(jde + 1);
+  const eP  = earth.position2000(jde - 1);
+  const chGeoN = Math.atan2(
+    toRect(chN.lon, chN.lat, chN.range).y - toRect(eN.lon, eN.lat, eN.range).y,
+    toRect(chN.lon, chN.lat, chN.range).x - toRect(eN.lon, eN.lat, eN.range).x,
+  );
+  const chGeoP = Math.atan2(
+    toRect(chP.lon, chP.lat, chP.range).y - toRect(eP.lon, eP.lat, eP.range).y,
+    toRect(chP.lon, chP.lat, chP.range).x - toRect(eP.lon, eP.lat, eP.range).x,
+  );
+  let chDelta = chGeoN - chGeoP;
+  if (chDelta >  Math.PI) chDelta -= TWO_PI;
+  if (chDelta < -Math.PI) chDelta += TWO_PI;
+  const chironRetrograde = chDelta < 0;
 
   // ── Ascendant & MC ───────────────────────────────────────────────────────
   const gastSec  = gast(jde);
@@ -428,7 +473,7 @@ export function calculateNatalChart(
       NorthNode: planet(northNodeLon, false),
       SouthNode: planet(southNodeLon, false),
       Lilith:    planet(lilithLon,    false),
-      ...(chironLon !== null ? { Chiron: planet(chironLon, chironRetrograde) } : {}),
+      Chiron:    planet(chironLon,    chironRetrograde),
     },
     ascendant: {
       sign:     ascSignDeg.sign,
