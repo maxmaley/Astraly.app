@@ -57,6 +57,8 @@ function NatalChartWidget() {
   const [chart, setChart] = useState<ChartRecord | null>(null);
   const [expanded, setExpanded] = useState(false);
   const t = useTranslations("chat");
+  const tS = useTranslations("signs");
+  const tP = useTranslations("planets");
 
   useEffect(() => {
     fetch("/api/natal-chart")
@@ -74,6 +76,10 @@ function NatalChartWidget() {
   const asc = chart.ascendant;
   const planets = chart.planets_json ?? {};
 
+  // Safe translate helpers — fall back to raw key if translation missing
+  const sign = (s: string) => { try { return tS(s as Parameters<typeof tS>[0]); } catch { return s; } };
+  const planet = (p: string) => { try { return tP(p as Parameters<typeof tP>[0]); } catch { return p; } };
+
   return (
     <div className="mx-auto max-w-3xl px-4 pt-4">
       <div className="overflow-hidden rounded-2xl border border-cosmic-500/25 bg-gradient-to-r from-cosmic-500/8 to-nebula-500/8">
@@ -89,11 +95,11 @@ function NatalChartWidget() {
                 {chart.name} · {t("chartWidget")}
               </p>
               <p className="mt-0.5 truncate text-[11px] text-[var(--muted-foreground)]">
-                {sun && <>{SIGN_SYMBOLS[sun.sign]} {sun.sign}</>}
+                {sun && <>{SIGN_SYMBOLS[sun.sign]} {sign(sun.sign)}</>}
                 {" · "}
-                {moon && <>{SIGN_SYMBOLS[moon.sign]} {moon.sign}</>}
+                {moon && <>{SIGN_SYMBOLS[moon.sign]} {sign(moon.sign)}</>}
                 {" · ASC "}
-                {asc && <>{SIGN_SYMBOLS[asc.sign]} {asc.sign}</>}
+                {asc && <>{SIGN_SYMBOLS[asc.sign]} {sign(asc.sign)}</>}
               </p>
             </div>
           </div>
@@ -122,7 +128,7 @@ function NatalChartWidget() {
               </div>
               <div className="flex items-center gap-1.5">
                 <span className="text-sm text-cosmic-400">{SIGN_SYMBOLS[asc.sign]}</span>
-                <span className="text-xs text-[var(--foreground)]">{asc.sign}</span>
+                <span className="text-xs text-[var(--foreground)]">{sign(asc.sign)}</span>
               </div>
               <span className="text-xs text-[var(--muted-foreground)]">1</span>
               <span className="text-right text-[11px] text-[var(--muted-foreground)] tabular-nums">{formatDeg(asc.degree)}</span>
@@ -137,12 +143,12 @@ function NatalChartWidget() {
                   <div key={name} className="grid grid-cols-[2fr_2fr_1fr_1fr] gap-x-2 items-center px-4 py-2">
                     <div className="flex items-center gap-2">
                       <span className="w-5 text-center text-sm text-[var(--muted-foreground)]">{PLANET_SYMBOLS[name]}</span>
-                      <span className="text-xs font-medium text-[var(--foreground)]">{name}</span>
+                      <span className="text-xs font-medium text-[var(--foreground)]">{planet(name)}</span>
                       {p.retrograde && <span className="text-[10px] text-amber-400 font-semibold">℞</span>}
                     </div>
                     <div className="flex items-center gap-1.5">
                       <span className="text-sm text-cosmic-400">{SIGN_SYMBOLS[p.sign]}</span>
-                      <span className="text-xs text-[var(--foreground)]">{p.sign}</span>
+                      <span className="text-xs text-[var(--foreground)]">{sign(p.sign)}</span>
                     </div>
                     <span className="text-xs text-[var(--muted-foreground)]">{p.house}</span>
                     <span className="text-right text-[11px] text-[var(--muted-foreground)] tabular-nums">{formatDeg(p.degree)}</span>

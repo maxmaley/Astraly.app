@@ -202,7 +202,7 @@ export default function ChartPage() {
   // ── Render: loading ─────────────────────────────────────────────────────────
   if (state === "loading") {
     return (
-      <div className="flex h-full min-h-[calc(100vh-4rem)] items-center justify-center">
+      <div className="flex flex-1 min-h-0 items-center justify-center">
         <Spinner />
       </div>
     );
@@ -211,7 +211,7 @@ export default function ChartPage() {
   // ── Render: building ────────────────────────────────────────────────────────
   if (state === "building") {
     return (
-      <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col items-center justify-center gap-4">
+      <div className="flex flex-1 min-h-0 flex-col items-center justify-center gap-4">
         <Spinner />
         <p className="text-sm text-[var(--muted-foreground)] animate-pulse">{t("buildingChart")}</p>
       </div>
@@ -221,7 +221,7 @@ export default function ChartPage() {
   // ── Render: API error ───────────────────────────────────────────────────────
   if (state === "error") {
     return (
-      <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col items-center justify-center gap-4 px-4 text-center">
+      <div className="flex flex-1 min-h-0 flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-[var(--muted-foreground)] text-sm">{error}</p>
         <button onClick={loadChart} className="text-sm text-cosmic-400 hover:text-cosmic-300">
           ↺ {t("retry")}
@@ -233,7 +233,7 @@ export default function ChartPage() {
   // ── Render: birth data form ─────────────────────────────────────────────────
   if (state === "form") {
     return (
-      <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col items-center justify-center px-4 py-12">
+      <div className="flex flex-1 min-h-0 overflow-y-auto flex-col items-center justify-center px-4 py-12">
         <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-0">
           <div className="absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-cosmic-500/8 blur-[100px]" />
         </div>

@@ -56,7 +56,7 @@ export function LanguageSwitcher() {
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 z-50 min-w-[140px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] py-1 shadow-cosmic">
+        <div className="absolute bottom-11 right-0 z-50 min-w-[140px] overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--card)] py-1 shadow-cosmic">
           {routing.locales.map((l) => (
             <button
               key={l}
