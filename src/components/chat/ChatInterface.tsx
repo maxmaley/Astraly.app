@@ -620,7 +620,7 @@ export function ChatInterface({
         streamingMsgIdRef.current = null;
       }
     },
-    [isLoading, locale, router, t]
+    [isLoading, locale, router, t, tier]
   );
 
   // Auto-send initial prompt (e.g. "Explain my chart") once history loads

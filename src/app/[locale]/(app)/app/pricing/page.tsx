@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useLocale }                     from "next-intl";
-import { useRouter }                     from "@/navigation";
 import { createClient }                  from "@/lib/supabase/client";
 import {
   PLANS, PLAN_ORDER, formatPrice,
@@ -71,8 +70,6 @@ function buildFeatureList(
 ): FeatureItem[] {
   const plan     = PLANS[id];
   const labels   = C.featureLabels[l];
-  const allFeatures: Feature[] = ["chat", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"];
-
   const chartCount = plan.maxCharts === -1 ? "∞" : String(plan.maxCharts);
 
   return [
@@ -144,9 +141,6 @@ function PlanCard({
   const l    = locale;
   const plan = PLANS[id];
   const isCurrent  = id === currentTier;
-  const isHigher   = currentTier
-    ? PLAN_ORDER.indexOf(id) > PLAN_ORDER.indexOf(currentTier)
-    : id !== "free";
 
   // Price display
   const price = plan.price.monthly === 0
@@ -265,7 +259,6 @@ function PlanCard({
 export default function PricingPage() {
   const locale     = useLocale() as "ru" | "uk" | "en";
   const l          = (["ru", "uk", "en"] as const).includes(locale) ? locale : "ru" as const;
-  const router     = useRouter();
   const supabase   = useMemo(() => createClient(), []);
 
   const [yearly,      setYearly]      = useState(false);
@@ -299,6 +292,7 @@ export default function PricingPage() {
 
   return (
     <div className="mx-auto max-w-5xl px-4 py-6 sm:py-10">
+      {toast && <ComingSoonToast msg={toast} onClose={() => setToast(null)} />}
 
       {/* Header */}
       <div className="mb-8 text-center">
