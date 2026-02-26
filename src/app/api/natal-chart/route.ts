@@ -3,6 +3,30 @@ import { createClient } from "@/lib/supabase/server";
 import { geocodeCity } from "@/lib/geocode";
 import { calculateNatalChart } from "@/lib/astro/calculate";
 import type { Relation } from "@/types/database";
+import { find as findTimezone } from "geo-tz";
+
+/** Convert local birth time in a given IANA timezone to a UTC Date. */
+function localToUTC(
+  year: number, month: number, day: number,
+  hour: number, minute: number,
+  tzName: string,
+): Date {
+  // Use Intl to get the UTC offset at this date/time in the target timezone.
+  // We probe with a naive-UTC date and iterate once to correct for DST edge cases.
+  const naiveMs = Date.UTC(year, month - 1, day, hour, minute);
+  const probe = new Date(naiveMs);
+
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: tzName,
+    year: "numeric", month: "numeric", day: "numeric",
+    hour: "numeric", minute: "numeric", hour12: false,
+  }).formatToParts(probe);
+
+  const get = (t: string) => parseInt(parts.find(p => p.type === t)?.value ?? "0");
+  const tzMs = Date.UTC(get("year"), get("month") - 1, get("day"), get("hour") % 24, get("minute"));
+  const offsetMs = tzMs - naiveMs; // tz local - UTC = offset
+  return new Date(naiveMs - offsetMs);
+}
 
 interface CreateChartBody {
   name: string;
@@ -56,27 +80,26 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Parse birth date & time and convert local → UTC ──────────────────────
-  // The user enters local time at the birth location. We estimate the UTC offset
-  // from the longitude (rough but acceptable for astrology: 1h per 15° longitude).
   const [year, month, day] = birth_date.split("-").map(Number);
 
   let localHour = 12; // noon when birth time is unknown
   let localMinute = 0;
   if (birth_time) {
-    const parts = birth_time.split(":");
-    localHour = parseInt(parts[0], 10);
-    localMinute = parseInt(parts[1], 10);
+    const [h, m] = birth_time.split(":").map(Number);
+    localHour = h;
+    localMinute = m;
   }
 
-  // Estimate UTC offset from longitude and apply it
-  const utcOffsetHours = Math.round(lng / 15);
-  const localMs = Date.UTC(year, month - 1, day, localHour, localMinute);
-  const utcDate = new Date(localMs - utcOffsetHours * 3_600_000);
-  const hour = utcDate.getUTCHours();
-  const minute = utcDate.getUTCMinutes();
+  // Look up the exact IANA timezone for the birth coordinates, then convert
+  // local birth time → UTC properly (handles DST, historical offsets, etc.)
+  const tzResults = findTimezone(lat, lng);
+  const tzName = tzResults[0] ?? "UTC";
+  const utcDate = localToUTC(year, month, day, localHour, localMinute, tzName);
   const utcYear = utcDate.getUTCFullYear();
   const utcMonth = utcDate.getUTCMonth() + 1;
   const utcDay = utcDate.getUTCDate();
+  const hour = utcDate.getUTCHours();
+  const minute = utcDate.getUTCMinutes();
 
   // ── Calculate chart ───────────────────────────────────────────────────────
   let chartResult;
