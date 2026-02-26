@@ -1,19 +1,44 @@
-import { getTranslations } from "next-intl/server";
-import { getLocale } from "next-intl/server";
+import { getTranslations, getLocale } from "next-intl/server";
 import { Link } from "@/navigation";
+import { PLANS, PLAN_ORDER, formatPrice, canAccess } from "@/lib/plans";
+import type { SubscriptionTier } from "@/types/database";
 
-const PLAN_IDS = ["starlight", "moonlight", "solar", "cosmic"] as const;
-type PlanId = typeof PLAN_IDS[number];
+interface FeatureItem {
+  text: string;
+  included: boolean;
+}
 
-const PLAN_ICONS: Record<PlanId, string> = {
-  starlight: "⭐",
-  moonlight: "🌙",
-  solar: "☀️",
-  cosmic: "🌌",
-};
+type TranslateFn = Awaited<ReturnType<typeof getTranslations>>;
+
+function buildFeatureList(id: SubscriptionTier, t: TranslateFn): FeatureItem[] {
+  const plan = PLANS[id];
+  const n = plan.maxCharts;
+
+  let chartsText: string;
+  if (n === -1) {
+    chartsText = t("pricing.featureLabels.chartsUnlimited");
+  } else if (n === 1) {
+    chartsText = t("pricing.featureLabels.chartsOne");
+  } else {
+    chartsText = t("pricing.featureLabels.chartsMany", { n });
+  }
+
+  const items: FeatureItem[] = [
+    { text: t("pricing.featureLabels.chat"),          included: canAccess(id, "chat")          },
+    { text: chartsText,                               included: true                            },
+    { text: t("pricing.featureLabels.multiCharts"),   included: canAccess(id, "multi_charts")   },
+    { text: t("pricing.featureLabels.horoscope"),     included: canAccess(id, "horoscope")      },
+    { text: t("pricing.featureLabels.calendar"),      included: canAccess(id, "calendar")       },
+    { text: t("pricing.featureLabels.notifications"), included: canAccess(id, "notifications")  },
+    { text: t("pricing.featureLabels.priorityAi"),    included: canAccess(id, "priority_ai")    },
+  ];
+
+  // Hide multi_charts row for free plan (redundant with chartsOne)
+  return items.filter((_, i) => !(i === 2 && id === "free"));
+}
 
 export async function Pricing() {
-  const t = await getTranslations();
+  const t      = await getTranslations();
   const locale = await getLocale();
 
   return (
@@ -40,18 +65,13 @@ export async function Pricing() {
 
         {/* Cards grid */}
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {PLAN_IDS.map((id) => {
-            const price = t(`pricing.plans.${id}.price`);
-            const name = t(`pricing.plans.${id}.name`);
-            const isFree = price === "0";
-            const isPopular = id === "solar";
-
-            // Features array — we use hardcoded indices since next-intl doesn't support array iteration easily
-            const features: string[] = [];
-            const rawFeatures = t.raw(`pricing.plans.${id}.features`);
-            if (Array.isArray(rawFeatures)) {
-              features.push(...rawFeatures as string[]);
-            }
+          {PLAN_ORDER.map((id) => {
+            const plan         = PLANS[id];
+            const isFree       = plan.price.monthly === 0;
+            const isPopular    = plan.highlight;
+            const displayPrice = formatPrice(plan.price.monthly);
+            const features     = buildFeatureList(id, t);
+            const tagline      = t(`pricing.taglines.${id}` as Parameters<typeof t>[0]);
 
             return (
               <div
@@ -62,77 +82,80 @@ export async function Pricing() {
                     : "border border-[var(--border)] bg-[var(--card)] hover:border-cosmic-500/40"
                 }`}
               >
-                {/* Popular banner — inline at top of card */}
+                {/* Popular banner */}
                 {isPopular ? (
                   <div className="-mx-px -mt-px mb-0 flex items-center justify-center gap-1.5 rounded-t-2xl bg-gradient-to-r from-cosmic-500 to-nebula-500 py-2 text-xs font-bold text-white">
                     ✦ {t("pricing.popular")}
                   </div>
                 ) : (
-                  <div className="py-2" /> /* spacer so all cards align */
+                  <div className="py-2" />
                 )}
+
                 <div className="flex flex-1 flex-col p-6 pt-4">
-
-                {/* Icon + Name */}
-                <div className="mb-4 flex items-center gap-3">
-                  <span className="text-2xl">{PLAN_ICONS[id]}</span>
-                  <h3 className="font-display text-base font-bold text-[var(--foreground)]">
-                    {name}
-                  </h3>
-                </div>
-
-                {/* Price */}
-                <div className="mb-6">
-                  {isFree ? (
-                    <div className="flex items-baseline gap-1">
-                      <span className="font-display text-4xl font-bold text-[var(--foreground)]">
-                        {t("pricing.free")}
-                      </span>
+                  {/* Icon + Name + Tagline */}
+                  <div className="mb-4 flex items-center gap-3">
+                    <span className="text-2xl">{plan.icon}</span>
+                    <div>
+                      <h3 className={`font-display text-base font-bold ${plan.color}`}>
+                        {plan.name}
+                      </h3>
+                      <p className="text-xs text-[var(--muted-foreground)]">{tagline}</p>
                     </div>
-                  ) : (
-                    <div className="flex items-baseline gap-1">
-                      <span className="text-lg font-medium text-[var(--muted-foreground)]">$</span>
-                      <span className="font-display text-4xl font-bold text-[var(--foreground)]">
-                        {price}
-                      </span>
-                      <span className="text-sm text-[var(--muted-foreground)]">
-                        {t("pricing.perMonth")}
-                      </span>
-                    </div>
-                  )}
-                  {!isFree && (
-                    <p className="mt-1 text-xs text-cosmic-400">
-                      {t("pricing.trial")}
-                    </p>
-                  )}
+                  </div>
+
+                  {/* Price */}
+                  <div className="mb-6">
+                    {isFree ? (
+                      <div className="flex items-baseline gap-1">
+                        <span className="font-display text-4xl font-bold text-[var(--foreground)]">
+                          {t("pricing.free")}
+                        </span>
+                      </div>
+                    ) : (
+                      <div className="flex items-baseline gap-1">
+                        <span className="text-lg font-medium text-[var(--muted-foreground)]">$</span>
+                        <span className="font-display text-4xl font-bold text-[var(--foreground)]">
+                          {displayPrice}
+                        </span>
+                        <span className="text-sm text-[var(--muted-foreground)]">
+                          {t("pricing.perMonth")}
+                        </span>
+                      </div>
+                    )}
+                    {!isFree && (
+                      <p className="mt-1 text-xs text-cosmic-400">{t("pricing.trial")}</p>
+                    )}
+                  </div>
+
+                  {/* Feature list with ✓/✗ */}
+                  <ul className="mb-8 flex flex-grow flex-col gap-2.5">
+                    {features.map((feat, i) => (
+                      <li key={i} className="flex items-start gap-2.5 text-sm">
+                        <span className={`mt-0.5 shrink-0 ${feat.included ? "text-emerald-400" : "text-[var(--border)]"}`}>
+                          {feat.included ? "✓" : "✗"}
+                        </span>
+                        <span className={feat.included ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)] line-through decoration-[var(--border)]"}>
+                          {feat.text}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+
+                  {/* CTA */}
+                  <Link
+                    href="/register"
+                    locale={locale}
+                    className={`block rounded-xl py-3 text-center text-sm font-semibold transition-all ${
+                      isPopular
+                        ? "bg-gradient-to-r from-cosmic-500 to-nebula-500 text-white shadow-glow hover:shadow-cosmic hover:scale-[1.02]"
+                        : isFree
+                          ? "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]"
+                          : "border border-cosmic-500/50 text-cosmic-600 dark:text-cosmic-300 hover:bg-cosmic-500/10"
+                    }`}
+                  >
+                    {isFree ? t("pricing.startFree") : t("pricing.startTrial")}
+                  </Link>
                 </div>
-
-                {/* Features */}
-                <ul className="mb-8 flex flex-grow flex-col gap-3">
-                  {features.map((feat) => (
-                    <li key={feat} className="flex items-start gap-2.5 text-sm text-[var(--foreground)]">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mt-0.5 flex-shrink-0 text-cosmic-400">
-                        <path d="m5 13 4 4L19 7" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                      {feat}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* CTA */}
-                <Link
-                  href="/register"
-                  locale={locale}
-                  className={`block rounded-xl py-3 text-center text-sm font-semibold transition-all ${
-                    isPopular
-                      ? "bg-gradient-to-r from-cosmic-500 to-nebula-500 text-white shadow-glow hover:shadow-cosmic hover:scale-[1.02]"
-                      : isFree
-                      ? "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]"
-                      : "border border-cosmic-500/50 text-cosmic-600 dark:text-cosmic-300 hover:bg-cosmic-500/10"
-                  }`}
-                >
-                  {isFree ? t("pricing.startFree") : t("pricing.startTrial")}
-                </Link>
-                </div>{/* end inner flex */}
               </div>
             );
           })}

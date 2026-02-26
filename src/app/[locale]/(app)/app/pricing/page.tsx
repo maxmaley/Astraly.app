@@ -28,6 +28,26 @@ const C = {
   ctaCurrent:    { ru: "✓ Активный план",              uk: "✓ Активний план",                en: "✓ Active plan"                },
   soonModal:     { ru: "Оплата подключается — скоро здесь появится кнопка 🔜", uk: "Оплата підключається — незабаром тут з'явиться кнопка 🔜", en: "Payment is coming — the button will appear here soon 🔜" },
   free:          { ru: "Бесплатно",                    uk: "Безкоштовно",                    en: "Free"                         },
+  taglines: {
+    ru: {
+      free:      "Первые шаги к звёздам",
+      moonlight: "Для семьи и близких",
+      solar:     "Ежедневная астрология",
+      cosmic:    "Безграничное познание",
+    },
+    uk: {
+      free:      "Перші кроки до зір",
+      moonlight: "Для сім'ї та близьких",
+      solar:     "Щоденна астрологія",
+      cosmic:    "Безмежне пізнання",
+    },
+    en: {
+      free:      "First steps to the stars",
+      moonlight: "For family & loved ones",
+      solar:     "Daily astrology",
+      cosmic:    "Boundless knowledge",
+    },
+  },
   // Feature label keys (match PLANS[x].featureLabels keys)
   featureLabels: {
     ru: {
@@ -172,7 +192,7 @@ function PlanCard({
             <span className="text-2xl">{plan.icon}</span>
             <div>
               <p className={`text-base font-bold ${plan.color}`}>{plan.name}</p>
-              <p className="text-xs text-[var(--muted-foreground)]">{plan.tagline}</p>
+              <p className="text-xs text-[var(--muted-foreground)]">{C.taglines[l][id]}</p>
             </div>
           </div>
           <div className="flex flex-col items-end gap-1">

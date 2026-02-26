@@ -184,6 +184,23 @@
     "noHidden": "No hidden fees",
     "startFree": "Start for free",
     "startTrial": "Try 3 days free",
+    "featureLabels": {
+      "chat": "AI astrologer chat",
+      "chartsOne": "1 natal chart",
+      "chartsMany": "Up to {n} charts",
+      "chartsUnlimited": "Unlimited charts",
+      "multiCharts": "Charts for loved ones",
+      "horoscope": "Daily personal horoscope",
+      "calendar": "Full astro calendar",
+      "notifications": "Email notifications",
+      "priorityAi": "Priority AI access"
+    },
+    "taglines": {
+      "free": "First steps to the stars",
+      "moonlight": "For family & loved ones",
+      "solar": "Daily astrology",
+      "cosmic": "Boundless knowledge"
+    },
     "plans": {
       "starlight": {
         "name": "Starlight",
@@ -206,7 +223,7 @@
       },
       "solar": {
         "name": "Solar Oracle",
-        "price": "3.99",
+        "price": "4.99",
         "features": [
           "Everything in Moonlight",
           "Active daily dialogue",
@@ -216,7 +233,7 @@
       },
       "cosmic": {
         "name": "Cosmic Mind",
-        "price": "4.99",
+        "price": "9.99",
         "features": [
           "Everything in Solar Oracle",
           "Priority AI access",
@@ -234,6 +251,7 @@
     "email": "Email",
     "plan": "Plan",
     "tokensLeft": "tokens left",
+    "tokensUnlimited": "Unlimited tokens",
     "tokensBalance": "Token balance",
     "tokensReset": "Resets monthly",
     "upgradeCta": "Upgrade plan →",
