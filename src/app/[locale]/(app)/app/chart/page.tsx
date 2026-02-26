@@ -118,9 +118,10 @@ export default function ChartPage() {
     if (!res.ok) {
       const json = await res.json().catch(() => ({})) as { error?: string };
       console.error("[chart] POST failed", res.status, json);
-      const msg = json.error?.includes("City not found")
+      const serverMsg = json.error ?? "";
+      const msg = serverMsg.includes("City not found")
         ? t("cityError")
-        : `${t("errorGeneric")} (${res.status})`;
+        : serverMsg || `${t("errorGeneric")} (${res.status})`;
       setError(msg);
       setState("form");
       return;
@@ -210,7 +211,7 @@ export default function ChartPage() {
       <div className="flex h-full min-h-[calc(100vh-4rem)] flex-col items-center justify-center gap-4 px-4 text-center">
         <p className="text-[var(--muted-foreground)] text-sm">{error}</p>
         <button onClick={loadChart} className="text-sm text-cosmic-400 hover:text-cosmic-300">
-          ↺ {t("retry") ?? "Retry"}
+          ↺ {t("retry")}
         </button>
       </div>
     );
