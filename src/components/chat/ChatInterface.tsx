@@ -526,10 +526,10 @@ export function ChatInterface({
                 newChatId = data.value;
                 if (!currentChatIdRef.current && newChatId) {
                   currentChatIdRef.current = newChatId;
-                  // Use Next.js router so it knows about the URL change.
-                  // This makes "New Chat" work: router sees /app/chat/{id}
-                  // and properly navigates away when user clicks New Chat.
-                  router.replace(`/app/chat/${newChatId}`, { locale });
+                  // Update URL without triggering Next.js navigation (which would
+                  // remount the component and abort the ongoing stream).
+                  // After streaming ends, dispatch a popstate so the router syncs.
+                  window.history.replaceState(null, "", `/${locale}/app/chat/${newChatId}`);
                 }
               } else if (data.type === "delta") {
                 fullContent += data.value;
@@ -550,6 +550,9 @@ export function ChatInterface({
         }
 
         window.dispatchEvent(new CustomEvent("astraly:chat:refresh"));
+        // Sync Next.js router to the new URL (set via history.replaceState during stream)
+        // without remounting the component.
+        if (newChatId) router.replace(`/app/chat/${newChatId}`, { locale });
       } catch {
         setMessages((prev) =>
           prev.map((m) =>
