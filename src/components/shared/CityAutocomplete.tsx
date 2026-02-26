@@ -29,9 +29,9 @@ interface PhotonFeature {
   };
 }
 
-// Map locale to Photon language code
+// Photon supports only de/fr/it/en — fall back to en for ru/uk
 const PHOTON_LANG: Record<string, string> = {
-  ru: "ru", uk: "uk", en: "en",
+  en: "en", de: "de", fr: "fr", it: "it",
 };
 
 export function CityAutocomplete({ value, onChange, placeholder, error, className }: Props) {
