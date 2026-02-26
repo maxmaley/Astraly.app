@@ -1,5 +1,7 @@
-import Link       from "next/link";
-import { getLocale } from "next-intl/server";
+"use client";
+
+import Link        from "next/link";
+import { useParams } from "next/navigation";
 
 const COPY: Record<string, { heading: string; sub: string; label: string }> = {
   ru: {
@@ -19,21 +21,19 @@ const COPY: Record<string, { heading: string; sub: string; label: string }> = {
   },
 };
 
-export default async function NotFound() {
-  const locale = await getLocale();
-  const c      = COPY[locale] ?? COPY.en;
+export default function NotFound() {
+  const params = useParams();
+  const locale = (params?.locale as string) ?? "ru";
+  const c      = COPY[locale] ?? COPY.ru;
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-[var(--background)] px-6 text-center">
 
       {/* ── Animated star field ── */}
       <div aria-hidden className="pointer-events-none absolute inset-0">
-        {/* Layer 1 — small slow stars */}
-        <div className="stars-sm absolute inset-0" />
-        {/* Layer 2 — medium stars */}
-        <div className="stars-md absolute inset-0" />
-        {/* Layer 3 — large bright stars */}
-        <div className="stars-lg absolute inset-0" />
+        <div className="stars-404-sm absolute inset-0" />
+        <div className="stars-404-md absolute inset-0" />
+        <div className="stars-404-lg absolute inset-0" />
       </div>
 
       {/* ── Glowing orb behind 404 ── */}
@@ -50,30 +50,28 @@ export default async function NotFound() {
       {/* ── Content ── */}
       <div className="relative z-10 flex flex-col items-center gap-6">
 
-        {/* Planet illustration */}
+        {/* Planet + orbiting star */}
         <div className="relative mb-2 select-none">
-          <span className="text-[88px] leading-none" style={{ filter: "drop-shadow(0 0 32px rgba(139,92,246,0.6))" }}>
+          <span
+            className="text-[88px] leading-none"
+            style={{ filter: "drop-shadow(0 0 32px rgba(139,92,246,0.6))" }}
+          >
             🪐
           </span>
-          {/* Tiny orbiting star */}
-          <span
-            className="orbit-star absolute -top-1 -right-1 text-2xl leading-none"
-            aria-hidden
-          >
+          <span className="orbit-star-404 absolute -top-1 -right-1 text-2xl leading-none" aria-hidden>
             ✦
           </span>
         </div>
 
-        {/* 404 number */}
+        {/* 404 */}
         <p
           className="text-[120px] font-extrabold leading-none tracking-tighter"
           style={{
-            background:    "linear-gradient(135deg, #a78bfa 0%, #818cf8 40%, #c084fc 100%)",
+            background:           "linear-gradient(135deg, #a78bfa 0%, #818cf8 40%, #c084fc 100%)",
             WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
-            backgroundClip: "text",
-            textShadow:    "none",
-            filter:        "drop-shadow(0 0 48px rgba(139,92,246,0.4))",
+            WebkitTextFillColor:  "transparent",
+            backgroundClip:       "text",
+            filter:               "drop-shadow(0 0 48px rgba(139,92,246,0.4))",
           }}
         >
           404
@@ -84,7 +82,7 @@ export default async function NotFound() {
           {c.heading}
         </h1>
 
-        {/* Subtext */}
+        {/* Sub */}
         <p className="max-w-sm text-sm text-[var(--muted-foreground)] sm:text-base">
           {c.sub}
         </p>
@@ -92,60 +90,29 @@ export default async function NotFound() {
         {/* CTA */}
         <Link
           href={`/${locale}`}
-          className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-cosmic-500 to-nebula-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-cosmic-500/30 transition-opacity hover:opacity-90"
+          className="mt-2 inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-violet-500 to-purple-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-violet-500/30 transition-opacity hover:opacity-90"
         >
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+          <svg
+            width="14" height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden
+          >
             <path d="M19 12H5M5 12l7-7M5 12l7 7" />
           </svg>
           {c.label}
         </Link>
 
-        {/* Subtle constellation dots */}
         <div aria-hidden className="mt-8 flex gap-3 opacity-30">
-          {["✦","·","✦","·","✦"].map((s, i) => (
-            <span key={i} className="text-cosmic-400 text-xs">{s}</span>
+          {["✦", "·", "✦", "·", "✦"].map((s, i) => (
+            <span key={i} className="text-violet-400 text-xs">{s}</span>
           ))}
         </div>
       </div>
-
-      {/* ── CSS for stars + orbit animation ── */}
-      <style>{`
-        /* ── Stars ── */
-        .stars-sm, .stars-md, .stars-lg {
-          background-image: radial-gradient(circle, #fff 1px, transparent 1px);
-          animation: twinkle linear infinite;
-        }
-        .stars-sm {
-          background-size: 200px 200px;
-          opacity: 0.25;
-          animation-duration: 120s;
-        }
-        .stars-md {
-          background-size: 350px 350px;
-          opacity: 0.18;
-          animation-duration: 80s;
-        }
-        .stars-lg {
-          background-size: 600px 600px;
-          opacity: 0.12;
-          animation-duration: 50s;
-        }
-        @keyframes twinkle {
-          from { background-position: 0 0; }
-          to   { background-position: 600px 600px; }
-        }
-
-        /* ── Orbiting star ── */
-        .orbit-star {
-          color: #a78bfa;
-          animation: orbit 4s linear infinite;
-          transform-origin: -28px 28px;
-        }
-        @keyframes orbit {
-          from { transform: rotate(0deg);   }
-          to   { transform: rotate(360deg); }
-        }
-      `}</style>
     </div>
   );
 }
