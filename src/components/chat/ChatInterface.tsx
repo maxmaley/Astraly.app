@@ -389,6 +389,8 @@ export function ChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const initialPromptSentRef = useRef(false);
+  // Track the live chat ID — starts from prop, updated when server returns a new chat_id
+  const currentChatIdRef = useRef<string | undefined>(chatId);
   const t = useTranslations("chat");
   const locale = useLocale();
 
@@ -454,7 +456,7 @@ export function ChatInterface({
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: trimmed,
-            chat_id: chatId,
+            chat_id: currentChatIdRef.current,
             locale,
           }),
         });
@@ -483,7 +485,8 @@ export function ChatInterface({
               const data = JSON.parse(raw);
               if (data.type === "chat_id") {
                 newChatId = data.value;
-                if (!chatId && newChatId) {
+                if (!currentChatIdRef.current && newChatId) {
+                  currentChatIdRef.current = newChatId;
                   window.history.replaceState(
                     null,
                     "",
@@ -520,7 +523,7 @@ export function ChatInterface({
         streamingMsgIdRef.current = null;
       }
     },
-    [chatId, isLoading, locale, t]
+    [isLoading, locale, t]
   );
 
   // Auto-send initial prompt (e.g. "Explain my chart") once history loads
