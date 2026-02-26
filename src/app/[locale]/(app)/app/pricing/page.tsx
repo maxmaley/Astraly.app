@@ -1,0 +1,360 @@
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { useLocale }                     from "next-intl";
+import { useRouter }                     from "@/navigation";
+import { createClient }                  from "@/lib/supabase/client";
+import {
+  PLANS, PLAN_ORDER, formatPrice,
+  canAccess, type Feature,
+}                                        from "@/lib/plans";
+import type { SubscriptionTier }         from "@/types/database";
+
+// ── Copy (inline — no i18n namespace needed for this single page) ─────────────
+
+const C = {
+  title:         { ru: "Тарифы",                       uk: "Тарифи",                        en: "Pricing"                      },
+  subtitle:      { ru: "Выбери свой путь к звёздам",   uk: "Оберіть свій шлях до зір",      en: "Choose your path to the stars" },
+  monthly:       { ru: "Месяц",                        uk: "Місяць",                         en: "Monthly"                      },
+  yearly:        { ru: "Год",                          uk: "Рік",                            en: "Yearly"                       },
+  yearlyBadge:   { ru: "−33%",                         uk: "−33%",                           en: "−33%"                         },
+  perMonth:      { ru: "/мес",                         uk: "/міс",                           en: "/mo"                          },
+  billedYearly:  { ru: "в год",                        uk: "на рік",                         en: "/yr"                          },
+  trialBadge:    { ru: "3 дня бесплатно",              uk: "3 дні безкоштовно",              en: "3 days free"                  },
+  popular:       { ru: "Популярный",                   uk: "Популярний",                     en: "Most popular"                 },
+  current:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
+  ctaFree:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
+  ctaTrial:      { ru: "Начать бесплатно →",           uk: "Почати безкоштовно →",           en: "Start free trial →"           },
+  ctaPaid:       { ru: "Перейти на план →",            uk: "Перейти на план →",              en: "Get this plan →"              },
+  ctaCurrent:    { ru: "✓ Активный план",              uk: "✓ Активний план",                en: "✓ Active plan"                },
+  soonModal:     { ru: "Оплата подключается — скоро здесь появится кнопка 🔜", uk: "Оплата підключається — незабаром тут з'явиться кнопка 🔜", en: "Payment is coming — the button will appear here soon 🔜" },
+  free:          { ru: "Бесплатно",                    uk: "Безкоштовно",                    en: "Free"                         },
+  // Feature label keys (match PLANS[x].featureLabels keys)
+  featureLabels: {
+    ru: {
+      chat:          "AI-чат с астрологом",
+      charts_limit:  (n: string) => `${n} натальная карта${n === "1" ? "" : " (до " + n + ")"}`,
+      multi_charts:  "Карты близких",
+      horoscope:     "Ежедневный личный гороскоп",
+      calendar:      "Полный астро-календарь",
+      notifications: "Email-уведомления",
+      priority_ai:   "Приоритетный AI",
+    },
+    uk: {
+      chat:          "AI-чат з астрологом",
+      charts_limit:  (n: string) => `${n} натальна карта${n === "1" ? "" : " (до " + n + ")"}`,
+      multi_charts:  "Карти близьких",
+      horoscope:     "Щоденний особистий гороскоп",
+      calendar:      "Повний астро-календар",
+      notifications: "Email-сповіщення",
+      priority_ai:   "Пріоритетний AI",
+    },
+    en: {
+      chat:          "AI astrologer chat",
+      charts_limit:  (n: string) => `${n === "1" ? "1 natal" : "Up to " + n} chart${n === "1" ? "" : "s"}`,
+      multi_charts:  "Charts for loved ones",
+      horoscope:     "Daily personal horoscope",
+      calendar:      "Full astro calendar",
+      notifications: "Email notifications",
+      priority_ai:   "Priority AI",
+    },
+  },
+};
+
+// ── Feature list per plan ─────────────────────────────────────────────────────
+
+interface FeatureItem { text: string; included: boolean }
+
+function buildFeatureList(
+  id: SubscriptionTier,
+  l: "ru" | "uk" | "en",
+): FeatureItem[] {
+  const plan     = PLANS[id];
+  const labels   = C.featureLabels[l];
+  const allFeatures: Feature[] = ["chat", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"];
+
+  const chartCount = plan.maxCharts === -1 ? "∞" : String(plan.maxCharts);
+
+  return [
+    {
+      text:     labels.chat,
+      included: canAccess(id, "chat"),
+    },
+    {
+      text:     labels.charts_limit(chartCount),
+      included: true,
+    },
+    {
+      text:     labels.multi_charts,
+      included: canAccess(id, "multi_charts"),
+    },
+    {
+      text:     labels.horoscope,
+      included: canAccess(id, "horoscope"),
+    },
+    {
+      text:     labels.calendar,
+      included: canAccess(id, "calendar"),
+    },
+    {
+      text:     labels.notifications,
+      included: canAccess(id, "notifications"),
+    },
+    {
+      text:     labels.priority_ai,
+      included: canAccess(id, "priority_ai"),
+    },
+  ].filter((_, i) => {
+    // Hide multi_charts from free (redundant with charts_limit)
+    if (i === 2 && id === "free") return false;
+    return true;
+  });
+}
+
+// ── Coming-soon toast ─────────────────────────────────────────────────────────
+
+function ComingSoonToast({ msg, onClose }: { msg: string; onClose: () => void }) {
+  useEffect(() => {
+    const t = setTimeout(onClose, 4000);
+    return () => clearTimeout(t);
+  }, [onClose]);
+
+  return (
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 rounded-2xl border border-[var(--border)] bg-[var(--card)] px-5 py-3.5 shadow-cosmic text-sm text-[var(--foreground)] max-w-xs text-center">
+      {msg}
+    </div>
+  );
+}
+
+// ── Plan card ─────────────────────────────────────────────────────────────────
+
+function PlanCard({
+  id,
+  yearly,
+  currentTier,
+  locale,
+  onUpgrade,
+}: {
+  id:          SubscriptionTier;
+  yearly:      boolean;
+  currentTier: SubscriptionTier | null;
+  locale:      "ru" | "uk" | "en";
+  onUpgrade:   (id: SubscriptionTier) => void;
+}) {
+  const l    = locale;
+  const plan = PLANS[id];
+  const isCurrent  = id === currentTier;
+  const isHigher   = currentTier
+    ? PLAN_ORDER.indexOf(id) > PLAN_ORDER.indexOf(currentTier)
+    : id !== "free";
+
+  // Price display
+  const price = plan.price.monthly === 0
+    ? null
+    : yearly
+      ? { main: plan.price.yearlyMonthly, suffix: `${C.perMonth[l]} · ${formatPrice(plan.price.yearly)} ${C.billedYearly[l]}` }
+      : { main: plan.price.monthly,       suffix: C.perMonth[l] };
+
+  const features = useMemo(() => buildFeatureList(id, l), [id, l]);
+
+  return (
+    <div className={[
+      "relative flex flex-col rounded-2xl border bg-[var(--card)] overflow-hidden transition-all",
+      plan.highlight
+        ? "border-amber-400/40 shadow-[0_0_24px_rgba(251,191,36,0.12)]"
+        : "border-[var(--border)]",
+      isCurrent ? "opacity-70" : "",
+    ].join(" ")}>
+
+      {/* "Most popular" banner */}
+      {plan.highlight && (
+        <div className="absolute top-0 inset-x-0 h-0.5 bg-gradient-to-r from-amber-400/0 via-amber-400 to-amber-400/0" />
+      )}
+
+      <div className="p-6 pb-4">
+        {/* Header row */}
+        <div className="flex items-start justify-between mb-4">
+          <div className="flex items-center gap-2.5">
+            <span className="text-2xl">{plan.icon}</span>
+            <div>
+              <p className={`text-base font-bold ${plan.color}`}>{plan.name}</p>
+              <p className="text-xs text-[var(--muted-foreground)]">{plan.tagline}</p>
+            </div>
+          </div>
+          <div className="flex flex-col items-end gap-1">
+            {plan.highlight && (
+              <span className="rounded-full bg-amber-400/15 px-2 py-0.5 text-[10px] font-semibold text-amber-400">
+                {C.popular[l]}
+              </span>
+            )}
+            {!isCurrent && plan.trialDays > 0 && (
+              <span className="rounded-full bg-cosmic-500/15 px-2 py-0.5 text-[10px] font-medium text-cosmic-400">
+                {C.trialBadge[l]}
+              </span>
+            )}
+            {isCurrent && (
+              <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
+                {C.current[l]}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Price */}
+        <div className="mb-6">
+          {price ? (
+            <>
+              <div className="flex items-baseline gap-1">
+                <span className="text-3xl font-bold text-[var(--foreground)]">
+                  ${formatPrice(price.main)}
+                </span>
+                <span className="text-sm text-[var(--muted-foreground)]">{price.suffix}</span>
+              </div>
+            </>
+          ) : (
+            <div className="flex items-baseline gap-1">
+              <span className="text-3xl font-bold text-[var(--foreground)]">
+                {C.free[l]}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {/* CTA button */}
+        <button
+          disabled={isCurrent}
+          onClick={() => onUpgrade(id)}
+          className={[
+            "w-full rounded-xl py-2.5 text-sm font-semibold transition-all",
+            isCurrent
+              ? "cursor-default bg-[var(--muted)] text-[var(--muted-foreground)]"
+              : plan.highlight
+                ? `bg-gradient-to-r ${plan.gradientFrom} ${plan.gradientTo} text-white hover:opacity-90 active:opacity-75 shadow-sm`
+                : `border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)] hover:border-cosmic-400/30`,
+          ].join(" ")}
+        >
+          {isCurrent
+            ? C.ctaCurrent[l]
+            : plan.trialDays > 0
+              ? C.ctaTrial[l]
+              : plan.price.monthly === 0
+                ? C.ctaFree[l]
+                : C.ctaPaid[l]}
+        </button>
+      </div>
+
+      {/* Feature list */}
+      <div className="border-t border-[var(--border)] px-6 py-4 space-y-2.5 flex-1">
+        {features.map((f, i) => (
+          <div key={i} className="flex items-start gap-2.5">
+            <span className={`mt-0.5 text-sm shrink-0 ${f.included ? "text-emerald-400" : "text-[var(--border)]"}`}>
+              {f.included ? "✓" : "✗"}
+            </span>
+            <span className={`text-sm ${f.included ? "text-[var(--foreground)]" : "text-[var(--muted-foreground)] line-through decoration-[var(--border)]"}`}>
+              {f.text}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ── Main page ─────────────────────────────────────────────────────────────────
+
+export default function PricingPage() {
+  const locale     = useLocale() as "ru" | "uk" | "en";
+  const l          = (["ru", "uk", "en"] as const).includes(locale) ? locale : "ru" as const;
+  const router     = useRouter();
+  const supabase   = useMemo(() => createClient(), []);
+
+  const [yearly,      setYearly]      = useState(false);
+  const [currentTier, setCurrentTier] = useState<SubscriptionTier | null>(null);
+  const [toast,       setToast]       = useState<string | null>(null);
+
+  // Load current tier
+  useEffect(() => {
+    async function load() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from("users")
+        .select("subscription_tier")
+        .eq("id", user.id)
+        .single();
+      if (data?.subscription_tier) setCurrentTier(data.subscription_tier);
+    }
+    load();
+  }, [supabase]);
+
+  function handleUpgrade(id: SubscriptionTier) {
+    if (id === currentTier) return;
+    if (id === "free") return; // can't downgrade to free manually
+
+    // Lemon Squeezy checkout will be wired here.
+    // For now, show a coming-soon toast.
+    setToast(C.soonModal[l]);
+  }
+
+  return (
+    <div className="mx-auto max-w-5xl px-4 py-6 sm:py-10">
+
+      {/* Header */}
+      <div className="mb-8 text-center">
+        <div className="mb-2 inline-flex items-center gap-2">
+          <span className="text-cosmic-400 text-xl">✦</span>
+          <h1 className="text-2xl font-bold text-[var(--foreground)]">{C.title[l]}</h1>
+        </div>
+        <p className="text-sm text-[var(--muted-foreground)]">{C.subtitle[l]}</p>
+
+        {/* Monthly / Yearly toggle */}
+        <div className="mt-5 inline-flex items-center gap-1 rounded-xl border border-[var(--border)] bg-[var(--card)] p-0.5">
+          <button
+            onClick={() => setYearly(false)}
+            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all ${
+              !yearly ? "bg-cosmic-500 text-white shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            {C.monthly[l]}
+          </button>
+          <button
+            onClick={() => setYearly(true)}
+            className={`rounded-lg px-4 py-1.5 text-sm font-medium transition-all flex items-center gap-1.5 ${
+              yearly ? "bg-cosmic-500 text-white shadow-sm" : "text-[var(--muted-foreground)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            {C.yearly[l]}
+            <span className={`text-[10px] font-bold rounded-full px-1.5 py-0.5 ${
+              yearly ? "bg-white/20 text-white" : "bg-emerald-500/15 text-emerald-400"
+            }`}>
+              {C.yearlyBadge[l]}
+            </span>
+          </button>
+        </div>
+      </div>
+
+      {/* Plan grid */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {PLAN_ORDER.map((id) => (
+          <PlanCard
+            key={id}
+            id={id}
+            yearly={yearly}
+            currentTier={currentTier}
+            locale={l}
+            onUpgrade={handleUpgrade}
+          />
+        ))}
+      </div>
+
+      {/* Trial disclaimer */}
+      <p className="mt-6 text-center text-xs text-[var(--muted-foreground)]">
+        {l === "ru" && "Первые 3 дня — бесплатно для любого платного плана. Отмена в любой момент."}
+        {l === "uk" && "Перші 3 дні — безкоштовно для будь-якого платного плану. Скасування будь-коли."}
+        {l === "en" && "First 3 days free on any paid plan. Cancel anytime."}
+      </p>
+
+    </div>
+  );
+}

@@ -1,7 +1,29 @@
 import { NextRequest, NextResponse } from "next/server";
-import { calculateCalendarMonth } from "@/lib/astro/calendar";
+import { createClient }             from "@/lib/supabase/server";
+import { calculateCalendarMonth }   from "@/lib/astro/calendar";
+import { canAccess }                from "@/lib/plans";
 
 export async function GET(req: NextRequest) {
+  // ── Auth + tier check ───────────────────────────────────────────────────────
+  const supabase = await createClient();
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+
+  if (authError || !user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: userRow } = await (supabase as any)
+    .from("users")
+    .select("subscription_tier")
+    .eq("id", user.id)
+    .single();
+
+  if (!canAccess(userRow?.subscription_tier, "calendar")) {
+    return NextResponse.json({ error: "tier_required", required: "solar" }, { status: 403 });
+  }
+
+  // ── Compute calendar ────────────────────────────────────────────────────────
   const params = req.nextUrl.searchParams;
   const year   = parseInt(params.get("year")  ?? String(new Date().getFullYear()), 10);
   const month  = parseInt(params.get("month") ?? String(new Date().getMonth() + 1), 10);

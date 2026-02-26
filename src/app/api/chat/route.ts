@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { calculateNatalChart } from "@/lib/astro/calculate";
+import { PLANS, getMonthlyTokens } from "@/lib/plans";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -28,6 +29,43 @@ export async function POST(request: NextRequest) {
 
   if (!message?.trim()) {
     return NextResponse.json({ error: "Message required" }, { status: 400 });
+  }
+
+  // ── Token limit check + monthly reset ────────────────────────────────────
+  const { data: userRow } = await (supabase as any)
+    .from("users")
+    .select("subscription_tier, tokens_left, tokens_reset_at")
+    .eq("id", user.id)
+    .single();
+
+  const tier         = userRow?.subscription_tier ?? "free";
+  const monthlyLimit = getMonthlyTokens(tier);
+  let   effectiveTokens: number = userRow?.tokens_left ?? 0;
+
+  // Monthly reset: if reset date has passed, restore the full plan allowance
+  if (monthlyLimit !== -1) {
+    const now       = new Date();
+    const resetAt   = userRow?.tokens_reset_at ? new Date(userRow.tokens_reset_at) : null;
+    const needsInit = !resetAt;
+    const needsReset = resetAt && resetAt <= now;
+
+    if (needsInit || needsReset) {
+      effectiveTokens = monthlyLimit;
+      const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      await (supabase as any).from("users").update({
+        tokens_left:     monthlyLimit,
+        tokens_reset_at: nextReset.toISOString(),
+      }).eq("id", user.id);
+    }
+
+    // Hard limit: refuse if no tokens
+    if (effectiveTokens <= 0) {
+      return NextResponse.json({
+        error:            "token_limit",
+        tokens_reset_at:  userRow?.tokens_reset_at ?? null,
+        subscription_tier: tier,
+      }, { status: 402 });
+    }
   }
 
   const chatId = chat_id || crypto.randomUUID();
@@ -147,15 +185,20 @@ STYLE:
         );
 
         const stream = await anthropic.messages.create({
-          model: "claude-haiku-4-5-20251001",
+          model: tier === "cosmic" ? "claude-sonnet-4-6" : "claude-haiku-4-5-20251001",
           max_tokens: 4096,
           system: systemPrompt,
           messages: historyMessages,
           stream: true,
         });
 
+        let inputTokens  = 0;
+        let outputTokens = 0;
+
         for await (const event of stream) {
-          if (
+          if (event.type === "message_start") {
+            inputTokens = event.message.usage?.input_tokens ?? 0;
+          } else if (
             event.type === "content_block_delta" &&
             event.delta.type === "text_delta"
           ) {
@@ -166,16 +209,29 @@ STYLE:
                 `data: ${JSON.stringify({ type: "delta", value: text })}\n\n`
               )
             );
+          } else if (event.type === "message_delta") {
+            outputTokens = (event.usage as any)?.output_tokens ?? 0;
           }
         }
 
-        // Save assistant message
+        const tokensUsed = inputTokens + outputTokens;
+
+        // Deduct tokens (skip for unlimited plans)
+        let tokensLeft = effectiveTokens;
+        if (monthlyLimit !== -1 && tokensUsed > 0) {
+          tokensLeft = Math.max(0, effectiveTokens - tokensUsed);
+          await (supabase as any).from("users")
+            .update({ tokens_left: tokensLeft })
+            .eq("id", user.id);
+        }
+
+        // Save assistant message with actual token count
         await (supabase as any).from("chat_messages").insert({
           user_id: user.id,
           chat_id: chatId,
           role: "assistant",
           content: fullContent,
-          tokens_used: 0,
+          tokens_used: tokensUsed,
         });
 
         // Upsert chat summary (use first user message as title preview)
@@ -201,7 +257,7 @@ STYLE:
         }
 
         controller.enqueue(
-          encoder.encode(`data: ${JSON.stringify({ type: "done" })}\n\n`)
+          encoder.encode(`data: ${JSON.stringify({ type: "done", tokens_left: tokensLeft })}\n\n`)
         );
         controller.close();
       } catch (err) {
