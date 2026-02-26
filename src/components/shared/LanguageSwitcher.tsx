@@ -30,13 +30,14 @@ export function LanguageSwitcher() {
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    setDropdownStyle({
-      position: "fixed",
-      bottom: window.innerHeight - rect.top + 6,
-      left: rect.left,
-      zIndex: 9999,
-      minWidth: 140,
-    });
+    const spaceBelow = window.innerHeight - rect.bottom;
+    const dropdownH = 120; // approximate height of 3 items
+    const openDownward = spaceBelow >= dropdownH || rect.top < dropdownH;
+    setDropdownStyle(
+      openDownward
+        ? { position: "fixed", top: rect.bottom + 6, left: rect.left, zIndex: 9999, minWidth: 140 }
+        : { position: "fixed", bottom: window.innerHeight - rect.top + 6, left: rect.left, zIndex: 9999, minWidth: 140 }
+    );
   }, []);
 
   function handleOpen() {
