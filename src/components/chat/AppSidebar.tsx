@@ -238,25 +238,6 @@ export function AppSidebar({ isOpen, onClose }: Props) {
           )}
         </div>
 
-        {/* Coming soon features */}
-        <div className="shrink-0 border-t border-[var(--sidebar-border)] px-2 py-2">
-          <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]/40">
-            {tNav("comingSoon")}
-          </p>
-          <div className="flex cursor-default select-none items-center gap-2.5 rounded-lg px-3 py-2 text-sm text-[var(--muted-foreground)]/35">
-            <span className="shrink-0 opacity-50">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <path d="M16 2v4M8 2v4M3 10h18" />
-              </svg>
-            </span>
-            <span className="flex-1">{tNav("calendar")}</span>
-            <span className="shrink-0 rounded-full bg-[var(--muted)] px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]/50">
-              {tNav("comingSoon")}
-            </span>
-          </div>
-        </div>
-
         {/* Navigation */}
         <div className="shrink-0 border-t border-[var(--sidebar-border)] px-2 py-2">
           <Link
@@ -270,6 +251,18 @@ export function AppSidebar({ isOpen, onClose }: Props) {
               <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
             </svg>
             {tNav("horoscope")}
+          </Link>
+          <Link
+            href="/app/calendar"
+            onClick={onClose}
+            className={navItemCls(pathname === "/app/calendar")}
+          >
+            {/* Calendar icon */}
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="18" rx="2" />
+              <path d="M16 2v4M8 2v4M3 10h18" />
+            </svg>
+            {tNav("calendar")}
           </Link>
           <Link
             href="/app/chart"
