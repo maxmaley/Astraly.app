@@ -35,19 +35,23 @@ export default async function AdminDashboard({
 }: {
   params: { locale: string };
 }) {
-  const admin = createAdminClient();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const admin = createAdminClient() as any;
+
+  type UserStat    = { subscription_tier: SubscriptionTier; created_at: string };
+  type UserRecent  = { id: string; name: string | null; email: string; subscription_tier: SubscriptionTier; created_at: string };
 
   // Fetch all users (compact — only fields needed for stats)
-  const { data: allUsers } = await admin
+  const { data: allUsers }    = await admin
     .from("users")
-    .select("subscription_tier, created_at");
+    .select("subscription_tier, created_at") as { data: UserStat[] | null };
 
   // Fetch recent sign-ups (last 8)
   const { data: recentUsers } = await admin
     .from("users")
     .select("id, name, email, subscription_tier, created_at")
     .order("created_at", { ascending: false })
-    .limit(8);
+    .limit(8) as { data: UserRecent[] | null };
 
   const total   = allUsers?.length ?? 0;
   const now     = Date.now();

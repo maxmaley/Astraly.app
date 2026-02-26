@@ -32,11 +32,12 @@ export default async function AdminLayout({
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect(`/${locale}/login`);
 
-  const { data: profile } = await supabase
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data: profile } = await (supabase as any)
     .from("users")
     .select("name, email, is_admin")
     .eq("id", user.id)
-    .single();
+    .single() as { data: { name: string | null; email: string; is_admin: boolean } | null };
 
   if (!profile?.is_admin) redirect(`/${locale}/app/chart`);
 

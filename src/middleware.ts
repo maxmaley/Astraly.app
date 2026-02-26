@@ -49,11 +49,12 @@ export async function middleware(request: NextRequest) {
     if (!user) {
       return NextResponse.redirect(new URL(`/${locale}/login`, request.url));
     }
-    const { data: profile } = await supabase
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { data: profile } = await (supabase as any)
       .from("users")
       .select("is_admin")
       .eq("id", user.id)
-      .single();
+      .single() as { data: { is_admin: boolean } | null };
     if (!profile?.is_admin) {
       return NextResponse.redirect(new URL(`/${locale}/app/chart`, request.url));
     }

@@ -45,15 +45,24 @@ export default async function UserDetailPage({
   searchParams: { msg?: string };
 }) {
   const { locale, id } = params;
-  const admin = createAdminClient();
 
+  type AdminUser = {
+    id: string; name: string | null; email: string;
+    subscription_tier: import("@/types/database").SubscriptionTier;
+    tokens_left: number; is_admin: boolean; is_banned: boolean;
+    created_at: string; updated_at: string; lang: string;
+    notify_email: boolean; notify_telegram: boolean;
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const adminAny = createAdminClient() as any;
   const [{ data: user }, { count: chartsCount }] = await Promise.all([
-    admin
+    adminAny
       .from("users")
       .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, created_at, updated_at, lang, notify_email, notify_telegram")
       .eq("id", id)
-      .single(),
-    admin
+      .single() as Promise<{ data: AdminUser | null; error: unknown }>,
+    adminAny
       .from("natal_charts")
       .select("*", { count: "exact", head: true })
       .eq("user_id", id),
