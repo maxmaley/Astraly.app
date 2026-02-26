@@ -94,6 +94,41 @@ export default function ChartPage() {
   const [birthData, setBirthData] = useState<StoredBirthData | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  // ── Build chart (called automatically or on button click) ─────────────────
+  const buildChart = useCallback(async (data: StoredBirthData) => {
+    setState("building");
+    setError(null);
+
+    const res = await fetch("/api/natal-chart", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        name: data.name,
+        relation: "self",
+        birth_date: data.birthDate,
+        birth_time: data.birthTime || "",
+        birth_city: data.birthCity,
+        lat: data.lat,
+        lng: data.lng,
+      }),
+    });
+
+    if (!res.ok) {
+      const json = await res.json() as { error?: string };
+      const msg = json.error?.includes("City not found")
+        ? t("cityError")
+        : t("errorGeneric");
+      setError(msg);
+      setState("ready_to_build");
+      return;
+    }
+
+    const json = await res.json() as { chart: ChartRecord };
+    localStorage.removeItem("astraly_birth_data");
+    setChart(json.chart);
+    setState("chart");
+  }, [t]);
+
   // ── Fetch existing chart on mount ──────────────────────────────────────────
   const loadChart = useCallback(async () => {
     setState("loading");
@@ -107,52 +142,18 @@ export default function ChartPage() {
       // No chart in DB — check localStorage for birth data from registration
       const stored = localStorage.getItem("astraly_birth_data");
       if (stored) {
-        setBirthData(JSON.parse(stored) as StoredBirthData);
-        setState("ready_to_build");
+        const parsed = JSON.parse(stored) as StoredBirthData;
+        setBirthData(parsed);
+        // Auto-build immediately instead of waiting for button click
+        buildChart(parsed);
       } else {
         setState("no_data");
       }
     }
-  }, []);
+  }, [buildChart]);
 
   useEffect(() => { loadChart(); }, [loadChart]);
 
-  // ── Build chart from stored birth data ──────────────────────────────────────
-  async function handleBuild() {
-    if (!birthData) return;
-    setState("building");
-    setError(null);
-
-    const res = await fetch("/api/natal-chart", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        name: birthData.name,
-        relation: "self",
-        birth_date: birthData.birthDate,
-        birth_time: birthData.birthTime || "",
-        birth_city: birthData.birthCity,
-        lat: birthData.lat,
-        lng: birthData.lng,
-      }),
-    });
-
-    if (!res.ok) {
-      const data = await res.json() as { error?: string };
-      const msg = data.error?.includes("City not found")
-        ? t("cityError")
-        : t("errorGeneric");
-      setError(msg);
-      setState("ready_to_build");
-      return;
-    }
-
-    const data = await res.json() as { chart: ChartRecord };
-    // Clear birth data from localStorage — no longer needed
-    localStorage.removeItem("astraly_birth_data");
-    setChart(data.chart);
-    setState("chart");
-  }
 
   // ── Render helpers ─────────────────────────────────────────────────────────
 
@@ -224,7 +225,7 @@ export default function ChartPage() {
               )}
 
               <button
-                onClick={handleBuild}
+                onClick={() => birthData && buildChart(birthData)}
                 className="group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-cosmic-500 via-nebula-500 to-cosmic-400 py-3 text-sm font-semibold text-white shadow-glow transition-all hover:scale-[1.02] hover:shadow-cosmic"
               >
                 <span className="absolute inset-0 bg-white/10 opacity-0 transition-opacity group-hover:opacity-100" />

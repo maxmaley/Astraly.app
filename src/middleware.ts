@@ -59,7 +59,7 @@ export async function middleware(request: NextRequest) {
     (pathWithoutLocale === "/login" || pathWithoutLocale === "/register") &&
     user
   ) {
-    return NextResponse.redirect(new URL(`/${locale}/app/chat`, request.url));
+    return NextResponse.redirect(new URL(`/${locale}/app/chart`, request.url));
   }
 
   return response;

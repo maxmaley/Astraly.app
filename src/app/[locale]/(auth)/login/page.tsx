@@ -48,7 +48,7 @@ export default function LoginPage() {
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
     if (error) { setError(mapError(error.message)); return; }
-    window.location.replace(`/${locale}/app/chat`);
+    window.location.replace(`/${locale}/app/chart`);
   }
 
   async function handleGoogle() {
