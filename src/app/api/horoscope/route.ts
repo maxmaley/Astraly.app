@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { calculateNatalChart } from "@/lib/astro/calculate";
+import { canAccess } from "@/lib/plans";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -20,6 +21,17 @@ export async function GET(request: NextRequest) {
   } = await supabase.auth.getUser();
   if (authError || !user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  // ── Tier check ─────────────────────────────────────────────────────────────
+  const { data: userRow } = await (supabase as any)
+    .from("users")
+    .select("subscription_tier")
+    .eq("id", user.id)
+    .single();
+
+  if (!canAccess(userRow?.subscription_tier, "horoscope")) {
+    return NextResponse.json({ error: "tier_required", required: "solar" }, { status: 403 });
   }
 
   const locale = request.nextUrl.searchParams.get("locale") || "ru";

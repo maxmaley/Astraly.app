@@ -409,7 +409,7 @@ export default function SettingsPage() {
               <p className="text-xs font-medium text-cosmic-400">{t("topPlan")}</p>
             ) : (
               <Link
-                href="/"
+                href="/app/pricing"
                 className={[
                   "rounded-xl bg-gradient-to-r from-cosmic-500 to-nebula-500",
                   "px-4 py-2 text-xs font-semibold text-white",

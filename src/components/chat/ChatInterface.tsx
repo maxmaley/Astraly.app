@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/navigation";
+import { createClient } from "@/lib/supabase/client";
+import { getUsageLevel, PLANS } from "@/lib/plans";
+import { LimitModal } from "@/components/shared/LimitModal";
+import type { SubscriptionTier } from "@/types/database";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -432,6 +436,38 @@ export function ChatInterface({
   const locale = useLocale();
   const router = useRouter();
 
+  // ── Token / plan state ──────────────────────────────────────────────────────
+  const supabase = useMemo(() => createClient(), []);
+  const [tier,         setTier]         = useState<SubscriptionTier>("free");
+  const [tokensLeft,   setTokensLeft]   = useState<number | null>(null);
+  const [tokensReset,  setTokensReset]  = useState<string | null>(null);
+  const [showLimitModal, setShowLimitModal] = useState(false);
+
+  // Load plan info on mount
+  useEffect(() => {
+    async function loadPlan() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (supabase as any)
+        .from("users")
+        .select("subscription_tier, tokens_left, tokens_reset_at")
+        .eq("id", user.id)
+        .single();
+      if (data) {
+        setTier(data.subscription_tier);
+        setTokensLeft(data.tokens_left);
+        setTokensReset(data.tokens_reset_at);
+        // Auto-show modal if already at limit
+        if (data.tokens_left <= 0 && PLANS[data.subscription_tier as SubscriptionTier].monthlyTokens !== -1) {
+          setShowLimitModal(true);
+        }
+      }
+    }
+    loadPlan();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Load history when chatId provided
   useEffect(() => {
     if (!chatId) {
@@ -500,7 +536,20 @@ export function ChatInterface({
           }),
         });
 
-        if (!response.ok || !response.body) throw new Error("API error");
+        if (!response.ok) {
+          // 402 = token limit reached
+          if (response.status === 402) {
+            const errData = await response.json().catch(() => ({}));
+            setTokensLeft(0);
+            if (errData.tokens_reset_at) setTokensReset(errData.tokens_reset_at);
+            setShowLimitModal(true);
+            // Remove the empty assistant bubble we added optimistically
+            setMessages(prev => prev.filter(m => m.id !== assistantMsgId));
+            return;
+          }
+          throw new Error("API error");
+        }
+        if (!response.body) throw new Error("No body");
 
         const reader = response.body.getReader();
         const decoder = new TextDecoder();
@@ -538,6 +587,13 @@ export function ChatInterface({
                     m.id === assistantMsgId ? { ...m, content: fullContent } : m
                   )
                 );
+              } else if (data.type === "done") {
+                if (typeof data.tokens_left === "number") {
+                  setTokensLeft(data.tokens_left);
+                  if (data.tokens_left <= 0 && PLANS[tier].monthlyTokens !== -1) {
+                    setShowLimitModal(true);
+                  }
+                }
               } else if (data.type === "error") {
                 setMessages((prev) =>
                   prev.map((m) =>
@@ -583,10 +639,26 @@ export function ChatInterface({
 
   const isEmpty = messages.length === 0 && !loadingHistory && !initialPrompt;
 
+  // Token usage state for warning/block
+  const usageInfo = tokensLeft !== null
+    ? getUsageLevel(tier, tokensLeft)
+    : null;
+  const isTokenBlocked = usageInfo?.level === "critical";
+  const isTokenWarning = usageInfo?.level === "warning";
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
+      {/* Token limit modal */}
+      {showLimitModal && tokensLeft !== null && (
+        <LimitModal
+          tier={tier}
+          tokensLeft={tokensLeft}
+          tokensResetAt={tokensReset}
+          onClose={() => setShowLimitModal(false)}
+        />
+      )}
       {/* Messages */}
       <div className="min-h-0 flex-1 overflow-y-auto">
         {/* Natal chart widget — always visible at top */}
@@ -634,10 +706,45 @@ export function ChatInterface({
       {/* Input area */}
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--background)]/80 px-4 py-4 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl">
+
+          {/* Token warning banner */}
+          {isTokenWarning && !isTokenBlocked && (
+            <div className="mb-3 flex items-center justify-between rounded-xl border border-amber-400/30 bg-amber-400/8 px-4 py-2.5">
+              <p className="text-xs text-amber-400">
+                {locale === "ru" && "⚠ Сообщения почти закончились — обнови план"}
+                {locale === "uk" && "⚠ Повідомлення майже закінчилися — онови план"}
+                {locale === "en" && "⚠ Running low on messages — consider upgrading"}
+              </p>
+              <button
+                onClick={() => setShowLimitModal(true)}
+                className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition-colors ml-3 shrink-0"
+              >
+                {locale === "ru" ? "Планы →" : locale === "uk" ? "Плани →" : "Plans →"}
+              </button>
+            </div>
+          )}
+
+          {/* Blocked banner */}
+          {isTokenBlocked && (
+            <div className="mb-3 flex items-center justify-between rounded-xl border border-rose-400/30 bg-rose-400/8 px-4 py-2.5">
+              <p className="text-xs text-rose-400">
+                {locale === "ru" && "Лимит сообщений исчерпан"}
+                {locale === "uk" && "Ліміт повідомлень вичерпано"}
+                {locale === "en" && "Message limit reached"}
+              </p>
+              <button
+                onClick={() => setShowLimitModal(true)}
+                className="text-[11px] font-semibold text-cosmic-400 hover:text-cosmic-300 transition-colors ml-3 shrink-0"
+              >
+                {locale === "ru" ? "Открыть доступ →" : locale === "uk" ? "Відкрити доступ →" : "Unlock →"}
+              </button>
+            </div>
+          )}
+
           <div
             className={`relative flex items-end gap-2 rounded-2xl border bg-[var(--input)] px-4 py-3 shadow-sm transition-all ${
-              isLoading
-                ? "border-[var(--border)]"
+              isLoading || isTokenBlocked
+                ? "border-[var(--border)] opacity-70"
                 : "border-[var(--border)] focus-within:border-cosmic-400 focus-within:ring-2 focus-within:ring-cosmic-400/15"
             }`}
           >
@@ -649,12 +756,12 @@ export function ChatInterface({
               onKeyDown={handleKeyDown}
               placeholder={t("placeholder")}
               rows={1}
-              disabled={isLoading}
+              disabled={isLoading || isTokenBlocked}
               className="max-h-[200px] flex-1 resize-none bg-transparent text-sm leading-relaxed text-[var(--foreground)] outline-none placeholder-[var(--muted-foreground)]/50 disabled:opacity-60"
             />
             <button
-              onClick={() => sendMessage(input)}
-              disabled={!input.trim() || isLoading}
+              onClick={() => isTokenBlocked ? setShowLimitModal(true) : sendMessage(input)}
+              disabled={(!input.trim() || isLoading) && !isTokenBlocked}
               className="shrink-0 flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-br from-cosmic-500 to-nebula-500 text-white shadow-glow transition-all hover:scale-105 hover:shadow-cosmic disabled:cursor-not-allowed disabled:opacity-30 disabled:hover:scale-100"
             >
               {isLoading ? (

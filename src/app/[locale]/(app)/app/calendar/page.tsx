@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useTranslations, useLocale }       from "next-intl";
 import { Link }                             from "@/navigation";
 import type { CalendarEvent, DayInfo, EventType } from "@/lib/astro/calendar";
+import { PaywallOverlay }                   from "@/components/shared/PaywallOverlay";
 
 // ── Event visual config ────────────────────────────────────────────────────
 
@@ -272,8 +273,9 @@ export default function CalendarPage() {
   const today = new Date();
   const [year,  setYear]  = useState(today.getFullYear());
   const [month, setMonth] = useState(today.getMonth() + 1); // 1-based
-  const [days,  setDays]  = useState<DayInfo[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [days,       setDays]       = useState<DayInfo[]>([]);
+  const [loading,    setLoading]    = useState(true);
+  const [tierGated,  setTierGated]  = useState(false);
   const [selectedDate, setSelectedDate] = useState<string | null>(
     today.toISOString().slice(0, 10), // preselect today
   );
@@ -285,7 +287,11 @@ export default function CalendarPage() {
     setLoading(true);
     try {
       const res = await fetch(`/api/calendar?year=${y}&month=${m}`);
-      if (!res.ok) throw new Error("fetch failed");
+      if (!res.ok) {
+        const json = await res.json().catch(() => ({}));
+        if (json.error === "tier_required" || res.status === 403) { setTierGated(true); return; }
+        throw new Error("fetch failed");
+      }
       const json = await res.json();
       setDays(json.days as DayInfo[]);
     } catch {
@@ -313,6 +319,9 @@ export default function CalendarPage() {
     setMonth(today.getMonth() + 1);
     setSelectedDate(todayStr);
   }
+
+  // ── Tier gate ──────────────────────────────────────────────────────────
+  if (tierGated) return <PaywallOverlay feature="calendar" />;
 
   // ── Calendar grid logic ────────────────────────────────────────────────
   // Monday-first weekday header (universal for ru/uk/en)

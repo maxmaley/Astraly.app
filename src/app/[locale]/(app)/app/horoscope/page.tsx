@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/navigation";
+import { PaywallOverlay } from "@/components/shared/PaywallOverlay";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -96,7 +97,25 @@ export default function HoroscopePage() {
 
   const [horoscope, setHoroscope] = useState<HoroscopeData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<"no_chart" | "failed" | null>(null);
+  const [error, setError] = useState<"no_chart" | "failed" | "tier_required" | null>(null);
+
+  // ── Client-side session cache ──────────────────────────────────────────────
+  // Prevents re-fetching on every navigation within the same browser session.
+  // The API has its own DB cache (one generation per user per day), but
+  // every mount still triggered a network round-trip + skeleton flash.
+
+  const SESSION_KEY = `astraly:horoscope:${new Date().toLocaleDateString("en-CA")}`;
+
+  function readCache(): HoroscopeData | null {
+    try {
+      const raw = sessionStorage.getItem(SESSION_KEY);
+      return raw ? (JSON.parse(raw) as HoroscopeData) : null;
+    } catch { return null; }
+  }
+
+  function writeCache(data: HoroscopeData) {
+    try { sessionStorage.setItem(SESSION_KEY, JSON.stringify(data)); } catch { /* ignore */ }
+  }
 
   async function fetchHoroscope() {
     setLoading(true);
@@ -105,11 +124,15 @@ export default function HoroscopePage() {
       const res = await fetch(`/api/horoscope?locale=${locale}`);
       if (!res.ok) {
         const json = await res.json().catch(() => ({}));
-        setError(json.error === "no_chart" ? "no_chart" : "failed");
+        if (json.error === "no_chart")      { setError("no_chart");      return; }
+        if (json.error === "tier_required") { setError("tier_required"); return; }
+        setError("failed");
         return;
       }
       const { horoscope: raw } = await res.json();
-      setHoroscope(JSON.parse(raw) as HoroscopeData);
+      const parsed = JSON.parse(raw) as HoroscopeData;
+      writeCache(parsed);
+      setHoroscope(parsed);
     } catch {
       setError("failed");
     } finally {
@@ -118,6 +141,12 @@ export default function HoroscopePage() {
   }
 
   useEffect(() => {
+    const cached = readCache();
+    if (cached) {
+      setHoroscope(cached);
+      setLoading(false);
+      return;
+    }
     fetchHoroscope();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -138,6 +167,11 @@ export default function HoroscopePage() {
         </p>
       </div>
     );
+  }
+
+  // ── Tier gate ─────────────────────────────────────────────────────────────
+  if (error === "tier_required") {
+    return <PaywallOverlay feature="horoscope" />;
   }
 
   // ── No chart ───────────────────────────────────────────────────────────────
