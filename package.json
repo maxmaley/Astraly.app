@@ -24,7 +24,6 @@
     "react": "^18",
     "react-dom": "^18",
     "resend": "^6.9.2",
-    "swisseph": "^0.5.17",
     "tailwind-merge": "^3.5.0"
   },
   "devDependencies": {
