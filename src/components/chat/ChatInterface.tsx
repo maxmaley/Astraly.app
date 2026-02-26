@@ -12,6 +12,150 @@ interface Message {
   created_at?: string;
 }
 
+interface PlanetData {
+  sign: string;
+  degree: number;
+  house: number;
+  retrograde: boolean;
+}
+
+interface ChartRecord {
+  id: string;
+  name: string;
+  birth_date: string;
+  birth_time: string | null;
+  birth_city: string;
+  planets_json: Record<string, PlanetData>;
+  houses_json: Array<{ house: number; sign: string; degree: number }>;
+  ascendant: { sign: string; degree: number; mc_sign?: string; mc_degree?: number };
+}
+
+// ── Symbols ───────────────────────────────────────────────────────────────────
+
+const SIGN_SYMBOLS: Record<string, string> = {
+  Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋",
+  Leo: "♌", Virgo: "♍", Libra: "♎", Scorpio: "♏",
+  Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓",
+};
+
+const PLANET_SYMBOLS: Record<string, string> = {
+  Sun: "☉", Moon: "☽", Mercury: "☿", Venus: "♀",
+  Mars: "♂", Jupiter: "♃", Saturn: "♄", Uranus: "♅",
+  Neptune: "♆", Pluto: "♇",
+};
+
+const PLANET_ORDER = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
+
+function formatDeg(deg: number) {
+  return `${Math.floor(deg)}°${String(Math.floor((deg % 1) * 60)).padStart(2, "0")}′`;
+}
+
+// ── NatalChartWidget ──────────────────────────────────────────────────────────
+
+function NatalChartWidget() {
+  const [chart, setChart] = useState<ChartRecord | null>(null);
+  const [expanded, setExpanded] = useState(false);
+  const t = useTranslations("chat");
+
+  useEffect(() => {
+    fetch("/api/natal-chart")
+      .then((r) => r.json())
+      .then((data) => {
+        if (data.charts?.length) setChart(data.charts[0]);
+      })
+      .catch(() => {});
+  }, []);
+
+  if (!chart) return null;
+
+  const sun = chart.planets_json?.Sun;
+  const moon = chart.planets_json?.Moon;
+  const asc = chart.ascendant;
+  const planets = chart.planets_json ?? {};
+
+  return (
+    <div className="mx-auto max-w-3xl px-4 pt-4">
+      <div className="overflow-hidden rounded-2xl border border-cosmic-500/25 bg-gradient-to-r from-cosmic-500/8 to-nebula-500/8">
+        {/* Collapsed header — always visible */}
+        <button
+          onClick={() => setExpanded((e) => !e)}
+          className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-cosmic-500/5"
+        >
+          <div className="flex min-w-0 items-center gap-3">
+            <span className="shrink-0 text-cosmic-400 text-sm">✦</span>
+            <div className="min-w-0">
+              <p className="text-xs font-semibold text-[var(--foreground)]">
+                {chart.name} · {t("chartWidget")}
+              </p>
+              <p className="mt-0.5 truncate text-[11px] text-[var(--muted-foreground)]">
+                {sun && <>{SIGN_SYMBOLS[sun.sign]} {sun.sign}</>}
+                {" · "}
+                {moon && <>{SIGN_SYMBOLS[moon.sign]} {moon.sign}</>}
+                {" · ASC "}
+                {asc && <>{SIGN_SYMBOLS[asc.sign]} {asc.sign}</>}
+              </p>
+            </div>
+          </div>
+          <svg
+            className={`h-4 w-4 shrink-0 text-[var(--muted-foreground)] transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
+            strokeLinecap="round" strokeLinejoin="round"
+          >
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </button>
+
+        {/* Expanded planet table */}
+        {expanded && (
+          <div className="border-t border-cosmic-500/20">
+            {/* Birth info */}
+            <div className="px-4 py-2.5 text-[11px] text-[var(--muted-foreground)]">
+              {chart.birth_date}{chart.birth_time ? ` · ${chart.birth_time}` : ""} · {chart.birth_city}
+            </div>
+
+            {/* Ascendant row */}
+            <div className="grid grid-cols-[2fr_2fr_1fr_1fr] gap-x-2 items-center border-t border-[var(--border)]/50 bg-[var(--muted)]/20 px-4 py-2.5">
+              <div className="flex items-center gap-2">
+                <span className="w-5 text-center text-sm text-[var(--muted-foreground)]">⟳</span>
+                <span className="text-xs font-semibold text-[var(--foreground)]">ASC</span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-sm text-cosmic-400">{SIGN_SYMBOLS[asc.sign]}</span>
+                <span className="text-xs text-[var(--foreground)]">{asc.sign}</span>
+              </div>
+              <span className="text-xs text-[var(--muted-foreground)]">1</span>
+              <span className="text-right text-[11px] text-[var(--muted-foreground)] tabular-nums">{formatDeg(asc.degree)}</span>
+            </div>
+
+            {/* Planet rows */}
+            <div className="divide-y divide-[var(--border)]/30">
+              {PLANET_ORDER.map((name) => {
+                const p = planets[name];
+                if (!p) return null;
+                return (
+                  <div key={name} className="grid grid-cols-[2fr_2fr_1fr_1fr] gap-x-2 items-center px-4 py-2">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 text-center text-sm text-[var(--muted-foreground)]">{PLANET_SYMBOLS[name]}</span>
+                      <span className="text-xs font-medium text-[var(--foreground)]">{name}</span>
+                      {p.retrograde && <span className="text-[10px] text-amber-400 font-semibold">℞</span>}
+                    </div>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-sm text-cosmic-400">{SIGN_SYMBOLS[p.sign]}</span>
+                      <span className="text-xs text-[var(--foreground)]">{p.sign}</span>
+                    </div>
+                    <span className="text-xs text-[var(--muted-foreground)]">{p.house}</span>
+                    <span className="text-right text-[11px] text-[var(--muted-foreground)] tabular-nums">{formatDeg(p.degree)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ── Inline markdown renderer ──────────────────────────────────────────────────
 
 function renderInline(text: string): React.ReactNode[] {
@@ -123,7 +267,6 @@ function MessageBubble({
           <div className="rounded-2xl rounded-tr-sm bg-gradient-to-br from-cosmic-500 to-nebula-600 px-4 py-3 text-sm text-white shadow-glow">
             <p className="leading-relaxed whitespace-pre-wrap">{message.content}</p>
           </div>
-          {/* Copy on hover */}
           <button
             onClick={copyText}
             className="absolute -left-8 top-1/2 -translate-y-1/2 rounded-md p-1.5 text-[var(--muted-foreground)] opacity-0 transition-all hover:text-[var(--foreground)] group-hover:opacity-100"
@@ -144,10 +287,8 @@ function MessageBubble({
     );
   }
 
-  // Assistant bubble
   return (
     <div className="flex items-start gap-3">
-      {/* AI avatar */}
       <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500/20 to-nebula-500/20 border border-cosmic-400/30 text-sm">
         ✦
       </div>
@@ -161,7 +302,6 @@ function MessageBubble({
           )}
         </div>
 
-        {/* Copy button on hover */}
         {!isTyping && message.content && (
           <button
             onClick={copyText}
@@ -203,7 +343,6 @@ function EmptyState({
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
-      {/* Star glow */}
       <div className="relative mb-6 flex items-center justify-center">
         <div className="absolute inset-0 rounded-full bg-cosmic-500/20 blur-2xl" />
         <div className="relative flex h-16 w-16 items-center justify-center rounded-full border border-cosmic-400/30 bg-gradient-to-br from-cosmic-500/20 to-nebula-500/20 text-3xl shadow-glow">
@@ -218,7 +357,6 @@ function EmptyState({
         {t("emptySubtitle")}
       </p>
 
-      {/* Suggestion chips */}
       <div className="flex max-w-lg flex-wrap justify-center gap-2">
         {suggestions.map((s) => (
           <button
@@ -236,7 +374,13 @@ function EmptyState({
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ChatInterface({ chatId }: { chatId?: string }) {
+export function ChatInterface({
+  chatId,
+  initialPrompt,
+}: {
+  chatId?: string;
+  initialPrompt?: string;
+}) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -244,6 +388,9 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
   const streamingMsgIdRef = useRef<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const initialPromptSentRef = useRef(false);
+  // Track the live chat ID — starts from prop, updated when server returns a new chat_id
+  const currentChatIdRef = useRef<string | undefined>(chatId);
   const t = useTranslations("chat");
   const locale = useLocale();
 
@@ -289,14 +436,12 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
         textareaRef.current.style.height = "auto";
       }
 
-      // Add user message
       const userMsgId = `user-${Date.now()}`;
       setMessages((prev) => [
         ...prev,
         { id: userMsgId, role: "user", content: trimmed, created_at: new Date().toISOString() },
       ]);
 
-      // Add placeholder for assistant
       const assistantMsgId = `assistant-${Date.now() + 1}`;
       streamingMsgIdRef.current = assistantMsgId;
       setMessages((prev) => [
@@ -311,7 +456,7 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: trimmed,
-            chat_id: chatId,
+            chat_id: currentChatIdRef.current,
             locale,
           }),
         });
@@ -340,8 +485,8 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
               const data = JSON.parse(raw);
               if (data.type === "chat_id") {
                 newChatId = data.value;
-                // Update URL without triggering Next.js navigation
-                if (!chatId && newChatId) {
+                if (!currentChatIdRef.current && newChatId) {
+                  currentChatIdRef.current = newChatId;
                   window.history.replaceState(
                     null,
                     "",
@@ -366,7 +511,6 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
           }
         }
 
-        // Notify sidebar to refresh
         window.dispatchEvent(new CustomEvent("astraly:chat:refresh"));
       } catch {
         setMessages((prev) =>
@@ -379,8 +523,15 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
         streamingMsgIdRef.current = null;
       }
     },
-    [chatId, isLoading, locale, t]
+    [isLoading, locale, t]
   );
+
+  // Auto-send initial prompt (e.g. "Explain my chart") once history loads
+  useEffect(() => {
+    if (!initialPrompt || initialPromptSentRef.current || loadingHistory) return;
+    initialPromptSentRef.current = true;
+    sendMessage(initialPrompt);
+  }, [initialPrompt, loadingHistory, sendMessage]);
 
   function handleKeyDown(e: React.KeyboardEvent<HTMLTextAreaElement>) {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -389,7 +540,7 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
     }
   }
 
-  const isEmpty = messages.length === 0 && !loadingHistory;
+  const isEmpty = messages.length === 0 && !loadingHistory && !initialPrompt;
 
   // ── Render ──────────────────────────────────────────────────────────────────
 
@@ -397,8 +548,10 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
     <div className="flex min-h-0 flex-1 flex-col">
       {/* Messages */}
       <div className="min-h-0 flex-1 overflow-y-auto">
+        {/* Natal chart widget — always visible at top */}
+        <NatalChartWidget />
+
         {loadingHistory ? (
-          // Skeleton loading
           <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
             {[1, 2, 3].map((i) => (
               <div
@@ -419,7 +572,7 @@ export function ChatInterface({ chatId }: { chatId?: string }) {
         ) : isEmpty ? (
           <EmptyState onSend={sendMessage} t={t} />
         ) : (
-          <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+          <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
             {messages.map((msg, idx) => (
               <MessageBubble
                 key={msg.id}

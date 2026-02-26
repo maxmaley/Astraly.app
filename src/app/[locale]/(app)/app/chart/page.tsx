@@ -397,17 +397,33 @@ export default function ChartPage() {
         </div>
 
         {/* ── CTA → Chat ────────────────────────────────────────────────────── */}
-        <Link
-          href="/app/chat"
-          locale={locale}
-          className="group flex w-full items-center justify-between rounded-2xl border border-cosmic-500/30 bg-gradient-to-r from-cosmic-500/10 to-nebula-500/10 px-5 py-4 transition-all hover:border-cosmic-400/50 hover:from-cosmic-500/15 hover:to-nebula-500/15"
-        >
-          <div>
-            <p className="text-sm font-semibold text-[var(--foreground)]">{t("explainChart")}</p>
-            <p className="mt-0.5 text-xs text-[var(--muted-foreground)]">{t("goToChat")}</p>
-          </div>
-          <span className="text-xl text-cosmic-400 transition-transform group-hover:translate-x-1">→</span>
-        </Link>
+        <div className="grid grid-cols-2 gap-3">
+          {/* Explain chart */}
+          <Link
+            href="/app/chat?explain=1"
+            locale={locale}
+            className="group flex flex-col justify-between rounded-2xl border border-cosmic-500/40 bg-gradient-to-br from-cosmic-500/15 to-nebula-500/10 px-4 py-4 transition-all hover:border-cosmic-400/60 hover:from-cosmic-500/20 hover:to-nebula-500/15 active:scale-[0.98]"
+          >
+            <span className="mb-3 text-2xl">✦</span>
+            <div>
+              <p className="text-sm font-semibold leading-tight text-[var(--foreground)]">{t("explainChart")}</p>
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">{t("explainChartSubtitle")}</p>
+            </div>
+          </Link>
+
+          {/* Ask astrologer */}
+          <Link
+            href="/app/chat"
+            locale={locale}
+            className="group flex flex-col justify-between rounded-2xl border border-[var(--border)] bg-[var(--card)] px-4 py-4 transition-all hover:border-cosmic-400/40 hover:bg-[var(--muted)] active:scale-[0.98]"
+          >
+            <span className="mb-3 text-2xl">💬</span>
+            <div>
+              <p className="text-sm font-semibold leading-tight text-[var(--foreground)]">{t("askAstrologer")}</p>
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">{t("askAstrologerSubtitle")}</p>
+            </div>
+          </Link>
+        </div>
 
       </div>
     </div>

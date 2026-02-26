@@ -137,14 +137,19 @@
     "yesterday": "Yesterday",
     "older": "Earlier",
     "deleteChat": "Delete chat",
-    "inputHint": "Enter to send · Shift+Enter for new line"
+    "inputHint": "Enter to send · Shift+Enter for new line",
+    "chartWidget": "Natal Chart",
+    "chartWidgetSubtitle": "Tap to view full chart",
+    "explainPrompt": "Please give me a detailed and personalized reading of my natal chart. Tell me about each planet in its sign and house — what it means for my personality, talents, relationships, and life path. Pay special attention to the Sun, Moon, Ascendant, and Mercury. Write warmly and vividly, like a true astrologer."
   },
   "chart": {
     "myChart": "My Chart",
     "closeOnes": "Close Ones",
     "addPerson": "Add Person",
     "explainChart": "Explain my natal chart",
+    "explainChartSubtitle": "AI will give a detailed reading of each planet",
     "askAstrologer": "Ask AI Astrologer",
+    "askAstrologerSubtitle": "Ask any question about your destiny",
     "calculating": "Calculating planet positions...",
     "buildingChart": "Building your natal chart...",
     "noChartTitle": "Build your natal chart",
