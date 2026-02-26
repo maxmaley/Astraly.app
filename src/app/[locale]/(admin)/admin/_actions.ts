@@ -1,12 +1,18 @@
 "use server";
 
-import { cookies }   from "next/headers";
-import { redirect }  from "next/navigation";
+import { cookies }      from "next/headers";
+import { redirect }     from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { createServerClient } from "@supabase/ssr";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { PLANS }     from "@/lib/plans";
+import { PLANS }        from "@/lib/plans";
 import type { SubscriptionTier, Database } from "@/types/database";
+
+// Supabase TypeScript inference returns 'never' for columns added after
+// the initial schema generation. Cast to any to bypass — consistent with
+// the rest of this codebase (settings/page.tsx, pricing/page.tsx).
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const adminDb = () => createAdminClient() as any;
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 
@@ -49,7 +55,7 @@ export async function changePlanAction(formData: FormData) {
   const { monthlyTokens } = PLANS[tier];
   const tokens_left = monthlyTokens === -1 ? 999_999 : monthlyTokens;
 
-  await createAdminClient()
+  await adminDb()
     .from("users")
     .update({ subscription_tier: tier, tokens_left })
     .eq("id", userId);
@@ -65,17 +71,17 @@ export async function resetTokensAction(formData: FormData) {
   const userId = formData.get("userId") as string;
   const locale  = formData.get("locale")  as string;
 
-  const admin = createAdminClient();
-  const { data: user } = await admin
+  const db = adminDb();
+  const { data: user } = await db
     .from("users")
     .select("subscription_tier")
     .eq("id", userId)
     .single();
 
   if (user) {
-    const { monthlyTokens } = PLANS[user.subscription_tier];
+    const { monthlyTokens } = PLANS[user.subscription_tier as SubscriptionTier];
     const tokens_left = monthlyTokens === -1 ? 999_999 : monthlyTokens;
-    await admin.from("users").update({ tokens_left }).eq("id", userId);
+    await db.from("users").update({ tokens_left }).eq("id", userId);
   }
 
   redirect(`/${locale}/admin/users/${userId}?msg=reset`);
@@ -92,17 +98,17 @@ export async function grantTokensAction(formData: FormData) {
 
   if (amount <= 0) redirect(`/${locale}/admin/users/${userId}`);
 
-  const admin = createAdminClient();
-  const { data: user } = await admin
+  const db = adminDb();
+  const { data: user } = await db
     .from("users")
     .select("tokens_left")
     .eq("id", userId)
     .single();
 
   if (user) {
-    await admin
+    await db
       .from("users")
-      .update({ tokens_left: user.tokens_left + amount })
+      .update({ tokens_left: (user.tokens_left as number) + amount })
       .eq("id", userId);
   }
 
@@ -114,11 +120,11 @@ export async function grantTokensAction(formData: FormData) {
 export async function toggleBanAction(formData: FormData) {
   await requireAdmin();
 
-  const userId   = formData.get("userId")  as string;
-  const locale   = formData.get("locale")  as string;
+  const userId    = formData.get("userId") as string;
+  const locale    = formData.get("locale") as string;
   const is_banned = formData.get("ban") === "true";
 
-  await createAdminClient()
+  await adminDb()
     .from("users")
     .update({ is_banned })
     .eq("id", userId);
@@ -127,16 +133,16 @@ export async function toggleBanAction(formData: FormData) {
   redirect(`/${locale}/admin/users/${userId}?msg=ban`);
 }
 
-// ── Grant admin role ──────────────────────────────────────────────────────────
+// ── Grant / revoke admin role ─────────────────────────────────────────────────
 
 export async function toggleAdminAction(formData: FormData) {
   await requireAdmin();
 
-  const userId   = formData.get("userId")  as string;
-  const locale   = formData.get("locale")  as string;
+  const userId   = formData.get("userId") as string;
+  const locale   = formData.get("locale") as string;
   const is_admin = formData.get("grant") === "true";
 
-  await createAdminClient()
+  await adminDb()
     .from("users")
     .update({ is_admin })
     .eq("id", userId);
