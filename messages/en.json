@@ -189,7 +189,7 @@
         "features": [
           "Natal chart for yourself",
           "Introduction to AI Astrologer",
-          "Basic AI astrologer (DeepSeek)"
+          "Basic AI astrologer"
         ]
       },
       "moonlight": {
@@ -199,7 +199,7 @@
           "Charts for you & loved ones",
           "Regular consultations",
           "Unlimited chat with astrologer",
-          "Basic AI astrologer (DeepSeek)"
+          "Basic AI astrologer"
         ]
       },
       "solar": {
@@ -209,7 +209,7 @@
           "Everything in Moonlight",
           "Active daily dialogue",
           "Daily horoscope via email & Telegram",
-          "Advanced AI (Claude Sonnet)"
+          "Advanced AI astrologer"
         ]
       },
       "cosmic": {
@@ -259,6 +259,47 @@
     "Saturn": "Saturn",
     "Uranus": "Uranus",
     "Neptune": "Neptune",
-    "Pluto": "Pluto"
+    "Pluto": "Pluto",
+    "NorthNode": "North Node",
+    "SouthNode": "South Node",
+    "Lilith": "Lilith",
+    "Chiron": "Chiron"
+  },
+  "aspects": {
+    "title": "Aspects",
+    "Conjunction": "Conjunction",
+    "Opposition": "Opposition",
+    "Trine": "Trine",
+    "Square": "Square",
+    "Sextile": "Sextile",
+    "Quincunx": "Quincunx",
+    "orb": "orb"
+  },
+  "housesTable": {
+    "title": "House Table",
+    "houseCol": "House",
+    "h1": "I · Asc",
+    "h2": "II",
+    "h3": "III",
+    "h4": "IV · IC",
+    "h5": "V",
+    "h6": "VI",
+    "h7": "VII · Dsc",
+    "h8": "VIII",
+    "h9": "IX",
+    "h10": "X · MC",
+    "h11": "XI",
+    "h12": "XII"
+  },
+  "specialPoints": {
+    "title": "Special Points"
+  },
+  "reviews": {
+    "r1": "Finally understood why I couldn't find fulfilling work — it was all in my natal chart. The AI explained in 5 minutes what I'd been searching for for years. Now I know which direction to go!",
+    "r2": "It predicted a fight with my boyfriend 3 days in advance — Mercury was square my Mars. Now I track transits daily and conflicts have become so much rarer.",
+    "r3": "I added my mom's chart and learned why our relationship is so complex. Everything matched perfectly. For the first time I found a way to understand her instead of just getting angry.",
+    "r4": "The paid subscription is the best investment I made this year. The daily horoscope arrives in Telegram every morning and is always surprisingly accurate. My husband wants a chart now too 😄",
+    "r5": "I found the perfect day for a negotiation in the astro calendar — Jupiter trine my Mercury. I went to the meeting that exact day and got promoted. Coincidence? I don't think so.",
+    "r6": "I used to think astrology was made up. Came out of curiosity, now I don't make important decisions without the AI astrologer. It's just a different level of self-knowledge."
   }
 }

@@ -1,20 +1,18 @@
 import { getTranslations } from "next-intl/server";
 
-// planKey maps to pricing.plans.{key}.name for i18n plan name display
 const REVIEWS = [
-  { name: "Анастасия К.", sign: "♐ Стрелец", avatar: "А", rating: 5, planKey: "solar",
-    text: "Наконец-то поняла, почему не могу найти работу по душе — всё оказалось в натальной карте. AI объяснил за 5 минут то, что я искала годами. Теперь знаю куда двигаться!" },
-  { name: "Дарья М.", sign: "♏ Скорпион", avatar: "Д", rating: 5, planKey: "moonlight",
-    text: "Предсказало ссору с парнем ещё за 3 дня — Меркурий был квадрат моему Марсу. Теперь слежу за транзитами каждый день и конфликтов стало в разы меньше." },
-  { name: "Виктория Р.", sign: "♈ Овен", avatar: "В", rating: 5, planKey: "solar",
-    text: "Добавила карту мамы и узнала почему у нас такие сложные отношения. Всё сошлось до деталей. Впервые нашла способ понять её, а не просто злиться." },
-  { name: "Марина О.", sign: "♎ Весы", avatar: "М", rating: 5, planKey: "cosmic",
-    text: "Платная подписка — лучшее вложение за этот год. Гороскоп приходит утром в Telegram и всегда удивительно точный. Муж уже тоже хочет карту 😄" },
-  { name: "Алина Т.", sign: "♓ Рыбы", avatar: "А", rating: 5, planKey: "cosmic",
-    text: "Нашла в астрокалендаре лучший день для переговоров — Юпитер трин мой Меркурий. Пошла на встречу именно тогда и получила повышение. Совпадение? Не думаю." },
-  { name: "Ксения Б.", sign: "♋ Рак", avatar: "К", rating: 5, planKey: "moonlight",
-    text: "Думала что астрология — это выдумки. Зашла из любопытства, теперь не принимаю важных решений без AI астролога. Это просто другой уровень самопознания." },
+  { name: "Анастасия К.", sign: "Sagittarius", avatar: "А", rating: 5, planKey: "solar",    textKey: "r1" },
+  { name: "Дарья М.",     sign: "Scorpio",     avatar: "Д", rating: 5, planKey: "moonlight", textKey: "r2" },
+  { name: "Виктория Р.",  sign: "Aries",       avatar: "В", rating: 5, planKey: "solar",    textKey: "r3" },
+  { name: "Марина О.",    sign: "Libra",       avatar: "М", rating: 5, planKey: "cosmic",   textKey: "r4" },
+  { name: "Алина Т.",     sign: "Pisces",      avatar: "А", rating: 5, planKey: "cosmic",   textKey: "r5" },
+  { name: "Ксения Б.",    sign: "Cancer",      avatar: "К", rating: 5, planKey: "moonlight", textKey: "r6" },
 ];
+
+const SIGN_SYMBOLS: Record<string, string> = {
+  Aries: "♈", Taurus: "♉", Gemini: "♊", Cancer: "♋", Leo: "♌", Virgo: "♍",
+  Libra: "♎", Scorpio: "♏", Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓",
+};
 
 function Stars({ count }: { count: number }) {
   return (
@@ -29,12 +27,13 @@ function Stars({ count }: { count: number }) {
 }
 
 export async function Reviews() {
-  const t = await getTranslations("landing");
+  const t  = await getTranslations("landing");
   const tp = await getTranslations("pricing");
+  const ts = await getTranslations("signs");
+  const tr = await getTranslations("reviews");
 
   return (
     <section className="relative overflow-hidden px-4 py-24">
-      {/* Subtle background */}
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-cosmic-500/5 to-transparent"
@@ -62,13 +61,14 @@ export async function Reviews() {
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
-                  {/* Avatar */}
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 font-bold text-white">
                     {r.avatar}
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-[var(--foreground)]">{r.name}</p>
-                    <p className="text-xs text-[var(--muted-foreground)]">{r.sign}</p>
+                    <p className="text-xs text-[var(--muted-foreground)]">
+                      {SIGN_SYMBOLS[r.sign]} {ts(r.sign as Parameters<typeof ts>[0])}
+                    </p>
                   </div>
                 </div>
                 <Stars count={r.rating} />
@@ -76,7 +76,7 @@ export async function Reviews() {
 
               {/* Quote */}
               <p className="flex-1 text-sm leading-relaxed text-[var(--muted-foreground)]">
-                &ldquo;{r.text}&rdquo;
+                &ldquo;{tr(r.textKey as Parameters<typeof tr>[0])}&rdquo;
               </p>
 
               {/* Plan badge */}
@@ -93,8 +93,8 @@ export async function Reviews() {
         <div className="mt-16 flex flex-wrap items-center justify-center gap-8">
           {[
             { value: "10 000+", label: t("reviewsCharts") },
-            { value: "98%", label: t("reviewsRecommend") },
-            { value: "4.9 ★", label: t("reviewsRating") },
+            { value: "98%",     label: t("reviewsRecommend") },
+            { value: "4.9 ★",  label: t("reviewsRating") },
           ].map((s) => (
             <div key={s.label} className="text-center">
               <p className="font-display text-3xl font-bold gradient-text">{s.value}</p>

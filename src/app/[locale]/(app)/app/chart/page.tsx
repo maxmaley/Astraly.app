@@ -80,10 +80,63 @@ function Spinner({ small }: { small?: boolean }) {
 
 // ── Main page ─────────────────────────────────────────────────────────────────
 
+// ── Aspect helpers ────────────────────────────────────────────────────────────
+
+const SIGN_ORDER = [
+  "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+  "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
+] as const;
+
+function absLon(p: PlanetData): number {
+  return (SIGN_ORDER as readonly string[]).indexOf(p.sign) * 30 + p.degree;
+}
+
+interface AspectDef { key: string; symbol: string; angle: number; orb: number; color: string }
+const ASPECT_DEFS: AspectDef[] = [
+  { key: "Conjunction", symbol: "☌", angle: 0,   orb: 8, color: "text-amber-400"   },
+  { key: "Opposition",  symbol: "☍", angle: 180, orb: 8, color: "text-red-400"     },
+  { key: "Trine",       symbol: "△", angle: 120, orb: 8, color: "text-emerald-400" },
+  { key: "Square",      symbol: "□", angle: 90,  orb: 7, color: "text-red-400"     },
+  { key: "Sextile",     symbol: "⚹", angle: 60,  orb: 6, color: "text-emerald-400" },
+  { key: "Quincunx",    symbol: "⚻", angle: 150, orb: 3, color: "text-orange-400"  },
+];
+
+const ALL_POINT_KEYS = [
+  "Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto",
+  "NorthNode","SouthNode","Lilith","Chiron",
+];
+
+const SPECIAL_POINT_SYMBOLS: Record<string, string> = {
+  NorthNode: "☊", SouthNode: "☋", Lilith: "⚸", Chiron: "⚷",
+};
+
+interface AspectResult { p1: string; p2: string; def: AspectDef; orb: number }
+
+function computeAspects(planets: Record<string, PlanetData>): AspectResult[] {
+  const keys = ALL_POINT_KEYS.filter(k => planets[k]);
+  const out: AspectResult[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i + 1; j < keys.length; j++) {
+      const lon1 = absLon(planets[keys[i]]);
+      const lon2 = absLon(planets[keys[j]]);
+      let diff = Math.abs(lon1 - lon2);
+      if (diff > 180) diff = 360 - diff;
+      for (const def of ASPECT_DEFS) {
+        const orb = Math.abs(diff - def.angle);
+        if (orb <= def.orb) { out.push({ p1: keys[i], p2: keys[j], def, orb }); break; }
+      }
+    }
+  }
+  return out.sort((a, b) => a.orb - b.orb);
+}
+
 export default function ChartPage() {
   const t = useTranslations("chart");
   const tS = useTranslations("signs");
   const tP = useTranslations("planets");
+  const tA = useTranslations("aspects");
+  const tH = useTranslations("housesTable");
+  const tSP = useTranslations("specialPoints");
   const locale = useLocale();
 
   type PageState = "loading" | "form" | "building" | "error" | "chart";
@@ -326,6 +379,8 @@ export default function ChartPage() {
 
   const asc = chart.ascendant;
   const planets = chart.planets_json;
+  const aspects = computeAspects(planets);
+  const HOUSE_KEYS = ["h1","h2","h3","h4","h5","h6","h7","h8","h9","h10","h11","h12"] as const;
 
   return (
     <div className="flex-1 min-h-0 overflow-y-auto px-4 py-8 md:px-8 lg:px-12">
@@ -429,6 +484,94 @@ export default function ChartPage() {
             );
           })}
         </div>
+
+        {/* ── Special points ────────────────────────────────────────────────── */}
+        {(planets.NorthNode || planets.SouthNode || planets.Lilith || planets.Chiron) && (
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-[var(--border)]">
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">{tSP("title")}</span>
+            </div>
+            <div className="grid grid-cols-[2fr_2fr_1fr_1fr] gap-x-2 px-4 py-2 border-b border-[var(--border)]/50">
+              <span className="text-xs text-[var(--muted-foreground)]">{t("planetName")}</span>
+              <span className="text-xs text-[var(--muted-foreground)]">{t("signName")}</span>
+              <span className="text-xs text-[var(--muted-foreground)]">{t("house")}</span>
+              <span className="text-xs text-[var(--muted-foreground)] text-right">°</span>
+            </div>
+            {(["NorthNode","SouthNode","Lilith","Chiron"] as const).map((key, i) => {
+              const p = planets[key];
+              if (!p) return null;
+              return (
+                <div key={key} className={`grid grid-cols-[2fr_2fr_1fr_1fr] gap-x-2 items-center px-4 py-3 ${i % 2 === 1 ? "bg-[var(--muted)]/20" : ""}`}>
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 text-center text-base text-nebula-400" aria-hidden="true">{SPECIAL_POINT_SYMBOLS[key]}</span>
+                    <span className="text-sm font-medium text-[var(--foreground)]">{tP(key as Parameters<typeof tP>[0])}</span>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-sm text-cosmic-400">{SIGN_SYMBOLS[p.sign]}</span>
+                    <span className="text-sm text-[var(--foreground)]">{tS(p.sign as Parameters<typeof tS>[0])}</span>
+                  </div>
+                  <span className="text-sm text-[var(--muted-foreground)]">{p.house}</span>
+                  <span className="text-right text-xs text-[var(--muted-foreground)] tabular-nums">{formatDeg(p.degree)}</span>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
+        {/* ── Houses table ──────────────────────────────────────────────────── */}
+        {chart.houses_json?.length > 0 && (
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-[var(--border)]">
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">{tH("title")}</span>
+            </div>
+            <div className="grid grid-cols-[2fr_2fr_1fr] gap-x-2 px-4 py-2 border-b border-[var(--border)]/50">
+              <span className="text-xs text-[var(--muted-foreground)]">{tH("houseCol")}</span>
+              <span className="text-xs text-[var(--muted-foreground)]">{t("signName")}</span>
+              <span className="text-xs text-[var(--muted-foreground)] text-right">°</span>
+            </div>
+            {chart.houses_json.map((h, i) => (
+              <div key={h.house} className={`grid grid-cols-[2fr_2fr_1fr] gap-x-2 items-center px-4 py-3 ${i % 2 === 1 ? "bg-[var(--muted)]/20" : ""}`}>
+                <span className="text-sm font-medium text-[var(--foreground)]">
+                  {tH(HOUSE_KEYS[i] as Parameters<typeof tH>[0])}
+                </span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm text-cosmic-400">{SIGN_SYMBOLS[h.sign]}</span>
+                  <span className="text-sm text-[var(--foreground)]">{tS(h.sign as Parameters<typeof tS>[0])}</span>
+                </div>
+                <span className="text-right text-xs text-[var(--muted-foreground)] tabular-nums">{formatDeg(h.degree)}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ── Aspects ───────────────────────────────────────────────────────── */}
+        {aspects.length > 0 && (
+          <div className="rounded-2xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div className="px-4 py-2.5 border-b border-[var(--border)]">
+              <span className="text-xs font-medium uppercase tracking-wider text-[var(--muted-foreground)]">{tA("title")}</span>
+            </div>
+            <div className="divide-y divide-[var(--border)]/50">
+              {aspects.map(({ p1, p2, def, orb }) => {
+                const sym1 = PLANET_SYMBOLS[p1] ?? SPECIAL_POINT_SYMBOLS[p1] ?? "•";
+                const sym2 = PLANET_SYMBOLS[p2] ?? SPECIAL_POINT_SYMBOLS[p2] ?? "•";
+                const orbD = Math.floor(orb);
+                const orbM = Math.floor((orb - orbD) * 60);
+                return (
+                  <div key={`${p1}-${p2}`} className="flex items-center gap-2 px-4 py-2.5">
+                    <span className="w-5 text-center text-sm text-[var(--muted-foreground)]" aria-hidden="true">{sym1}</span>
+                    <span className="text-sm text-[var(--foreground)] w-20 truncate">{tP(p1 as Parameters<typeof tP>[0])}</span>
+                    <span className={`text-base font-bold w-5 text-center ${def.color}`} title={tA(def.key as Parameters<typeof tA>[0])}>{def.symbol}</span>
+                    <span className="w-5 text-center text-sm text-[var(--muted-foreground)]" aria-hidden="true">{sym2}</span>
+                    <span className="text-sm text-[var(--foreground)] flex-1 truncate">{tP(p2 as Parameters<typeof tP>[0])}</span>
+                    <span className="text-xs text-[var(--muted-foreground)] tabular-nums whitespace-nowrap">
+                      {tA("orb")} {orbD}°{orbM.toString().padStart(2,"0")}′
+                    </span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── CTA → Chat ────────────────────────────────────────────────────── */}
         <div className="grid grid-cols-2 gap-3">

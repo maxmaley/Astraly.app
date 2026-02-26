@@ -4,6 +4,7 @@
  * Planetary positions: VSOP87 Series B — accuracy < 1 arcminute for all planets.
  * House system: Placidus — the professional standard (used by Astro.com, Solar Fire, etc.)
  * Fallback for latitudes > 66°: Equal houses (Placidus is undefined near poles).
+ * Chiron: Swiss Ephemeris (swisseph) — same engine as Astro.com.
  */
 import { CalendarGregorianToJD } from "astronomia/julian";
 import baseModule from "astronomia/base";
@@ -22,6 +23,19 @@ import jupiterData from "astronomia/data/vsop87Bjupiter";
 import saturnData from "astronomia/data/vsop87Bsaturn";
 import uranusData from "astronomia/data/vsop87Buranus";
 import neptuneData from "astronomia/data/vsop87Bneptune";
+import path from "path";
+
+// ── Swiss Ephemeris (Chiron) ──────────────────────────────────────────────────
+// swisseph is a native Node.js module — server-side only.
+let swe: typeof import("swisseph") | null = null;
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  swe = require("swisseph") as typeof import("swisseph");
+  // Point to the bundled ephemeris data files shipped with the npm package
+  swe.swe_set_ephe_path(path.join(process.cwd(), "node_modules/swisseph/ephe"));
+} catch {
+  // Falls back gracefully: Chiron will be omitted if the native module is unavailable
+}
 
 const { pmod, JDEToJulianYear } = baseModule;
 
@@ -67,6 +81,10 @@ export interface ChartResult {
     Uranus: PlanetData;
     Neptune: PlanetData;
     Pluto: PlanetData;
+    NorthNode: PlanetData;
+    SouthNode: PlanetData;
+    Lilith: PlanetData;
+    Chiron?: PlanetData; // requires Swiss Ephemeris
   };
   ascendant: AscendantData;
   houses: HouseData[];
@@ -342,6 +360,36 @@ export function calculateNatalChart(
   const plutoPrec = precess({ lon: plutoGeoJ2000, lat: 0 }, 2000.0, epochNow);
   const plutoLon = norm(plutoPrec.lon + Δψ);
 
+  // ── Special points ───────────────────────────────────────────────────────
+  //
+  // T = Julian centuries from J2000.0 (same JDE used for planets above)
+  const T = (jde - 2451545.0) / 36525.0;
+  const T2 = T * T;
+  const T3 = T2 * T;
+
+  // Mean Ascending Lunar Node (North Node) — Meeus Ch. 22, Table 22.a
+  const northNodeLon = normDeg(125.0445479 - 1934.1362608 * T + 0.0020754 * T2 + 0.0000022 * T3) * DEG;
+  // South Node is always exactly opposite
+  const southNodeLon = norm(northNodeLon + Math.PI);
+
+  // Mean Black Moon Lilith (mean lunar apogee) — derived from Meeus Ch. 22/47
+  // Mean longitude of lunar perigee: ω̄ = 83.3532465 + 4069.0137287·T - ...
+  // Lilith (apogee) = perigee + 180°
+  const lilithLon = normDeg(83.3532465 + 4069.0137287 * T - 0.0103200 * T2 - T3 / 80053 + 180) * DEG;
+
+  // Chiron (2060) — Swiss Ephemeris, same accuracy as Astro.com
+  let chironLon: number | null = null;
+  let chironRetrograde = false;
+  if (swe) {
+    try {
+      const r = swe.swe_calc_ut(jde, swe.SE_CHIRON, swe.SEFLG_SWIEPH | swe.SEFLG_SPEED);
+      if ("longitude" in r) {
+        chironLon = r.longitude * DEG; // degrees → radians
+        chironRetrograde = r.longitudeSpeed < 0;
+      }
+    } catch { /* skip Chiron if swe fails */ }
+  }
+
   // ── Ascendant & MC ───────────────────────────────────────────────────────
   const gastSec  = gast(jde);
   const lastSec  = pmod(gastSec + lng * 240, 86400);
@@ -367,16 +415,20 @@ export function calculateNatalChart(
 
   return {
     planets: {
-      Sun:     planet(sunLon, false),
-      Moon:    planet(moonLon, false),
-      Mercury: planet(mercury.lon, mercury.retrograde),
-      Venus:   planet(venus.lon,   venus.retrograde),
-      Mars:    planet(mars.lon,    mars.retrograde),
-      Jupiter: planet(jupiter.lon, jupiter.retrograde),
-      Saturn:  planet(saturn.lon,  saturn.retrograde),
-      Uranus:  planet(uranus.lon,  uranus.retrograde),
-      Neptune: planet(neptune.lon, neptune.retrograde),
-      Pluto:   planet(plutoLon,   false),
+      Sun:       planet(sunLon, false),
+      Moon:      planet(moonLon, false),
+      Mercury:   planet(mercury.lon, mercury.retrograde),
+      Venus:     planet(venus.lon,   venus.retrograde),
+      Mars:      planet(mars.lon,    mars.retrograde),
+      Jupiter:   planet(jupiter.lon, jupiter.retrograde),
+      Saturn:    planet(saturn.lon,  saturn.retrograde),
+      Uranus:    planet(uranus.lon,  uranus.retrograde),
+      Neptune:   planet(neptune.lon, neptune.retrograde),
+      Pluto:     planet(plutoLon,    false),
+      NorthNode: planet(northNodeLon, false),
+      SouthNode: planet(southNodeLon, false),
+      Lilith:    planet(lilithLon,    false),
+      ...(chironLon !== null ? { Chiron: planet(chironLon, chironRetrograde) } : {}),
     },
     ascendant: {
       sign:     ascSignDeg.sign,

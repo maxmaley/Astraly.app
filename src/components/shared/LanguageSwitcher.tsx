@@ -30,9 +30,8 @@ export function LanguageSwitcher() {
   const updatePosition = useCallback(() => {
     if (!buttonRef.current) return;
     const rect = buttonRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    const dropdownH = 120; // approximate height of 3 items
-    const openDownward = spaceBelow >= dropdownH || rect.top < dropdownH;
+    // Open downward if button is in the top half of the viewport, upward otherwise
+    const openDownward = rect.top < window.innerHeight / 2;
     setDropdownStyle(
       openDownward
         ? { position: "fixed", top: rect.bottom + 6, left: rect.left, zIndex: 9999, minWidth: 140 }
