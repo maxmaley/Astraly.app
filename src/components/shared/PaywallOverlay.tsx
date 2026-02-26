@@ -67,11 +67,6 @@ const FEATURE_META: Record<Feature, {
   },
 };
 
-const PLANS_LABEL: Record<string, Record<string, string>> = {
-  ru: { moonlight: "Moonlight", solar: "Solar Oracle", cosmic: "Cosmic Mind" },
-  uk: { moonlight: "Moonlight", solar: "Solar Oracle", cosmic: "Cosmic Mind" },
-  en: { moonlight: "Moonlight", solar: "Solar Oracle", cosmic: "Cosmic Mind" },
-};
 
 const COPY = {
   includedIn:  { ru: "Доступно в",          uk: "Доступно в",         en: "Included in"          },
