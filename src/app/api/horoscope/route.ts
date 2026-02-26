@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import Anthropic from "@anthropic-ai/sdk";
 import { calculateNatalChart } from "@/lib/astro/calculate";
-import { canAccess } from "@/lib/plans";
+import { canAccess, PLANS } from "@/lib/plans";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
@@ -23,10 +23,10 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // ── Tier check ─────────────────────────────────────────────────────────────
+  // ── Tier + token check ─────────────────────────────────────────────────────
   const { data: userRow } = await (supabase as any)
     .from("users")
-    .select("subscription_tier")
+    .select("subscription_tier, tokens_left, tokens_reset_at")
     .eq("id", user.id)
     .single();
 
@@ -39,7 +39,7 @@ export async function GET(request: NextRequest) {
   // Today in UTC (YYYY-MM-DD)
   const today = new Date().toLocaleDateString("en-CA");
 
-  // ── Check DB cache ─────────────────────────────────────────────────────────
+  // ── Check DB cache (free if already generated today) ──────────────────────
   const { data: cached } = await (supabase as any)
     .from("daily_horoscopes")
     .select("content")
@@ -49,6 +49,34 @@ export async function GET(request: NextRequest) {
 
   if (cached?.content) {
     return NextResponse.json({ horoscope: cached.content, cached: true });
+  }
+
+  // ── Token gate (only reached when generation is needed) ───────────────────
+  const tier         = userRow?.subscription_tier ?? "free";
+  const monthlyLimit = PLANS[tier as keyof typeof PLANS]?.monthlyTokens ?? 0;
+  let   effectiveTokens: number = userRow?.tokens_left ?? 0;
+
+  if (monthlyLimit !== -1) {
+    const now        = new Date();
+    const resetAt    = userRow?.tokens_reset_at ? new Date(userRow.tokens_reset_at) : null;
+    const needsReset = !resetAt || resetAt <= now;
+
+    if (needsReset) {
+      effectiveTokens = monthlyLimit;
+      const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      await (supabase as any).from("users").update({
+        tokens_left:     monthlyLimit,
+        tokens_reset_at: nextReset.toISOString(),
+      }).eq("id", user.id);
+    }
+
+    if (effectiveTokens <= 0) {
+      return NextResponse.json({
+        error:             "token_limit",
+        tokens_reset_at:   userRow?.tokens_reset_at ?? null,
+        subscription_tier: tier,
+      }, { status: 402 });
+    }
   }
 
   // ── Load user's primary natal chart ───────────────────────────────────────
@@ -132,6 +160,15 @@ Style: warm, poetic, never preachy. Address as 'ты' in Russian/Ukrainian. Fram
     JSON.parse(jsonMatch[0]); // validate before caching
 
     const content = jsonMatch[0];
+
+    // ── Deduct tokens ─────────────────────────────────────────────────────────
+    const tokensUsed = (response.usage?.input_tokens ?? 0) + (response.usage?.output_tokens ?? 0);
+    if (monthlyLimit !== -1 && tokensUsed > 0) {
+      const tokensLeft = Math.max(0, effectiveTokens - tokensUsed);
+      await (supabase as any).from("users")
+        .update({ tokens_left: tokensLeft })
+        .eq("id", user.id);
+    }
 
     // Cache — upsert handles simultaneous requests
     await (supabase as any)
