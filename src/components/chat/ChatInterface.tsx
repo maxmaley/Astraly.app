@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useRouter } from "@/navigation";
 import { createClient } from "@/lib/supabase/client";
-import { getUsageLevel, PLANS } from "@/lib/plans";
+import { getUsageLevel, PLANS, canAccess } from "@/lib/plans";
 import { LimitModal } from "@/components/shared/LimitModal";
 import type { SubscriptionTier } from "@/types/database";
 
@@ -27,6 +27,7 @@ interface PlanetData {
 interface ChartRecord {
   id: string;
   name: string;
+  relation: string;
   birth_date: string;
   birth_time: string | null;
   birth_city: string;
@@ -51,13 +52,17 @@ const PLANET_SYMBOLS: Record<string, string> = {
 
 const PLANET_ORDER = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 
+const RELATION_EMOJI: Record<string, string> = {
+  self: "✦", partner: "💑", mom: "👩", friend: "👫", other: "👤",
+};
+
 function formatDeg(deg: number) {
   return `${Math.floor(deg)}°${String(Math.floor((deg % 1) * 60)).padStart(2, "0")}′`;
 }
 
 // ── NatalChartWidget ──────────────────────────────────────────────────────────
 
-function NatalChartWidget() {
+function NatalChartWidget({ chartOverride }: { chartOverride?: ChartRecord | null }) {
   const [chart, setChart] = useState<ChartRecord | null>(null);
   const [expanded, setExpanded] = useState(false);
   const t = useTranslations("chat");
@@ -65,13 +70,17 @@ function NatalChartWidget() {
   const tP = useTranslations("planets");
 
   useEffect(() => {
+    if (chartOverride !== undefined) {
+      setChart(chartOverride);
+      return;
+    }
     fetch("/api/natal-chart")
       .then((r) => r.json())
       .then((data) => {
         if (data.charts?.length) setChart(data.charts[0]);
       })
       .catch(() => {});
-  }, []);
+  }, [chartOverride]);
 
   if (!chart) return null;
 
@@ -80,14 +89,12 @@ function NatalChartWidget() {
   const asc = chart.ascendant;
   const planets = chart.planets_json ?? {};
 
-  // Safe translate helpers — fall back to raw key if translation missing
   const sign = (s: string) => { try { return tS(s as Parameters<typeof tS>[0]); } catch { return s; } };
   const planet = (p: string) => { try { return tP(p as Parameters<typeof tP>[0]); } catch { return p; } };
 
   return (
     <div className="mx-auto max-w-3xl px-4 pt-4">
       <div className="overflow-hidden rounded-2xl border border-cosmic-500/25 bg-gradient-to-r from-cosmic-500/8 to-nebula-500/8">
-        {/* Collapsed header — always visible */}
         <button
           onClick={() => setExpanded((e) => !e)}
           className="flex w-full items-center justify-between px-4 py-3 text-left transition-colors hover:bg-cosmic-500/5"
@@ -116,15 +123,12 @@ function NatalChartWidget() {
           </svg>
         </button>
 
-        {/* Expanded planet table */}
         {expanded && (
           <div className="border-t border-cosmic-500/20">
-            {/* Birth info */}
             <div className="px-4 py-2.5 text-[11px] text-[var(--muted-foreground)]">
               {chart.birth_date}{chart.birth_time ? ` · ${chart.birth_time}` : ""} · {chart.birth_city}
             </div>
 
-            {/* Ascendant row */}
             <div className="grid grid-cols-[2fr_2fr_1fr_1fr] gap-x-2 items-center border-t border-[var(--border)]/50 bg-[var(--muted)]/20 px-4 py-2.5">
               <div className="flex items-center gap-2">
                 <span className="w-5 text-center text-sm text-[var(--muted-foreground)]">⟳</span>
@@ -138,7 +142,6 @@ function NatalChartWidget() {
               <span className="text-right text-[11px] text-[var(--muted-foreground)] tabular-nums">{formatDeg(asc.degree)}</span>
             </div>
 
-            {/* Planet rows */}
             <div className="divide-y divide-[var(--border)]/30">
               {PLANET_ORDER.map((name) => {
                 const p = planets[name];
@@ -162,6 +165,74 @@ function NatalChartWidget() {
             </div>
           </div>
         )}
+      </div>
+    </div>
+  );
+}
+
+// ── People Picker ─────────────────────────────────────────────────────────────
+
+function PeoplePicker({
+  charts,
+  selectedIds,
+  onToggle,
+  locale,
+}: {
+  charts: ChartRecord[];
+  selectedIds: string[];
+  onToggle: (id: string) => void;
+  locale: string;
+}) {
+  const label = locale === "en" ? "Reading context:" : locale === "uk" ? "Контекст розкладу:" : "Контекст расклада:";
+
+  return (
+    <div className="mb-2 flex flex-wrap items-center gap-1.5">
+      <span className="shrink-0 text-[11px] text-[var(--muted-foreground)]">{label}</span>
+      {charts.map(chart => {
+        const isSelected = selectedIds.includes(chart.id);
+        const emoji = RELATION_EMOJI[chart.relation] ?? "👤";
+        return (
+          <button
+            key={chart.id}
+            onClick={() => onToggle(chart.id)}
+            className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-[11px] font-medium transition-all ${
+              isSelected
+                ? "border-cosmic-400/60 bg-cosmic-500/15 text-cosmic-300"
+                : "border-[var(--border)] bg-[var(--muted)]/30 text-[var(--muted-foreground)] hover:border-[var(--border)] hover:text-[var(--foreground)]"
+            }`}
+          >
+            <span className="text-xs">{emoji}</span>
+            <span>{chart.name}</span>
+            {isSelected && (
+              <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                <path d="m5 12 5 5L20 7" />
+              </svg>
+            )}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+// ── Chat Context Badge (shown in existing chats) ──────────────────────────────
+
+function ContextBadge({
+  charts,
+  locale,
+}: {
+  charts: ChartRecord[];
+  locale: string;
+}) {
+  if (charts.length <= 1) return null;
+  const names = charts.map(c => c.name).join(" + ");
+  const label = locale === "en" ? "Reading:" : locale === "uk" ? "Розклад:" : "Расклад:";
+  return (
+    <div className="mx-auto max-w-3xl px-4 pt-3">
+      <div className="flex items-center gap-2 rounded-xl border border-cosmic-500/25 bg-cosmic-500/8 px-3 py-2">
+        <span className="text-xs text-cosmic-400">✦</span>
+        <span className="text-xs text-[var(--muted-foreground)]">{label}</span>
+        <span className="text-xs font-medium text-[var(--foreground)]">{names}</span>
       </div>
     </div>
   );
@@ -198,7 +269,6 @@ function MessageContent({ text }: { text: string }) {
       {paragraphs.map((para, pi) => {
         const lines = para.split("\n");
 
-        // Heading: ### or ## or #
         if (lines.length === 1) {
           const h3 = lines[0].match(/^###\s+(.+)/);
           const h2 = lines[0].match(/^##\s+(.+)/);
@@ -208,7 +278,6 @@ function MessageContent({ text }: { text: string }) {
           if (h1) return <p key={pi} className="font-bold text-lg text-[var(--foreground)] mt-1">{renderInline(h1[1])}</p>;
         }
 
-        // Multi-line block — check each line for headings or list items
         const isListBlock = lines.some((l) => l.match(/^[-•*]\s/) || l.match(/^\d+\.\s/));
         if (isListBlock) {
           return (
@@ -418,9 +487,11 @@ function EmptyState({
 export function ChatInterface({
   chatId,
   initialPrompt,
+  initialChartIds,
 }: {
   chatId?: string;
   initialPrompt?: string;
+  initialChartIds?: string[];
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -430,7 +501,6 @@ export function ChatInterface({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const initialPromptSentRef = useRef(false);
-  // Track the live chat ID — starts from prop, updated when server returns a new chat_id
   const currentChatIdRef = useRef<string | undefined>(chatId);
   const t = useTranslations("chat");
   const locale = useLocale();
@@ -443,7 +513,18 @@ export function ChatInterface({
   const [tokensReset,  setTokensReset]  = useState<string | null>(null);
   const [showLimitModal, setShowLimitModal] = useState(false);
 
-  // Load plan info on mount
+  // ── People picker state ──────────────────────────────────────────────────────
+  const [allCharts, setAllCharts] = useState<ChartRecord[]>([]);
+  // IDs selected for the current reading (tracked for new chats; locked for existing)
+  const [selectedChartIds, setSelectedChartIds] = useState<string[]>([]);
+  // Chart context for existing chats (loaded from chat_summaries)
+  const [existingChartIds, setExistingChartIds] = useState<string[]>([]);
+  // Whether this chat already has messages (picker should be hidden)
+  const chatHasMessages = messages.length > 0;
+
+  const hasMultiCharts = canAccess(tier, "multi_charts");
+
+  // Load plan info + charts on mount
   useEffect(() => {
     async function loadPlan() {
       const { data: { user } } = await supabase.auth.getUser();
@@ -458,17 +539,35 @@ export function ChatInterface({
         setTier(data.subscription_tier);
         setTokensLeft(data.tokens_left);
         setTokensReset(data.tokens_reset_at);
-        // Auto-show modal if already at limit
         if (data.tokens_left <= 0 && PLANS[data.subscription_tier as SubscriptionTier].monthlyTokens !== -1) {
           setShowLimitModal(true);
         }
       }
     }
+
+    async function loadCharts() {
+      const res = await fetch("/api/natal-chart");
+      if (!res.ok) return;
+      const data = await res.json() as { charts: ChartRecord[] };
+      const charts = data.charts ?? [];
+      setAllCharts(charts);
+
+      // Default selection: user's own chart (self) + any initialChartIds
+      const selfChart = charts.find(c => c.relation === "self");
+      if (selfChart) {
+        const initial = initialChartIds?.length
+          ? [selfChart.id, ...initialChartIds.filter(id => id !== selfChart.id)]
+          : [selfChart.id];
+        setSelectedChartIds(initial);
+      }
+    }
+
     loadPlan();
+    loadCharts();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Load history when chatId provided
+  // Load history when chatId provided — also fetches chart_ids for this chat
   useEffect(() => {
     if (!chatId) {
       setLoadingHistory(false);
@@ -479,6 +578,9 @@ export function ChatInterface({
       .then((r) => r.json())
       .then((data) => {
         setMessages(data.messages || []);
+        if (data.chart_ids?.length) {
+          setExistingChartIds(data.chart_ids);
+        }
       })
       .catch(() => setMessages([]))
       .finally(() => setLoadingHistory(false));
@@ -498,6 +600,18 @@ export function ChatInterface({
   function handleInputChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setInput(e.target.value);
     adjustTextarea(e.target);
+  }
+
+  function toggleChart(id: string) {
+    const selfChart = allCharts.find(c => c.relation === "self");
+    // Can't deselect own chart
+    if (selfChart && id === selfChart.id) return;
+
+    setSelectedChartIds(prev =>
+      prev.includes(id)
+        ? prev.filter(x => x !== id)
+        : [...prev, id]
+    );
   }
 
   const sendMessage = useCallback(
@@ -526,24 +640,28 @@ export function ChatInterface({
       setIsLoading(true);
 
       try {
+        // Determine which chart_ids to send
+        const chartIdsToSend = existingChartIds.length > 0
+          ? existingChartIds
+          : selectedChartIds;
+
         const response = await fetch("/api/chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             message: trimmed,
             chat_id: currentChatIdRef.current,
+            chart_ids: chartIdsToSend.length > 0 ? chartIdsToSend : undefined,
             locale,
           }),
         });
 
         if (!response.ok) {
-          // 402 = token limit reached
           if (response.status === 402) {
             const errData = await response.json().catch(() => ({}));
             setTokensLeft(0);
             if (errData.tokens_reset_at) setTokensReset(errData.tokens_reset_at);
             setShowLimitModal(true);
-            // Remove the empty assistant bubble we added optimistically
             setMessages(prev => prev.filter(m => m.id !== assistantMsgId));
             return;
           }
@@ -575,9 +693,6 @@ export function ChatInterface({
                 newChatId = data.value;
                 if (!currentChatIdRef.current && newChatId) {
                   currentChatIdRef.current = newChatId;
-                  // Update URL without triggering Next.js navigation (which would
-                  // remount the component and abort the ongoing stream).
-                  // After streaming ends, dispatch a popstate so the router syncs.
                   window.history.replaceState(null, "", `/${locale}/app/chat/${newChatId}`);
                 }
               } else if (data.type === "delta") {
@@ -606,8 +721,6 @@ export function ChatInterface({
         }
 
         window.dispatchEvent(new CustomEvent("astraly:chat:refresh"));
-        // Sync Next.js router to the new URL (set via history.replaceState during stream)
-        // without remounting the component.
         if (newChatId) router.replace(`/app/chat/${newChatId}`, { locale });
       } catch {
         setMessages((prev) =>
@@ -620,10 +733,10 @@ export function ChatInterface({
         streamingMsgIdRef.current = null;
       }
     },
-    [isLoading, locale, router, t, tier]
+    [isLoading, locale, router, t, tier, selectedChartIds, existingChartIds]
   );
 
-  // Auto-send initial prompt (e.g. "Explain my chart") once history loads
+  // Auto-send initial prompt once history loads
   useEffect(() => {
     if (!initialPrompt || initialPromptSentRef.current || loadingHistory) return;
     initialPromptSentRef.current = true;
@@ -639,18 +752,24 @@ export function ChatInterface({
 
   const isEmpty = messages.length === 0 && !loadingHistory && !initialPrompt;
 
-  // Token usage state for warning/block
   const usageInfo = tokensLeft !== null
     ? getUsageLevel(tier, tokensLeft)
     : null;
   const isTokenBlocked = usageInfo?.level === "critical";
   const isTokenWarning = usageInfo?.level === "warning";
 
+  // Charts for context badge (existing chat) or picker (new chat)
+  const contextCharts = existingChartIds.length > 0
+    ? allCharts.filter(c => existingChartIds.includes(c.id))
+    : allCharts.filter(c => selectedChartIds.includes(c.id));
+
+  // Show picker only for new chats with multi_charts access and multiple available charts
+  const showPicker = !chatHasMessages && hasMultiCharts && allCharts.length > 1 && !chatId;
+
   // ── Render ──────────────────────────────────────────────────────────────────
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
-      {/* Token limit modal */}
       {showLimitModal && tokensLeft !== null && (
         <LimitModal
           tier={tier}
@@ -659,10 +778,16 @@ export function ChatInterface({
           onClose={() => setShowLimitModal(false)}
         />
       )}
+
       {/* Messages */}
       <div className="min-h-0 flex-1 overflow-y-auto">
-        {/* Natal chart widget — always visible at top */}
-        <NatalChartWidget />
+        {/* Natal chart widget */}
+        <NatalChartWidget chartOverride={contextCharts[0] ?? null} />
+
+        {/* Multi-chart context badge for existing chats */}
+        {!showPicker && contextCharts.length > 1 && (
+          <ContextBadge charts={contextCharts} locale={locale} />
+        )}
 
         {loadingHistory ? (
           <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
@@ -706,6 +831,16 @@ export function ChatInterface({
       {/* Input area */}
       <div className="shrink-0 border-t border-[var(--border)] bg-[var(--background)]/80 px-4 py-4 backdrop-blur-sm">
         <div className="mx-auto max-w-3xl">
+
+          {/* People picker — new chat only */}
+          {showPicker && (
+            <PeoplePicker
+              charts={allCharts}
+              selectedIds={selectedChartIds}
+              onToggle={toggleChart}
+              locale={locale}
+            />
+          )}
 
           {/* Token warning banner */}
           {isTokenWarning && !isTokenBlocked && (

@@ -21,9 +21,10 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json();
-  const { message, chat_id, locale = "ru" } = body as {
+  const { message, chat_id, chart_ids, locale = "ru" } = body as {
     message: string;
     chat_id?: string;
+    chart_ids?: string[];   // IDs of natal charts to include in context
     locale?: string;
   };
 
@@ -70,15 +71,41 @@ export async function POST(request: NextRequest) {
 
   const chatId = chat_id || crypto.randomUUID();
 
-  // ── Load natal chart for context ───────────────────────────────────────────
-  const { data: charts } = await (supabase as any)
-    .from("natal_charts")
-    .select("name, birth_date, birth_city, planets_json, ascendant")
-    .eq("user_id", user.id)
-    .order("created_at", { ascending: false })
-    .limit(1);
+  // ── Load natal charts for context ─────────────────────────────────────────
+  // If chart_ids provided, load those specific charts; otherwise load the user's own chart.
+  let contextCharts: Array<{
+    id: string;
+    name: string;
+    relation: string;
+    birth_date: string;
+    birth_city: string;
+    planets_json: Record<string, { sign: string; house: number; retrograde: boolean }>;
+    ascendant: { sign: string; degree: number };
+  }> = [];
 
-  const chart = charts?.[0];
+  if (chart_ids && chart_ids.length > 0) {
+    // Load specific charts by ID, ensuring they belong to this user
+    const { data: specificCharts } = await (supabase as any)
+      .from("natal_charts")
+      .select("id, name, relation, birth_date, birth_city, planets_json, ascendant")
+      .eq("user_id", user.id)
+      .in("id", chart_ids);
+    if (specificCharts?.length) {
+      // Preserve order from chart_ids (own chart first if included)
+      const selfChart = specificCharts.find((c: any) => c.relation === "self");
+      const others = specificCharts.filter((c: any) => c.relation !== "self");
+      contextCharts = selfChart ? [selfChart, ...others] : others;
+    }
+  } else {
+    // Default: load user's own most-recent chart (backward compatibility)
+    const { data: charts } = await (supabase as any)
+      .from("natal_charts")
+      .select("id, name, relation, birth_date, birth_city, planets_json, ascendant")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: true })
+      .limit(1);
+    if (charts?.length) contextCharts = charts;
+  }
 
   const langMap: Record<string, string> = { ru: "Russian", uk: "Ukrainian", en: "English" };
 
@@ -90,7 +117,6 @@ export async function POST(request: NextRequest) {
   );
 
   // ── Calculate today's transiting planets (VSOP87, UTC now) ────────────────
-  // lat=0/lng=0 only affects ASC/houses — planet ecliptic positions are universal
   let transitContext = "";
   try {
     const t = calculateNatalChart(
@@ -106,18 +132,44 @@ export async function POST(request: NextRequest) {
     // non-fatal — continue without transits
   }
 
+  // ── Build chart context (single or multi) ─────────────────────────────────
   let chartContext = "";
-  if (chart) {
-    const planets = chart.planets_json as Record<
-      string,
-      { sign: string; house: number; retrograde: boolean }
-    >;
+  const isMultiChart = contextCharts.length > 1;
+
+  if (contextCharts.length === 0) {
+    chartContext = "\nThe user hasn't built their natal chart yet — gently encourage them to do so for personalized readings.\n";
+  } else if (!isMultiChart) {
+    // Single chart — standard format
+    const chart = contextCharts[0];
+    const planets = chart.planets_json as Record<string, { sign: string; house: number; retrograde: boolean }>;
     const asc = chart.ascendant as { sign: string; degree: number };
     chartContext = `\nThe user's natal chart (${chart.name}, born ${chart.birth_date} in ${chart.birth_city}):
 - Ascendant: ${asc.sign} ${asc.degree.toFixed(1)}°
 ${Object.entries(planets)
   .map(([name, p]) => `- ${name}: ${p.sign} (House ${p.house})${p.retrograde ? " ℞" : ""}`)
   .join("\n")}\n`;
+  } else {
+    // Multi-chart — synastry/group reading format
+    const chartBlocks = contextCharts.map((chart, idx) => {
+      const planets = chart.planets_json as Record<string, { sign: string; house: number; retrograde: boolean }>;
+      const asc = chart.ascendant as { sign: string; degree: number };
+      const label = chart.relation === "self"
+        ? `NATAL CHART #${idx + 1} — ${chart.name} (the user themselves)`
+        : `NATAL CHART #${idx + 1} — ${chart.name}`;
+      return `${label} (born ${chart.birth_date} in ${chart.birth_city}):
+- Ascendant: ${asc.sign} ${asc.degree.toFixed(1)}°
+${Object.entries(planets)
+  .map(([name, p]) => `- ${name}: ${p.sign} (House ${p.house})${p.retrograde ? " ℞" : ""}`)
+  .join("\n")}`;
+    });
+
+    const names = contextCharts.map(c => c.name).join(" and ");
+    chartContext = `
+MULTI-PERSON READING — Charts included: ${names}
+This is a relational / synastry reading. Weave both charts into your insights naturally.
+
+${chartBlocks.join("\n\n")}
+`;
   }
 
   // ── Load today's horoscope if already generated ────────────────────────────
@@ -152,7 +204,7 @@ ${Object.entries(planets)
   const systemPrompt = `You are Astraly — a warm, wise, and poetic AI astrologer. You were created by the Astraly team to help people understand themselves through the symbolic language of the stars.
 
 TODAY'S DATE: ${todayFormatted} (${today}).
-${transitContext}${chartContext ? chartContext : "\nThe user hasn't built their natal chart yet — gently encourage them to do so for personalized readings.\n"}${horoscopeContext}
+${transitContext}${chartContext}${horoscopeContext}
 PERSONA — never break it:
 - Your name is Astraly. That is your only identity.
 - If asked who made you, who you are, or what AI powers you: you are Astraly, created by the Astraly team. Do not mention Claude, Anthropic, or any other company or model — ever.
@@ -168,7 +220,7 @@ HANDLING SKEPTICISM about astrology:
 STYLE:
 - Always respond in ${langMap[locale] || "Russian"}
 - Warm, mystical, and poetic — but grounded and never preachy
-- Weave the user's chart placements into answers naturally, don't just list them
+- Weave the chart placements into answers naturally, don't just list them
 - 150–350 words per response unless the topic genuinely needs more
 - Gentle markdown: **bold** for key ideas, bullet points for lists
 - End with a warm thought or a thoughtful question
@@ -271,6 +323,8 @@ STYLE:
           .eq("chat_id", chatId)
           .maybeSingle();
 
+        const chartIdsToStore = contextCharts.map(c => c.id);
+
         if (existing) {
           await (supabase as any)
             .from("chat_summaries")
@@ -282,6 +336,7 @@ STYLE:
             chat_id: chatId,
             summary: summaryText,
             messages_count: 2,
+            chart_ids: chartIdsToStore,
           });
         }
 
@@ -327,15 +382,26 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "chat_id required" }, { status: 400 });
   }
 
-  const { data: messages } = await (supabase as any)
-    .from("chat_messages")
-    .select("id, role, content, created_at")
-    .eq("user_id", user.id)
-    .eq("chat_id", chatId)
-    .order("created_at", { ascending: true })
-    .limit(100);
+  const [messagesResult, summaryResult] = await Promise.all([
+    (supabase as any)
+      .from("chat_messages")
+      .select("id, role, content, created_at")
+      .eq("user_id", user.id)
+      .eq("chat_id", chatId)
+      .order("created_at", { ascending: true })
+      .limit(100),
+    (supabase as any)
+      .from("chat_summaries")
+      .select("chart_ids")
+      .eq("chat_id", chatId)
+      .eq("user_id", user.id)
+      .maybeSingle(),
+  ]);
 
-  return NextResponse.json({ messages: messages || [] });
+  return NextResponse.json({
+    messages: messagesResult.data || [],
+    chart_ids: summaryResult.data?.chart_ids ?? [],
+  });
 }
 
 // ── DELETE: remove chat ───────────────────────────────────────────────────────

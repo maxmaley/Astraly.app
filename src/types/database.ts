@@ -171,6 +171,7 @@ export interface Database {
           user_id: string;
           chat_id: string;
           chart_id: string | null;
+          chart_ids: string[];
           summary: string;
           messages_count: number;
           created_at: string;
@@ -180,6 +181,7 @@ export interface Database {
           user_id: string;
           chat_id: string;
           chart_id?: string | null;
+          chart_ids?: string[];
           summary: string;
           messages_count: number;
           created_at?: string;

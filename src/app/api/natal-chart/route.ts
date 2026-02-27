@@ -2,7 +2,8 @@ import { NextResponse, type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { geocodeCity } from "@/lib/geocode";
 import { calculateNatalChart } from "@/lib/astro/calculate";
-import type { Relation } from "@/types/database";
+import { PLANS } from "@/lib/plans";
+import type { Relation, SubscriptionTier } from "@/types/database";
 import { find as findTimezone } from "geo-tz";
 
 /** Convert local birth time in a given IANA timezone to a UTC Date. */
@@ -61,6 +62,39 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+
+  // ── Enforce plan chart limit ──────────────────────────────────────────────
+  const { data: userRow } = await db
+    .from("users")
+    .select("subscription_tier")
+    .eq("id", user.id)
+    .single();
+
+  const tier = (userRow?.subscription_tier ?? "free") as SubscriptionTier;
+  const maxCharts = PLANS[tier].maxCharts;
+
+  // Count existing charts for this user
+  const { count: existingCount } = await db
+    .from("natal_charts")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", user.id);
+
+  const currentCount = existingCount ?? 0;
+
+  if (maxCharts !== -1 && currentCount >= maxCharts) {
+    return NextResponse.json(
+      {
+        error: "chart_limit",
+        max_charts: maxCharts,
+        current_count: currentCount,
+        tier,
+      },
+      { status: 403 },
+    );
+  }
+
   // ── Geocode ──────────────────────────────────────────────────────────────
   let lat = body.lat;
   let lng = body.lng;
@@ -108,14 +142,11 @@ export async function POST(request: NextRequest) {
   }
 
   // ── Ensure user row exists (safety net if DB trigger wasn't set up) ───────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = supabase as any;
   const { error: upsertUserError } = await db
     .from("users")
     .upsert({ id: user.id, email: user.email }, { onConflict: "id", ignoreDuplicates: true });
 
   if (upsertUserError) {
-    // Non-fatal: log but continue — user row might already exist
     console.warn("[natal-chart] User upsert warning:", upsertUserError.message ?? upsertUserError);
   }
 
@@ -161,7 +192,7 @@ export async function GET() {
     .from("natal_charts")
     .select("*")
     .eq("user_id", user.id)
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: true });
 
   if (error) {
     const msg = error.message ?? error.code ?? JSON.stringify(error);
@@ -170,4 +201,52 @@ export async function GET() {
   }
 
   return NextResponse.json({ charts });
+}
+
+// DELETE: remove a specific natal chart (cannot delete own 'self' chart)
+export async function DELETE(request: NextRequest) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const chartId = request.nextUrl.searchParams.get("chart_id");
+  if (!chartId) {
+    return NextResponse.json({ error: "chart_id required" }, { status: 400 });
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+
+  // Fetch the chart to verify ownership and relation
+  const { data: chart } = await db
+    .from("natal_charts")
+    .select("id, user_id, relation")
+    .eq("id", chartId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!chart) {
+    return NextResponse.json({ error: "Chart not found" }, { status: 404 });
+  }
+
+  if (chart.relation === "self") {
+    return NextResponse.json({ error: "Cannot delete your own chart" }, { status: 403 });
+  }
+
+  const { error } = await db
+    .from("natal_charts")
+    .delete()
+    .eq("id", chartId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    const msg = error.message ?? error.code ?? JSON.stringify(error);
+    console.error("[natal-chart] DELETE failed:", msg);
+    return NextResponse.json({ error: `DB error: ${msg}` }, { status: 500 });
+  }
+
+  return NextResponse.json({ success: true });
 }
