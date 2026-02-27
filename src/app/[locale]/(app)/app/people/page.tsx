@@ -65,16 +65,20 @@ const COPY = {
     unlimited:      "Безлимит",
     selfBadge:      "Я",
     deletePerson:   "Удалить",
+    editPerson:     "Изменить",
     deleteConfirm:  "Удалить карту {name}? Это действие нельзя отменить.",
     chatWith:       "Расклад с",
     addTitle:       "Новый человек",
+    editTitle:      "Изменить карту",
     addSubtitle:    "Добавь натальную карту близкого",
+    editSubtitle:   "Обнови данные и пересчитай карту",
     fieldName:      "Имя",
     fieldRelation:  "Кто это?",
     fieldDate:      "Дата рождения",
     fieldTime:      "Время рождения",
     fieldCity:      "Город рождения",
     buildButton:    "Рассчитать карту ✦",
+    saveButton:     "Сохранить изменения ✦",
     cancel:         "Отмена",
     building:       "Строим карту...",
     cityError:      "Город не найден",
@@ -110,16 +114,20 @@ const COPY = {
     unlimited:      "Unlimited",
     selfBadge:      "Me",
     deletePerson:   "Delete",
+    editPerson:     "Edit",
     deleteConfirm:  "Delete {name}'s chart? This cannot be undone.",
     chatWith:       "Reading with",
     addTitle:       "New Person",
+    editTitle:      "Edit Chart",
     addSubtitle:    "Add a natal chart for someone you know",
+    editSubtitle:   "Update the details and recalculate",
     fieldName:      "Name",
     fieldRelation:  "Who is this?",
     fieldDate:      "Date of Birth",
     fieldTime:      "Time of Birth",
     fieldCity:      "City of Birth",
     buildButton:    "Calculate Chart ✦",
+    saveButton:     "Save Changes ✦",
     cancel:         "Cancel",
     building:       "Building chart...",
     cityError:      "City not found",
@@ -155,16 +163,20 @@ const COPY = {
     unlimited:      "Безліміт",
     selfBadge:      "Я",
     deletePerson:   "Видалити",
+    editPerson:     "Змінити",
     deleteConfirm:  "Видалити карту {name}? Цю дію не можна скасувати.",
     chatWith:       "Розклад з",
     addTitle:       "Нова людина",
+    editTitle:      "Змінити карту",
     addSubtitle:    "Додай натальну карту близького",
+    editSubtitle:   "Онови дані та перерахуй карту",
     fieldName:      "Ім'я",
     fieldRelation:  "Хто це?",
     fieldDate:      "Дата народження",
     fieldTime:      "Час народження",
     fieldCity:      "Місто народження",
     buildButton:    "Розрахувати карту ✦",
+    saveButton:     "Зберегти зміни ✦",
     cancel:         "Скасувати",
     building:       "Будуємо карту...",
     cityError:      "Місто не знайдено",
@@ -209,11 +221,13 @@ function PersonCard({
   chart,
   c,
   onDelete,
+  onEdit,
   onChat,
 }: {
   chart: ChartRecord;
   c: typeof COPY.ru;
   onDelete: (chart: ChartRecord) => void;
+  onEdit: (chart: ChartRecord) => void;
   onChat: (chart: ChartRecord) => void;
 }) {
   const isSelf = chart.relation === "self";
@@ -291,10 +305,22 @@ function PersonCard({
             {c.chatWith} {chart.name} →
           </button>
         )}
+        {/* Edit button for all charts */}
+        <button
+          onClick={() => onEdit(chart)}
+          className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] transition-all hover:border-cosmic-400/40 hover:text-cosmic-400"
+          title={c.editPerson}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+          </svg>
+        </button>
         {!isSelf && (
           <button
             onClick={() => onDelete(chart)}
             className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] transition-all hover:border-red-400/40 hover:text-red-400"
+            title={c.deletePerson}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2" />
@@ -318,6 +344,7 @@ export default function PeoplePage() {
   const [tier, setTier] = useState<SubscriptionTier>("free");
   const [pageState, setPageState] = useState<"loading" | "ready">("loading");
   const [showAddForm, setShowAddForm] = useState(false);
+  const [editTarget, setEditTarget] = useState<ChartRecord | null>(null);
   const [formState, setFormState] = useState<"idle" | "building" | "error">("idle");
   const [formError, setFormError] = useState<string | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<ChartRecord | null>(null);
@@ -362,6 +389,20 @@ export default function PeoplePage() {
   const canAddMore = maxCharts === -1 || charts.length < maxCharts;
   const hasMultiCharts = canAccess(tier, "multi_charts");
 
+  function handleEdit(chart: ChartRecord) {
+    setEditTarget(chart);
+    setForm({
+      name: chart.name,
+      relation: chart.relation,
+      birthDate: chart.birth_date,
+      birthTime: chart.birth_time ?? "",
+      birthCity: chart.birth_city,
+    });
+    setFormError(null);
+    setFormState("idle");
+    setShowAddForm(true);
+  }
+
   async function handleAddSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!form.name.trim() || !form.birthDate || !form.birthCity.trim()) return;
@@ -369,8 +410,14 @@ export default function PeoplePage() {
     setFormState("building");
     setFormError(null);
 
-    const res = await fetch("/api/natal-chart", {
-      method: "POST",
+    const isEdit = editTarget !== null;
+    const url = isEdit
+      ? `/api/natal-chart?chart_id=${editTarget.id}`
+      : "/api/natal-chart";
+    const method = isEdit ? "PATCH" : "POST";
+
+    const res = await fetch(url, {
+      method,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         name: form.name.trim(),
@@ -397,8 +444,13 @@ export default function PeoplePage() {
     }
 
     const json = await res.json() as { chart: ChartRecord };
-    setCharts(prev => [...prev, json.chart]);
+    if (isEdit) {
+      setCharts(prev => prev.map(ch => ch.id === json.chart.id ? json.chart : ch));
+    } else {
+      setCharts(prev => [...prev, json.chart]);
+    }
     setShowAddForm(false);
+    setEditTarget(null);
     setForm({ name: "", relation: "partner", birthDate: "", birthTime: "", birthCity: "" });
     setFormState("idle");
     setFormError(null);
@@ -485,6 +537,7 @@ export default function PeoplePage() {
               chart={selfChart}
               c={c}
               onDelete={() => {}}
+              onEdit={handleEdit}
               onChat={handleChatWith}
             />
           )}
@@ -494,6 +547,7 @@ export default function PeoplePage() {
               chart={chart}
               c={c}
               onDelete={ch => setDeleteTarget(ch)}
+              onEdit={handleEdit}
               onChat={handleChatWith}
             />
           ))}
@@ -524,21 +578,25 @@ export default function PeoplePage() {
           )}
         </div>
 
-        {/* Add person form — inline modal */}
+        {/* Add / Edit form — inline modal */}
         {showAddForm && (
           <div className="fixed inset-0 z-40 flex items-end justify-center p-4 sm:items-center">
             <div
               className="absolute inset-0 bg-black/60 backdrop-blur-sm"
-              onClick={() => !formState.includes("building") && setShowAddForm(false)}
+              onClick={() => !formState.includes("building") && (setShowAddForm(false), setEditTarget(null))}
             />
             <div className="relative z-10 w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-cosmic">
               <div aria-hidden className="pointer-events-none absolute -inset-px rounded-2xl bg-gradient-to-b from-cosmic-500/20 to-transparent blur-xl" />
 
               <div className="relative">
                 <div className="mb-5 text-center">
-                  <p className="mb-1 text-2xl">✨</p>
-                  <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">{c.addTitle}</h2>
-                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">{c.addSubtitle}</p>
+                  <p className="mb-1 text-2xl">{editTarget ? "✏️" : "✨"}</p>
+                  <h2 className="font-display text-xl font-semibold text-[var(--foreground)]">
+                    {editTarget ? c.editTitle : c.addTitle}
+                  </h2>
+                  <p className="mt-1 text-sm text-[var(--muted-foreground)]">
+                    {editTarget ? c.editSubtitle : c.addSubtitle}
+                  </p>
                 </div>
 
                 <form onSubmit={handleAddSubmit} className="flex flex-col gap-3">
@@ -553,17 +611,19 @@ export default function PeoplePage() {
                     className={inputCls}
                   />
 
-                  {/* Relation */}
-                  <select
-                    value={form.relation}
-                    onChange={e => setForm(f => ({ ...f, relation: e.target.value as Relation }))}
-                    disabled={formState === "building"}
-                    className={inputCls}
-                  >
-                    {(["partner", "mom", "friend", "other"] as Relation[]).map(rel => (
-                      <option key={rel} value={rel}>{c.relations[rel]}</option>
-                    ))}
-                  </select>
+                  {/* Relation (hidden for self, shown for others) */}
+                  {editTarget?.relation !== "self" && (
+                    <select
+                      value={form.relation}
+                      onChange={e => setForm(f => ({ ...f, relation: e.target.value as Relation }))}
+                      disabled={formState === "building"}
+                      className={inputCls}
+                    >
+                      {(["partner", "mom", "friend", "other"] as Relation[]).map(rel => (
+                        <option key={rel} value={rel}>{c.relations[rel]}</option>
+                      ))}
+                    </select>
+                  )}
 
                   {/* Date + Time */}
                   <div className="grid grid-cols-[3fr_2fr] gap-2">
@@ -605,6 +665,8 @@ export default function PeoplePage() {
                   >
                     {formState === "building" ? (
                       <><Spinner small /> {c.building}</>
+                    ) : editTarget ? (
+                      c.saveButton
                     ) : (
                       c.buildButton
                     )}
@@ -612,7 +674,7 @@ export default function PeoplePage() {
 
                   <button
                     type="button"
-                    onClick={() => { setShowAddForm(false); setFormState("idle"); setFormError(null); }}
+                    onClick={() => { setShowAddForm(false); setEditTarget(null); setFormState("idle"); setFormError(null); }}
                     disabled={formState === "building"}
                     className="w-full text-center text-xs text-[var(--muted-foreground)] transition-colors hover:text-[var(--foreground)] py-1"
                   >
