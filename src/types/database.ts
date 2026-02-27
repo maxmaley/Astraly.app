@@ -1,5 +1,5 @@
 export type SubscriptionTier = "free" | "moonlight" | "solar" | "cosmic";
-export type Relation = "self" | "partner" | "mom" | "friend" | "other";
+export type Relation = "self" | "partner" | "parent" | "child" | "friend" | "other";
 export type MessageRole = "user" | "assistant";
 
 export interface PlanetData {

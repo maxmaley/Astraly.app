@@ -49,7 +49,8 @@ const SIGN_SYMBOLS: Record<string, string> = {
 const RELATION_EMOJI: Record<Relation, string> = {
   self:    "✦",
   partner: "💑",
-  mom:     "👩",
+  parent:  "👨‍👩‍👧",
+  child:   "🧒",
   friend:  "👫",
   other:   "👤",
 };
@@ -89,7 +90,8 @@ const COPY = {
     relations: {
       self:    "Я",
       partner: "Партнёр",
-      mom:     "Мама",
+      parent:  "Родители",
+      child:   "Ребёнок",
       friend:  "Друг/подруга",
       other:   "Другое",
     },
@@ -143,7 +145,8 @@ const COPY = {
     relations: {
       self:    "Me",
       partner: "Partner",
-      mom:     "Mom",
+      parent:  "Parent",
+      child:   "Child",
       friend:  "Friend",
       other:   "Other",
     },
@@ -197,7 +200,8 @@ const COPY = {
     relations: {
       self:    "Я",
       partner: "Партнер",
-      mom:     "Мама",
+      parent:  "Батьки",
+      child:   "Дитина",
       friend:  "Друг/подруга",
       other:   "Інше",
     },
@@ -634,7 +638,7 @@ export default function PeoplePage() {
                       disabled={formState === "building"}
                       className={inputCls}
                     >
-                      {(["partner", "mom", "friend", "other"] as Relation[]).map(rel => (
+                      {(["partner", "parent", "child", "friend", "other"] as Relation[]).map(rel => (
                         <option key={rel} value={rel}>{c.relations[rel]}</option>
                       ))}
                     </select>

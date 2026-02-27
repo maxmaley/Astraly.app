@@ -53,7 +53,7 @@ const PLANET_SYMBOLS: Record<string, string> = {
 const PLANET_ORDER = ["Sun", "Moon", "Mercury", "Venus", "Mars", "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto"];
 
 const RELATION_EMOJI: Record<string, string> = {
-  self: "✦", partner: "💑", mom: "👩", friend: "👫", other: "👤",
+  self: "✦", partner: "💑", parent: "👨‍👩‍👧", child: "🧒", friend: "👫", other: "👤",
 };
 
 function formatDeg(deg: number) {
