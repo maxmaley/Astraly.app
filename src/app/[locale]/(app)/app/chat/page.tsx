@@ -85,7 +85,7 @@ async function buildDatePrompt(date: string, locale: string, t: TFn): Promise<st
 export default async function ChatPage({
   searchParams,
 }: {
-  searchParams: { explain?: string; horoscope?: string; date?: string };
+  searchParams: { explain?: string; horoscope?: string; date?: string; chart_ids?: string };
 }) {
   const t      = await getTranslations();
   const locale = await getLocale();
@@ -100,5 +100,10 @@ export default async function ChatPage({
     initialPrompt = t("chat.horoscopePrompt");
   }
 
-  return <ChatInterface initialPrompt={initialPrompt} />;
+  // Parse chart_ids from URL (e.g. ?chart_ids=id1,id2 or ?chart_ids=id1)
+  const initialChartIds = searchParams.chart_ids
+    ? searchParams.chart_ids.split(",").filter(Boolean)
+    : undefined;
+
+  return <ChatInterface initialPrompt={initialPrompt} initialChartIds={initialChartIds} />;
 }

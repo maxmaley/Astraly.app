@@ -77,12 +77,12 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientTo:    "to-indigo-500",
     price:         { monthly: 299, yearly: 2388, yearlyMonthly: 199 },
     monthlyTokens: 30_000,
-    maxCharts:     5,
+    maxCharts:     3,
     trialDays:     3,
     features:      ["chat", "multi_charts"],
     featureLabels: {
       chat:         "Расширенный AI-чат",
-      charts_limit: "До 5 натальных карт",
+      charts_limit: "До 3 натальных карт",
       multi_charts: "Карты близких — партнёр, семья",
     },
     highlight:     false,
@@ -99,12 +99,12 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientTo:    "to-orange-400",
     price:         { monthly: 499, yearly: 3996, yearlyMonthly: 333 },
     monthlyTokens: 100_000,
-    maxCharts:     10,
+    maxCharts:     5,
     trialDays:     3,
     features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications"],
     featureLabels: {
       chat:         "Безграничный AI-чат",
-      charts_limit: "До 10 натальных карт",
+      charts_limit: "До 5 натальных карт",
       multi_charts: "Карты близких",
       horoscope:    "Ежедневный личный гороскоп",
       calendar:     "Полный астро-календарь",
@@ -124,12 +124,12 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientTo:    "to-nebula-500",
     price:         { monthly: 999, yearly: 7992, yearlyMonthly: 666 },
     monthlyTokens: -1,   // unlimited
-    maxCharts:     -1,   // unlimited
+    maxCharts:     10,
     trialDays:     3,
     features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"],
     featureLabels: {
       chat:         "Безлимитный AI-чат",
-      charts_limit: "Безлимитные карты",
+      charts_limit: "До 10 натальных карт",
       multi_charts: "Карты близких",
       horoscope:    "Ежедневный личный гороскоп",
       calendar:     "Полный астро-календарь",
@@ -190,6 +190,11 @@ export function cheapestPlanFor(feature: Feature): SubscriptionTier {
     if (PLANS[id].features.includes(feature)) return id;
   }
   return "cosmic";
+}
+
+/** Max number of natal charts for a tier (-1 = unlimited, treated as 10 for Cosmic) */
+export function getMaxCharts(tier: SubscriptionTier): number {
+  return PLANS[tier].maxCharts;
 }
 
 /**
