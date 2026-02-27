@@ -178,7 +178,7 @@ export function getUsageLevel(
   if (limit === -1) return { level: "ok", ratio: 1 };    // unlimited
   if (tokensLeft <= 0) return { level: "critical", ratio: 0 };
   const ratio = tokensLeft / limit;
-  if (ratio <= 0.20) return { level: "warning", ratio };
+  if (ratio <= 0.01) return { level: "warning", ratio };
   return { level: "ok", ratio };
 }
 
