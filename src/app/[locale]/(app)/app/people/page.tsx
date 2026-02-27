@@ -329,9 +329,13 @@ export default function PeoplePage() {
 
   const loadData = useCallback(async () => {
     setPageState("loading");
-    const [chartsRes, userRes] = await Promise.all([
+
+    const { createClient } = await import("@/lib/supabase/client");
+    const sb = createClient();
+
+    const [chartsRes, { data: { user } }] = await Promise.all([
       fetch("/api/natal-chart"),
-      fetch("/api/user-info").catch(() => null),
+      sb.auth.getUser(),
     ]);
 
     if (chartsRes.ok) {
@@ -339,21 +343,14 @@ export default function PeoplePage() {
       setCharts(data.charts ?? []);
     }
 
-    // Try to get tier from local storage / session (fallback: check charts count)
-    // We'll fetch tier directly from users via a small trick — read it from the response
-    if (userRes?.ok) {
-      const userData = await userRes.json().catch(() => ({})) as { tier?: SubscriptionTier };
-      if (userData.tier) setTier(userData.tier);
-    } else {
-      // Fallback: load from supabase client
-      const { createClient } = await import("@/lib/supabase/client");
-      const sb = createClient();
-      const { data: { user } } = await sb.auth.getUser();
-      if (user) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const { data } = await (sb as any).from("users").select("subscription_tier").eq("id", user.id).single();
-        if (data?.subscription_tier) setTier(data.subscription_tier);
-      }
+    if (user) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data } = await (sb as any)
+        .from("users")
+        .select("subscription_tier")
+        .eq("id", user.id)
+        .single();
+      if (data?.subscription_tier) setTier(data.subscription_tier);
     }
 
     setPageState("ready");
