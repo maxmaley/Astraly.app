@@ -15,8 +15,10 @@ function buildFeatures(id: SubscriptionTier, t: TranslateFn) {
     n === 1  ? t("pricing.featureLabels.chartsOne") :
                t("pricing.featureLabels.chartsMany", { n });
 
+  const chatKey = `pricing.featureLabels.chat_${id}` as Parameters<typeof t>[0];
+
   const items = [
-    { text: t("pricing.featureLabels.chat"),          included: canAccess(id, "chat")          },
+    { text: t(chatKey),                               included: canAccess(id, "chat")          },
     { text: chartsText,                               included: true                            },
     { text: t("pricing.featureLabels.multiCharts"),   included: canAccess(id, "multi_charts")   },
     { text: t("pricing.featureLabels.horoscope"),     included: canAccess(id, "horoscope")      },

@@ -49,9 +49,28 @@ const C = {
     },
   },
   // Feature label keys (match PLANS[x].featureLabels keys)
+  chatByPlan: {
+    ru: {
+      free:      "Базовый AI-чат ●○○○",
+      moonlight: "Расширенный AI-чат ●●○○",
+      solar:     "Глубокий AI-чат ●●●○",
+      cosmic:    "Максимальный AI-чат ●●●●",
+    },
+    uk: {
+      free:      "Базовий AI-чат ●○○○",
+      moonlight: "Розширений AI-чат ●●○○",
+      solar:     "Глибокий AI-чат ●●●○",
+      cosmic:    "Максимальний AI-чат ●●●●",
+    },
+    en: {
+      free:      "Basic AI chat ●○○○",
+      moonlight: "Extended AI chat ●●○○",
+      solar:     "Deep AI chat ●●●○",
+      cosmic:    "Max AI chat ●●●●",
+    },
+  },
   featureLabels: {
     ru: {
-      chat:          "AI-чат с астрологом",
       charts_limit:  (n: string) => `${n} натальная карта${n === "1" ? "" : " (до " + n + ")"}`,
       multi_charts:  "Мой круг — карты партнёра, мамы, друзей",
       horoscope:     "Ежедневный личный гороскоп",
@@ -60,7 +79,6 @@ const C = {
       priority_ai:   "Приоритетный AI",
     },
     uk: {
-      chat:          "AI-чат з астрологом",
       charts_limit:  (n: string) => `${n} натальна карта${n === "1" ? "" : " (до " + n + ")"}`,
       multi_charts:  "Моє коло — карти партнера, мами, друзів",
       horoscope:     "Щоденний особистий гороскоп",
@@ -69,7 +87,6 @@ const C = {
       priority_ai:   "Пріоритетний AI",
     },
     en: {
-      chat:          "AI astrologer chat",
       charts_limit:  (n: string) => `${n === "1" ? "1 natal" : "Up to " + n} chart${n === "1" ? "" : "s"}`,
       multi_charts:  "My Circle — charts for partner, family & friends",
       horoscope:     "Daily personal horoscope",
@@ -94,7 +111,7 @@ function buildFeatureList(
 
   return [
     {
-      text:     labels.chat,
+      text:     C.chatByPlan[l][id],
       included: canAccess(id, "chat"),
     },
     {

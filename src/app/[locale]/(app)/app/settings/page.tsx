@@ -32,10 +32,10 @@ const PLAN: Record<SubscriptionTier, {
   ring:        string;
   tokenLimit:  number;
 }> = {
-  free:      { icon: "⭐", label: "Starlight",    color: "text-slate-400",   ring: "ring-slate-400/30",   tokenLimit: 5_000   },
-  moonlight: { icon: "🌙", label: "Moonlight",    color: "text-blue-400",    ring: "ring-blue-400/30",    tokenLimit: 30_000  },
-  solar:     { icon: "☀️", label: "Solar Oracle", color: "text-amber-400",   ring: "ring-amber-400/30",   tokenLimit: 100_000 },
-  cosmic:    { icon: "🌌", label: "Cosmic Mind",  color: "text-cosmic-400",  ring: "ring-cosmic-400/30",  tokenLimit: -1      },
+  free:      { icon: "⭐", label: "Starlight",    color: "text-slate-400",   ring: "ring-slate-400/30",   tokenLimit: 10_000     },
+  moonlight: { icon: "🌙", label: "Moonlight",    color: "text-blue-400",    ring: "ring-blue-400/30",    tokenLimit: 500_000    },
+  solar:     { icon: "☀️", label: "Solar Oracle", color: "text-amber-400",   ring: "ring-amber-400/30",   tokenLimit: 1_000_000  },
+  cosmic:    { icon: "🌌", label: "Cosmic Mind",  color: "text-cosmic-400",  ring: "ring-cosmic-400/30",  tokenLimit: 1_500_000  },
 };
 
 // ── Helpers ────────────────────────────────────────────────────────────────
@@ -340,8 +340,9 @@ export default function SettingsPage() {
   const isTop  = user.subscription_tier === "cosmic";
   const avatar = initials(user.name, user.email);
 
-  // Token bar: ratio relative to plan limit (capped at 100 %; -1 = unlimited → full bar)
-  const tokenRatio = plan.tokenLimit === -1 ? 1 : Math.min(1, user.tokens_left / plan.tokenLimit);
+  // Energy bar: ratio relative to plan limit (capped at 100 %)
+  const tokenRatio  = Math.min(1, user.tokens_left / plan.tokenLimit);
+  const energyPct   = Math.round(tokenRatio * 100);
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:py-10 space-y-4">
@@ -400,9 +401,7 @@ export default function SettingsPage() {
                   {plan.label}
                 </p>
                 <p className="text-xs text-[var(--muted-foreground)]">
-                  {plan.tokenLimit === -1
-                    ? t("tokensUnlimited")
-                    : `${fmtNum(user.tokens_left)} ${t("tokensLeft")}`}
+                  {`${energyPct}% ${t("energyLeft")}`}
                 </p>
               </div>
             </div>
@@ -427,10 +426,10 @@ export default function SettingsPage() {
           <div>
             <div className="mb-1.5 flex justify-between">
               <span className="text-[10px] uppercase tracking-wide text-[var(--muted-foreground)]">
-                {t("tokensBalance")}
+                {t("energyBalance")}
               </span>
               <span className="text-[10px] text-[var(--muted-foreground)]">
-                {plan.tokenLimit === -1 ? "∞" : `${fmtNum(user.tokens_left)} / ${fmtNum(plan.tokenLimit)}`}
+                {energyPct}%
               </span>
             </div>
             <div className="h-1.5 w-full overflow-hidden rounded-full bg-[var(--border)]">
@@ -440,7 +439,7 @@ export default function SettingsPage() {
               />
             </div>
             <p className="mt-1.5 text-[10px] text-[var(--muted-foreground)]">
-              {t("tokensReset")}
+              {t("energyReset")}
             </p>
           </div>
         </div>
