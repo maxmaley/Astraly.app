@@ -439,17 +439,26 @@ function MessageBubble({
 function EmptyState({
   onSend,
   t,
+  partnerName,
 }: {
   onSend: (text: string) => void;
   t: ReturnType<typeof useTranslations>;
+  partnerName?: string;
 }) {
-  const suggestions = [
-    { label: t("suggestCompatibility"), prompt: t("suggestCompatibilityPrompt") },
-    { label: t("suggestLove"), prompt: t("suggestLovePrompt") },
-    { label: t("suggestCareer"), prompt: t("suggestCareerPrompt") },
-    { label: t("suggestFinance"), prompt: t("suggestFinancePrompt") },
-    { label: t("suggestToday"), prompt: t("suggestTodayPrompt") },
-  ];
+  const suggestions = partnerName
+    ? [
+        { label: t("suggestSynastryCompatibility"), prompt: t("suggestSynastryCompatibilityPrompt", { name: partnerName }) },
+        { label: t("suggestSynastryLove"),          prompt: t("suggestSynastryLovePrompt",          { name: partnerName }) },
+        { label: t("suggestSynastryStrengths"),     prompt: t("suggestSynastryStrengthsPrompt",     { name: partnerName }) },
+        { label: t("suggestSynastryEnergy"),        prompt: t("suggestSynastryEnergyPrompt",        { name: partnerName }) },
+      ]
+    : [
+        { label: t("suggestCompatibility"), prompt: t("suggestCompatibilityPrompt") },
+        { label: t("suggestLove"),          prompt: t("suggestLovePrompt") },
+        { label: t("suggestCareer"),        prompt: t("suggestCareerPrompt") },
+        { label: t("suggestFinance"),       prompt: t("suggestFinancePrompt") },
+        { label: t("suggestToday"),         prompt: t("suggestTodayPrompt") },
+      ];
 
   return (
     <div className="flex flex-1 flex-col items-center justify-center px-6 py-16">
@@ -763,6 +772,9 @@ export function ChatInterface({
     ? allCharts.filter(c => existingChartIds.includes(c.id))
     : allCharts.filter(c => selectedChartIds.includes(c.id));
 
+  // First non-self selected chart — used to personalise empty-state suggestions
+  const partnerChart = contextCharts.find(c => c.relation !== "self");
+
   // Show picker only for new chats with multi_charts access and multiple available charts
   const showPicker = !chatHasMessages && hasMultiCharts && allCharts.length > 1 && !chatId;
 
@@ -808,7 +820,7 @@ export function ChatInterface({
             ))}
           </div>
         ) : isEmpty ? (
-          <EmptyState onSend={sendMessage} t={t} />
+          <EmptyState onSend={sendMessage} t={t} partnerName={partnerChart?.name} />
         ) : (
           <div className="mx-auto max-w-3xl space-y-6 px-4 py-6">
             {messages.map((msg, idx) => (
