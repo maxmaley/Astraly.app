@@ -103,6 +103,11 @@ const COPY = {
     sun: "☉",
     moon: "☽",
     asc: "ASC",
+    signNames: {
+      Aries: "Овен", Taurus: "Телец", Gemini: "Близнецы", Cancer: "Рак",
+      Leo: "Лев", Virgo: "Дева", Libra: "Весы", Scorpio: "Скорпион",
+      Sagittarius: "Стрелец", Capricorn: "Козерог", Aquarius: "Водолей", Pisces: "Рыбы",
+    },
   },
   en: {
     title:          "My Circle",
@@ -152,6 +157,11 @@ const COPY = {
     sun: "☉",
     moon: "☽",
     asc: "ASC",
+    signNames: {
+      Aries: "Aries", Taurus: "Taurus", Gemini: "Gemini", Cancer: "Cancer",
+      Leo: "Leo", Virgo: "Virgo", Libra: "Libra", Scorpio: "Scorpio",
+      Sagittarius: "Sagittarius", Capricorn: "Capricorn", Aquarius: "Aquarius", Pisces: "Pisces",
+    },
   },
   uk: {
     title:          "Моє коло",
@@ -201,6 +211,11 @@ const COPY = {
     sun: "☉",
     moon: "☽",
     asc: "ASC",
+    signNames: {
+      Aries: "Овен", Taurus: "Телець", Gemini: "Близнюки", Cancer: "Рак",
+      Leo: "Лев", Virgo: "Діва", Libra: "Терези", Scorpio: "Скорпіон",
+      Sagittarius: "Стрілець", Capricorn: "Козеріг", Aquarius: "Водолій", Pisces: "Риби",
+    },
   },
 };
 
@@ -271,17 +286,17 @@ function PersonCard({
           <div className="rounded-xl bg-[var(--muted)]/50 px-2 py-2 text-center">
             <p className="text-[10px] text-[var(--muted-foreground)]">{c.sun}</p>
             <p className="mt-0.5 text-base">{SIGN_SYMBOLS[sun.sign] ?? "?"}</p>
-            <p className="text-[10px] text-[var(--foreground)]">{sun.sign}</p>
+            <p className="text-[10px] text-[var(--foreground)]">{c.signNames[sun.sign as keyof typeof c.signNames] ?? sun.sign}</p>
           </div>
           <div className="rounded-xl bg-[var(--muted)]/50 px-2 py-2 text-center">
             <p className="text-[10px] text-[var(--muted-foreground)]">{c.moon}</p>
             <p className="mt-0.5 text-base">{SIGN_SYMBOLS[moon.sign] ?? "?"}</p>
-            <p className="text-[10px] text-[var(--foreground)]">{moon.sign}</p>
+            <p className="text-[10px] text-[var(--foreground)]">{c.signNames[moon.sign as keyof typeof c.signNames] ?? moon.sign}</p>
           </div>
           <div className="rounded-xl bg-[var(--muted)]/50 px-2 py-2 text-center">
             <p className="text-[10px] text-[var(--muted-foreground)]">{c.asc}</p>
             <p className="mt-0.5 text-base">{SIGN_SYMBOLS[asc.sign] ?? "?"}</p>
-            <p className="text-[10px] text-[var(--foreground)]">{asc.sign}</p>
+            <p className="text-[10px] text-[var(--foreground)]">{c.signNames[asc.sign as keyof typeof c.signNames] ?? asc.sign}</p>
           </div>
         </div>
       ) : (
