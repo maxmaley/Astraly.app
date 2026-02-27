@@ -45,10 +45,6 @@ function initials(name: string | null | undefined, email: string): string {
   return src[0]?.toUpperCase() ?? "?";
 }
 
-function fmtNum(n: number): string {
-  return n >= 1_000 ? `${(n / 1000).toFixed(n % 1000 === 0 ? 0 : 1)}k` : String(n);
-}
-
 // ── Toggle switch ──────────────────────────────────────────────────────────
 
 function Toggle({
