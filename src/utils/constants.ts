@@ -12,14 +12,14 @@ export const SUBSCRIPTION_TIERS = {
   moonlight: {
     id: "moonlight",
     name: { ru: "Лунный свет", uk: "Місячне світло", en: "Moonlight" },
-    price: 2.99,
+    price: 3.99,
     tokens: 50_000,
     model: "deepseek-v3",
   },
   solar: {
     id: "solar",
     name: { ru: "Солнечный оракул", uk: "Сонячний оракул", en: "Solar Oracle" },
-    price: 3.99,
+    price: 5.99,
     tokens: 100_000,
     model: "claude-sonnet-4-6",
     popular: true,
@@ -27,7 +27,7 @@ export const SUBSCRIPTION_TIERS = {
   cosmic: {
     id: "cosmic",
     name: { ru: "Космический разум", uk: "Космічний розум", en: "Cosmic Mind" },
-    price: 4.99,
+    price: 17.99,
     tokens: 200_000,
     model: "claude-sonnet-4-6",
   },
