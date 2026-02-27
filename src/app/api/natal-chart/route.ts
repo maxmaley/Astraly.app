@@ -27,45 +27,130 @@ function localToUTC(
   return new Date(naiveMs - offsetMs);
 }
 
-interface CreateChartBody {
+// ── Shared: geocode + calculate ───────────────────────────────────────────────
+
+interface BirthInput {
   name: string;
   relation?: Relation;
-  birth_date: string;    // "YYYY-MM-DD"
-  birth_time?: string;   // "HH:MM" or "" (unknown)
+  birth_date: string;
+  birth_time?: string;
   birth_city: string;
   lat?: number;
   lng?: number;
 }
 
+async function resolveAndCalculate(body: BirthInput) {
+  let lat = body.lat;
+  let lng = body.lng;
+
+  if (lat == null || lng == null) {
+    const geo = await geocodeCity(body.birth_city);
+    if (!geo) return { error: `City not found: ${body.birth_city}` } as const;
+    lat = geo.lat;
+    lng = geo.lng;
+  }
+
+  const [year, month, day] = body.birth_date.split("-").map(Number);
+  let localHour = 12;
+  let localMinute = 0;
+  if (body.birth_time) {
+    const [h, m] = body.birth_time.split(":").map(Number);
+    localHour = h;
+    localMinute = m;
+  }
+
+  const tzName = findTimezone(lat, lng)[0] ?? "UTC";
+  const utc = localToUTC(year, month, day, localHour, localMinute, tzName);
+
+  try {
+    const result = calculateNatalChart(
+      utc.getUTCFullYear(), utc.getUTCMonth() + 1, utc.getUTCDate(),
+      utc.getUTCHours(), utc.getUTCMinutes(),
+      lat, lng,
+    );
+    return { lat, lng, result };
+  } catch (err) {
+    return { error: `Calculation failed: ${err instanceof Error ? err.message : String(err)}` } as const;
+  }
+}
+
+// ── POST: create new chart ────────────────────────────────────────────────────
+
 export async function POST(request: NextRequest) {
   const supabase = await createClient();
-
-  // Auth check
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  let body: CreateChartBody;
-  try {
-    body = await request.json() as CreateChartBody;
-  } catch {
-    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
-  }
+  let body: BirthInput;
+  try { body = await request.json() as BirthInput; }
+  catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
 
   const { name, relation = "self", birth_date, birth_time = "", birth_city } = body;
-
   if (!name || !birth_date || !birth_city) {
-    return NextResponse.json(
-      { error: "name, birth_date and birth_city are required" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "name, birth_date and birth_city are required" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
-  // ── Enforce plan chart limit ──────────────────────────────────────────────
+  // ── Self chart: always upsert (edit = update, not insert) ─────────────────
+  if (relation === "self") {
+    const geo = await resolveAndCalculate({ ...body, birth_time });
+    if ("error" in geo) {
+      const msg = geo.error ?? "Unknown error";
+      return NextResponse.json({ error: msg }, { status: msg.includes("City") ? 422 : 500 });
+    }
+
+    // Check for existing self chart
+    const { data: existing } = await db
+      .from("natal_charts")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("relation", "self")
+      .limit(1)
+      .maybeSingle();
+
+    const payload = {
+      user_id: user.id,
+      name,
+      relation: "self" as Relation,
+      birth_date,
+      birth_time: birth_time || null,
+      birth_city,
+      lat: geo.lat,
+      lng: geo.lng,
+      planets_json: geo.result.planets,
+      houses_json: geo.result.houses,
+      ascendant: geo.result.ascendant,
+    };
+
+    let chart, dbError;
+    if (existing?.id) {
+      // Update existing self chart
+      ({ data: chart, error: dbError } = await db
+        .from("natal_charts")
+        .update({ ...payload, updated_at: new Date().toISOString() })
+        .eq("id", existing.id)
+        .select()
+        .single());
+    } else {
+      // Ensure user row exists
+      await db.from("users").upsert({ id: user.id, email: user.email }, { onConflict: "id", ignoreDuplicates: true });
+      ({ data: chart, error: dbError } = await db
+        .from("natal_charts")
+        .insert(payload)
+        .select()
+        .single());
+    }
+
+    if (dbError) {
+      console.error("[natal-chart] self upsert failed:", dbError.message);
+      return NextResponse.json({ error: `DB error: ${dbError.message}` }, { status: 500 });
+    }
+    return NextResponse.json({ chart }, { status: 201 });
+  }
+
+  // ── Non-self chart: enforce plan limit (counts ALL charts incl. self) ──────
   const { data: userRow } = await db
     .from("users")
     .select("subscription_tier")
@@ -75,82 +160,21 @@ export async function POST(request: NextRequest) {
   const tier = (userRow?.subscription_tier ?? "free") as SubscriptionTier;
   const maxCharts = PLANS[tier].maxCharts;
 
-  // Count existing charts for this user
-  const { count: existingCount } = await db
+  const { count: currentCount } = await db
     .from("natal_charts")
     .select("id", { count: "exact", head: true })
     .eq("user_id", user.id);
 
-  const currentCount = existingCount ?? 0;
-
-  if (maxCharts !== -1 && currentCount >= maxCharts) {
-    return NextResponse.json(
-      {
-        error: "chart_limit",
-        max_charts: maxCharts,
-        current_count: currentCount,
-        tier,
-      },
-      { status: 403 },
-    );
+  if (maxCharts !== -1 && (currentCount ?? 0) >= maxCharts) {
+    return NextResponse.json({ error: "chart_limit", max_charts: maxCharts, tier }, { status: 403 });
   }
 
-  // ── Geocode ──────────────────────────────────────────────────────────────
-  let lat = body.lat;
-  let lng = body.lng;
-
-  if (lat == null || lng == null) {
-    const geo = await geocodeCity(birth_city);
-    if (!geo) {
-      return NextResponse.json(
-        { error: `City not found: ${birth_city}` },
-        { status: 422 },
-      );
-    }
-    lat = geo.lat;
-    lng = geo.lng;
+  const geo = await resolveAndCalculate({ ...body, birth_time });
+  if ("error" in geo) {
+    const msg = geo.error ?? "Unknown error";
+    return NextResponse.json({ error: msg }, { status: msg.includes("City") ? 422 : 500 });
   }
 
-  // ── Parse birth date & time and convert local → UTC ──────────────────────
-  const [year, month, day] = birth_date.split("-").map(Number);
-
-  let localHour = 12; // noon when birth time is unknown
-  let localMinute = 0;
-  if (birth_time) {
-    const [h, m] = birth_time.split(":").map(Number);
-    localHour = h;
-    localMinute = m;
-  }
-
-  const tzResults = findTimezone(lat, lng);
-  const tzName = tzResults[0] ?? "UTC";
-  const utcDate = localToUTC(year, month, day, localHour, localMinute, tzName);
-  const utcYear = utcDate.getUTCFullYear();
-  const utcMonth = utcDate.getUTCMonth() + 1;
-  const utcDay = utcDate.getUTCDate();
-  const hour = utcDate.getUTCHours();
-  const minute = utcDate.getUTCMinutes();
-
-  // ── Calculate chart ───────────────────────────────────────────────────────
-  let chartResult;
-  try {
-    chartResult = calculateNatalChart(utcYear, utcMonth, utcDay, hour, minute, lat, lng);
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err);
-    console.error("[natal-chart] Calculation failed:", msg);
-    return NextResponse.json({ error: `Calculation failed: ${msg}` }, { status: 500 });
-  }
-
-  // ── Ensure user row exists (safety net if DB trigger wasn't set up) ───────
-  const { error: upsertUserError } = await db
-    .from("users")
-    .upsert({ id: user.id, email: user.email }, { onConflict: "id", ignoreDuplicates: true });
-
-  if (upsertUserError) {
-    console.warn("[natal-chart] User upsert warning:", upsertUserError.message ?? upsertUserError);
-  }
-
-  // ── Save to DB ────────────────────────────────────────────────────────────
   const { data: chart, error } = await db
     .from("natal_charts")
     .insert({
@@ -160,32 +184,29 @@ export async function POST(request: NextRequest) {
       birth_date,
       birth_time: birth_time || null,
       birth_city,
-      lat,
-      lng,
-      planets_json: chartResult.planets,
-      houses_json: chartResult.houses,
-      ascendant: chartResult.ascendant,
+      lat: geo.lat,
+      lng: geo.lng,
+      planets_json: geo.result.planets,
+      houses_json: geo.result.houses,
+      ascendant: geo.result.ascendant,
     })
     .select()
     .single();
 
   if (error) {
-    const msg = error.message ?? error.code ?? JSON.stringify(error);
-    console.error("[natal-chart] DB insert failed:", msg);
-    return NextResponse.json({ error: `DB error: ${msg}` }, { status: 500 });
+    console.error("[natal-chart] insert failed:", error.message);
+    return NextResponse.json({ error: `DB error: ${error.message}` }, { status: 500 });
   }
 
   return NextResponse.json({ chart }, { status: 201 });
 }
 
-// GET: fetch all charts for the current user
+// ── GET: fetch all charts for the current user ────────────────────────────────
+
 export async function GET() {
   const supabase = await createClient();
-
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: charts, error } = await (supabase as any)
@@ -195,32 +216,91 @@ export async function GET() {
     .order("created_at", { ascending: true });
 
   if (error) {
-    const msg = error.message ?? error.code ?? JSON.stringify(error);
-    console.error("[natal-chart] GET failed:", msg);
-    return NextResponse.json({ error: `DB error: ${msg}` }, { status: 500 });
+    return NextResponse.json({ error: `DB error: ${error.message}` }, { status: 500 });
   }
 
   return NextResponse.json({ charts });
 }
 
-// DELETE: remove a specific natal chart (cannot delete own 'self' chart)
-export async function DELETE(request: NextRequest) {
-  const supabase = await createClient();
+// ── PATCH: edit (recalculate) an existing chart ───────────────────────────────
 
+export async function PATCH(request: NextRequest) {
+  const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const chartId = request.nextUrl.searchParams.get("chart_id");
-  if (!chartId) {
-    return NextResponse.json({ error: "chart_id required" }, { status: 400 });
+  if (!chartId) return NextResponse.json({ error: "chart_id required" }, { status: 400 });
+
+  let body: BirthInput;
+  try { body = await request.json() as BirthInput; }
+  catch { return NextResponse.json({ error: "Invalid JSON" }, { status: 400 }); }
+
+  const { name, relation, birth_date, birth_time = "", birth_city } = body;
+  if (!name || !birth_date || !birth_city) {
+    return NextResponse.json({ error: "name, birth_date and birth_city are required" }, { status: 400 });
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = supabase as any;
 
-  // Fetch the chart to verify ownership and relation
+  // Verify ownership
+  const { data: existing } = await db
+    .from("natal_charts")
+    .select("id, user_id")
+    .eq("id", chartId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (!existing) return NextResponse.json({ error: "Chart not found" }, { status: 404 });
+
+  const geo = await resolveAndCalculate({ ...body, birth_time });
+  if ("error" in geo) {
+    const msg = geo.error ?? "Unknown error";
+    return NextResponse.json({ error: msg }, { status: msg.includes("City") ? 422 : 500 });
+  }
+
+  const { data: chart, error } = await db
+    .from("natal_charts")
+    .update({
+      name,
+      ...(relation ? { relation } : {}),
+      birth_date,
+      birth_time: birth_time || null,
+      birth_city,
+      lat: geo.lat,
+      lng: geo.lng,
+      planets_json: geo.result.planets,
+      houses_json: geo.result.houses,
+      ascendant: geo.result.ascendant,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", chartId)
+    .eq("user_id", user.id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error("[natal-chart] PATCH failed:", error.message);
+    return NextResponse.json({ error: `DB error: ${error.message}` }, { status: 500 });
+  }
+
+  return NextResponse.json({ chart });
+}
+
+// ── DELETE: remove a non-self chart ──────────────────────────────────────────
+
+export async function DELETE(request: NextRequest) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
+  const chartId = request.nextUrl.searchParams.get("chart_id");
+  if (!chartId) return NextResponse.json({ error: "chart_id required" }, { status: 400 });
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = supabase as any;
+
   const { data: chart } = await db
     .from("natal_charts")
     .select("id, user_id, relation")
@@ -228,13 +308,8 @@ export async function DELETE(request: NextRequest) {
     .eq("user_id", user.id)
     .single();
 
-  if (!chart) {
-    return NextResponse.json({ error: "Chart not found" }, { status: 404 });
-  }
-
-  if (chart.relation === "self") {
-    return NextResponse.json({ error: "Cannot delete your own chart" }, { status: 403 });
-  }
+  if (!chart) return NextResponse.json({ error: "Chart not found" }, { status: 404 });
+  if (chart.relation === "self") return NextResponse.json({ error: "Cannot delete your own chart" }, { status: 403 });
 
   const { error } = await db
     .from("natal_charts")
@@ -242,11 +317,7 @@ export async function DELETE(request: NextRequest) {
     .eq("id", chartId)
     .eq("user_id", user.id);
 
-  if (error) {
-    const msg = error.message ?? error.code ?? JSON.stringify(error);
-    console.error("[natal-chart] DELETE failed:", msg);
-    return NextResponse.json({ error: `DB error: ${msg}` }, { status: 500 });
-  }
+  if (error) return NextResponse.json({ error: `DB error: ${error.message}` }, { status: 500 });
 
   return NextResponse.json({ success: true });
 }
