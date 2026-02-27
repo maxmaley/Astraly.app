@@ -556,7 +556,7 @@ export function ChatInterface({
       const selfChart = charts.find(c => c.relation === "self");
       if (selfChart) {
         const initial = initialChartIds?.length
-          ? [...new Set([selfChart.id, ...initialChartIds])]
+          ? [selfChart.id, ...initialChartIds.filter(id => id !== selfChart.id)]
           : [selfChart.id];
         setSelectedChartIds(initial);
       }
