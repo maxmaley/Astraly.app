@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/navigation";
 import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { PLANS, canAccess } from "@/lib/plans";
@@ -16,6 +16,12 @@ interface PlanetData {
   retrograde: boolean;
 }
 
+interface HouseData {
+  house: number;
+  sign: string;
+  degree: number;
+}
+
 interface ChartRecord {
   id: string;
   name: string;
@@ -24,7 +30,8 @@ interface ChartRecord {
   birth_time: string | null;
   birth_city: string;
   planets_json: Record<string, PlanetData>;
-  ascendant: { sign: string; degree: number };
+  houses_json: HouseData[];
+  ascendant: { sign: string; degree: number; mc_sign?: string; mc_degree?: number };
   created_at: string;
 }
 
@@ -46,10 +53,77 @@ const SIGN_SYMBOLS: Record<string, string> = {
   Sagittarius: "♐", Capricorn: "♑", Aquarius: "♒", Pisces: "♓",
 };
 
+const PLANET_SYMBOLS: Record<string, string> = {
+  Sun: "☉", Moon: "☽", Mercury: "☿", Venus: "♀",
+  Mars: "♂", Jupiter: "♃", Saturn: "♄", Uranus: "⛢",
+  Neptune: "♆", Pluto: "♇",
+};
+
+const SPECIAL_POINT_SYMBOLS: Record<string, string> = {
+  NorthNode: "☊", SouthNode: "☋", Lilith: "⚸", Chiron: "⚷",
+};
+
+const PLANET_ORDER = [
+  "Sun", "Moon", "Mercury", "Venus", "Mars",
+  "Jupiter", "Saturn", "Uranus", "Neptune", "Pluto",
+];
+
+const SIGN_ORDER = [
+  "Aries","Taurus","Gemini","Cancer","Leo","Virgo",
+  "Libra","Scorpio","Sagittarius","Capricorn","Aquarius","Pisces",
+] as const;
+
+const ALL_POINT_KEYS = [
+  "Sun","Moon","Mercury","Venus","Mars","Jupiter","Saturn","Uranus","Neptune","Pluto",
+  "NorthNode","SouthNode","Lilith","Chiron",
+];
+
+
+interface AspectDef { key: string; symbol: string; angle: number; orb: number; color: string }
+const ASPECT_DEFS: AspectDef[] = [
+  { key: "Conjunction", symbol: "☌", angle: 0,   orb: 8, color: "text-amber-400"   },
+  { key: "Opposition",  symbol: "☍", angle: 180, orb: 8, color: "text-red-400"     },
+  { key: "Trine",       symbol: "△", angle: 120, orb: 8, color: "text-emerald-400" },
+  { key: "Square",      symbol: "□", angle: 90,  orb: 7, color: "text-red-400"     },
+  { key: "Sextile",     symbol: "⚹", angle: 60,  orb: 6, color: "text-emerald-400" },
+  { key: "Quincunx",    symbol: "⚻", angle: 150, orb: 3, color: "text-orange-400"  },
+];
+
+interface AspectResult { p1: string; p2: string; def: AspectDef; orb: number }
+
+function absLon(p: PlanetData): number {
+  return (SIGN_ORDER as readonly string[]).indexOf(p.sign) * 30 + p.degree;
+}
+
+function computeAspects(planets: Record<string, PlanetData>): AspectResult[] {
+  const keys = ALL_POINT_KEYS.filter(k => planets[k]);
+  const out: AspectResult[] = [];
+  for (let i = 0; i < keys.length; i++) {
+    for (let j = i + 1; j < keys.length; j++) {
+      const lon1 = absLon(planets[keys[i]]);
+      const lon2 = absLon(planets[keys[j]]);
+      let diff = Math.abs(lon1 - lon2);
+      if (diff > 180) diff = 360 - diff;
+      for (const def of ASPECT_DEFS) {
+        const orb = Math.abs(diff - def.angle);
+        if (orb <= def.orb) { out.push({ p1: keys[i], p2: keys[j], def, orb }); break; }
+      }
+    }
+  }
+  return out.sort((a, b) => a.orb - b.orb);
+}
+
+function formatDeg(deg: number): string {
+  const d = Math.floor(deg);
+  const m = Math.floor((deg - d) * 60);
+  return `${d}°${m.toString().padStart(2, "0")}′`;
+}
+
 const RELATION_EMOJI: Record<Relation, string> = {
   self:    "✦",
   partner: "💑",
-  mom:     "👩",
+  parent:  "👨‍👩‍👧",
+  child:   "🧒",
   friend:  "👫",
   other:   "👤",
 };
@@ -86,10 +160,13 @@ const COPY = {
     limitTitle:     "Лимит карт достигнут",
     limitDesc:      "Обнови план, чтобы добавить больше людей",
     upgrade:        "Обновить план →",
+    details:        "Подробнее",
+    hide:           "Скрыть",
     relations: {
       self:    "Я",
       partner: "Партнёр",
-      mom:     "Мама",
+      parent:  "Родители",
+      child:   "Ребёнок",
       friend:  "Друг/подруга",
       other:   "Другое",
     },
@@ -140,10 +217,13 @@ const COPY = {
     limitTitle:     "Chart limit reached",
     limitDesc:      "Upgrade your plan to add more people",
     upgrade:        "Upgrade plan →",
+    details:        "Details",
+    hide:           "Hide",
     relations: {
       self:    "Me",
       partner: "Partner",
-      mom:     "Mom",
+      parent:  "Parent",
+      child:   "Child",
       friend:  "Friend",
       other:   "Other",
     },
@@ -194,10 +274,13 @@ const COPY = {
     limitTitle:     "Ліміт карт досягнуто",
     limitDesc:      "Онови план, щоб додати більше людей",
     upgrade:        "Оновити план →",
+    details:        "Детальніше",
+    hide:           "Сховати",
     relations: {
       self:    "Я",
       partner: "Партнер",
-      mom:     "Мама",
+      parent:  "Батьки",
+      child:   "Дитина",
       friend:  "Друг/подруга",
       other:   "Інше",
     },
@@ -245,17 +328,28 @@ function PersonCard({
   onEdit: (chart: ChartRecord) => void;
   onChat: (chart: ChartRecord) => void;
 }) {
-  const isSelf = chart.relation === "self";
-  const sun = chart.planets_json?.Sun;
-  const moon = chart.planets_json?.Moon;
-  const asc = chart.ascendant;
+  const tS  = useTranslations("signs");
+  const tP  = useTranslations("planets");
+  const tA  = useTranslations("aspects");
+  const tH  = useTranslations("housesTable");
+  const tSP = useTranslations("specialPoints");
+
+  const [expanded, setExpanded] = useState(false);
+
+  const isSelf  = chart.relation === "self";
+  const sun     = chart.planets_json?.Sun;
+  const moon    = chart.planets_json?.Moon;
+  const asc     = chart.ascendant;
+  const hasData = !!(sun && moon && asc);
+  const aspects = hasData ? computeAspects(chart.planets_json) : [];
 
   return (
-    <div className={`group relative flex flex-col rounded-2xl border bg-[var(--card)] p-5 transition-all hover:border-cosmic-400/40 hover:shadow-sm ${
+    <div className={`group relative flex flex-col rounded-2xl border bg-[var(--card)] transition-all hover:border-cosmic-400/40 hover:shadow-sm ${
       isSelf
         ? "border-cosmic-500/40 bg-gradient-to-br from-cosmic-500/8 to-nebula-500/5"
         : "border-[var(--border)]"
     }`}>
+
       {/* Self badge */}
       {isSelf && (
         <span className="absolute right-3 top-3 rounded-full bg-cosmic-500/20 px-2 py-0.5 text-[10px] font-semibold text-cosmic-400">
@@ -263,86 +357,229 @@ function PersonCard({
         </span>
       )}
 
-      {/* Header */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${
-          isSelf
-            ? "bg-gradient-to-br from-cosmic-500/30 to-nebula-500/30 border border-cosmic-400/30"
-            : "bg-[var(--muted)] border border-[var(--border)]"
-        }`}>
-          {RELATION_EMOJI[chart.relation]}
-        </div>
-        <div className="min-w-0">
-          <p className="truncate font-semibold text-[var(--foreground)]">{chart.name}</p>
-          <p className="text-xs text-[var(--muted-foreground)]">
-            {c.relations[chart.relation]}
-          </p>
-        </div>
-      </div>
-
-      {/* Chart summary */}
-      {sun && moon && asc ? (
-        <div className="mb-4 grid grid-cols-3 gap-2">
-          <div className="rounded-xl bg-[var(--muted)]/50 px-2 py-2 text-center">
-            <p className="text-[10px] text-[var(--muted-foreground)]">{c.sun}</p>
-            <p className="mt-0.5 text-base">{SIGN_SYMBOLS[sun.sign] ?? "?"}</p>
-            <p className="text-[10px] text-[var(--foreground)]">{c.signNames[sun.sign as keyof typeof c.signNames] ?? sun.sign}</p>
+      <div className="p-5">
+        {/* Header */}
+        <div className="mb-4 flex items-center gap-3">
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xl ${
+            isSelf
+              ? "bg-gradient-to-br from-cosmic-500/30 to-nebula-500/30 border border-cosmic-400/30"
+              : "bg-[var(--muted)] border border-[var(--border)]"
+          }`}>
+            {RELATION_EMOJI[chart.relation]}
           </div>
-          <div className="rounded-xl bg-[var(--muted)]/50 px-2 py-2 text-center">
-            <p className="text-[10px] text-[var(--muted-foreground)]">{c.moon}</p>
-            <p className="mt-0.5 text-base">{SIGN_SYMBOLS[moon.sign] ?? "?"}</p>
-            <p className="text-[10px] text-[var(--foreground)]">{c.signNames[moon.sign as keyof typeof c.signNames] ?? moon.sign}</p>
-          </div>
-          <div className="rounded-xl bg-[var(--muted)]/50 px-2 py-2 text-center">
-            <p className="text-[10px] text-[var(--muted-foreground)]">{c.asc}</p>
-            <p className="mt-0.5 text-base">{SIGN_SYMBOLS[asc.sign] ?? "?"}</p>
-            <p className="text-[10px] text-[var(--foreground)]">{c.signNames[asc.sign as keyof typeof c.signNames] ?? asc.sign}</p>
+          <div className="min-w-0 flex-1">
+            <p className="truncate font-semibold text-[var(--foreground)]">{chart.name}</p>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              {c.relations[chart.relation]}
+            </p>
           </div>
         </div>
-      ) : (
-        <p className="mb-4 text-xs text-[var(--muted-foreground)]">{c.noChart}</p>
-      )}
 
-      {/* Birth info */}
-      <p className="mb-4 text-[11px] text-[var(--muted-foreground)]">
-        {chart.birth_date}
-        {chart.birth_time ? ` · ${chart.birth_time}` : ""}
-        {" · "}{chart.birth_city}
-      </p>
+        {/* Chart summary — ASC/MC + Sun/Moon pills */}
+        {hasData ? (
+          <>
+            {/* ASC + MC */}
+            <div className="mb-3 flex flex-wrap gap-2">
+              <div className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--muted)]/50 px-3 py-1">
+                <span className="text-xs text-[var(--muted-foreground)]">ASC</span>
+                <span className="text-sm text-cosmic-400">{SIGN_SYMBOLS[asc.sign]}</span>
+                <span className="text-xs font-medium text-[var(--foreground)]">{tS(asc.sign as Parameters<typeof tS>[0])}</span>
+              </div>
+              {asc.mc_sign && (
+                <div className="flex items-center gap-1.5 rounded-full border border-[var(--border)] bg-[var(--muted)]/50 px-3 py-1">
+                  <span className="text-xs text-[var(--muted-foreground)]">MC</span>
+                  <span className="text-sm text-nebula-400">{SIGN_SYMBOLS[asc.mc_sign]}</span>
+                  <span className="text-xs font-medium text-[var(--foreground)]">{tS(asc.mc_sign as Parameters<typeof tS>[0])}</span>
+                </div>
+              )}
+            </div>
 
-      {/* Actions */}
-      <div className="mt-auto flex gap-2">
-        {!isSelf && (
-          <button
-            onClick={() => onChat(chart)}
-            className="flex-1 rounded-xl border border-cosmic-500/40 bg-cosmic-500/10 px-3 py-2 text-xs font-medium text-cosmic-400 transition-all hover:bg-cosmic-500/20"
-          >
-            {c.chatWith} {chart.name} →
-          </button>
+            {/* Sun · Moon */}
+            <div className="mb-3 grid grid-cols-2 gap-2">
+              {([["Sun", "☉"], ["Moon", "☽"]] as const).map(([key, sym]) => {
+                const p = chart.planets_json[key];
+                if (!p) return null;
+                return (
+                  <div key={key} className="rounded-xl bg-[var(--muted)]/50 px-2 py-2 text-center">
+                    <p className="text-[10px] text-[var(--muted-foreground)]">{sym}</p>
+                    <p className="mt-0.5 text-base">{SIGN_SYMBOLS[p.sign] ?? "?"}</p>
+                    <p className="text-[10px] text-[var(--foreground)]">{tS(p.sign as Parameters<typeof tS>[0])}</p>
+                  </div>
+                );
+              })}
+            </div>
+          </>
+        ) : (
+          <p className="mb-4 text-xs text-[var(--muted-foreground)]">{c.noChart}</p>
         )}
-        {/* Edit button for all charts */}
-        <button
-          onClick={() => onEdit(chart)}
-          className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] transition-all hover:border-cosmic-400/40 hover:text-cosmic-400"
-          title={c.editPerson}
-        >
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
-          </svg>
-        </button>
-        {!isSelf && (
+
+        {/* Birth info */}
+        <p className="mb-4 text-[11px] text-[var(--muted-foreground)]">
+          {chart.birth_date}
+          {chart.birth_time ? ` · ${chart.birth_time}` : ""}
+          {" · "}{chart.birth_city}
+        </p>
+
+        {/* Actions */}
+        <div className="flex gap-2">
+          {!isSelf && (
+            <button
+              onClick={() => onChat(chart)}
+              className="flex-1 rounded-xl border border-cosmic-500/40 bg-cosmic-500/10 px-3 py-2 text-xs font-medium text-cosmic-400 transition-all hover:bg-cosmic-500/20"
+            >
+              {c.chatWith} {chart.name} →
+            </button>
+          )}
           <button
-            onClick={() => onDelete(chart)}
-            className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] transition-all hover:border-red-400/40 hover:text-red-400"
-            title={c.deletePerson}
+            onClick={() => onEdit(chart)}
+            className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] transition-all hover:border-cosmic-400/40 hover:text-cosmic-400"
+            title={c.editPerson}
           >
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2" />
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+            </svg>
+          </button>
+          {!isSelf && (
+            <button
+              onClick={() => onDelete(chart)}
+              className="rounded-xl border border-[var(--border)] px-3 py-2 text-xs text-[var(--muted-foreground)] transition-all hover:border-red-400/40 hover:text-red-400"
+              title={c.deletePerson}
+            >
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 6h18M19 6l-1 14H6L5 6M10 11v6M14 11v6M8 6V4h8v2" />
+              </svg>
+            </button>
+          )}
+        </div>
+
+        {/* Expand toggle */}
+        {hasData && (
+          <button
+            onClick={() => setExpanded(v => !v)}
+            className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl border border-[var(--border)] py-1.5 text-[11px] text-[var(--muted-foreground)] transition-all hover:border-cosmic-400/40 hover:text-cosmic-400"
+          >
+            <span>{expanded ? c.hide : c.details}</span>
+            <svg
+              width="12" height="12" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"
+              className={`transition-transform duration-200 ${expanded ? "rotate-180" : ""}`}
+            >
+              <path d="M6 9l6 6 6-6" />
             </svg>
           </button>
         )}
       </div>
+
+      {/* ── Expanded detail panel ─────────────────────────────────────────── */}
+      {expanded && hasData && (
+        <div className="border-t border-[var(--border)] px-5 pb-5 pt-4 space-y-4">
+
+          {/* Planets table */}
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+            <div className="grid grid-cols-[2fr_2fr_0.6fr_0.8fr] gap-x-1 border-b border-[var(--border)] px-3 py-2">
+              <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)]">✦</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)]">♈</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)] text-center">H</span>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)] text-right">°</span>
+            </div>
+            {PLANET_ORDER.map((name, i) => {
+              const p = chart.planets_json[name];
+              if (!p) return null;
+              return (
+                <div key={name} className={`grid grid-cols-[2fr_2fr_0.6fr_0.8fr] gap-x-1 items-center px-3 py-2 ${i % 2 === 1 ? "bg-[var(--muted)]/20" : ""}`}>
+                  <div className="flex items-center gap-1.5">
+                    <span className="w-4 text-center text-sm text-[var(--muted-foreground)]">{PLANET_SYMBOLS[name]}</span>
+                    <span className="text-xs font-medium text-[var(--foreground)] truncate">{tP(name as Parameters<typeof tP>[0])}</span>
+                    {p.retrograde && <span className="text-[10px] text-amber-400 font-semibold">℞</span>}
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-xs text-cosmic-400">{SIGN_SYMBOLS[p.sign]}</span>
+                    <span className="text-xs text-[var(--foreground)] truncate">{tS(p.sign as Parameters<typeof tS>[0])}</span>
+                  </div>
+                  <span className="text-xs text-[var(--muted-foreground)] text-center">{p.house}</span>
+                  <span className="text-right text-[10px] text-[var(--muted-foreground)] tabular-nums">{formatDeg(p.degree)}</span>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Special points */}
+          {(chart.planets_json.NorthNode || chart.planets_json.SouthNode || chart.planets_json.Lilith || chart.planets_json.Chiron) && (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+              <div className="px-3 py-2 border-b border-[var(--border)]">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)]">{tSP("title")}</span>
+              </div>
+              {(["NorthNode","SouthNode","Lilith","Chiron"] as const).map((key, i) => {
+                const p = chart.planets_json[key];
+                if (!p) return null;
+                return (
+                  <div key={key} className={`grid grid-cols-[2fr_2fr_0.6fr_0.8fr] gap-x-1 items-center px-3 py-2 ${i % 2 === 1 ? "bg-[var(--muted)]/20" : ""}`}>
+                    <div className="flex items-center gap-1.5">
+                      <span className="w-4 text-center text-sm text-nebula-400">{SPECIAL_POINT_SYMBOLS[key]}</span>
+                      <span className="text-xs font-medium text-[var(--foreground)] truncate">{tP(key as Parameters<typeof tP>[0])}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-cosmic-400">{SIGN_SYMBOLS[p.sign]}</span>
+                      <span className="text-xs text-[var(--foreground)] truncate">{tS(p.sign as Parameters<typeof tS>[0])}</span>
+                    </div>
+                    <span className="text-xs text-[var(--muted-foreground)] text-center">{p.house}</span>
+                    <span className="text-right text-[10px] text-[var(--muted-foreground)] tabular-nums">{formatDeg(p.degree)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Houses */}
+          {chart.houses_json?.length > 0 && (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+              <div className="px-3 py-2 border-b border-[var(--border)]">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)]">{tH("title")}</span>
+              </div>
+              <div className="grid grid-cols-3 gap-x-2 divide-x divide-[var(--border)]/40">
+                {chart.houses_json.slice(0, 12).map((h, i) => (
+                  <div key={h.house} className={`flex items-center gap-1.5 px-3 py-1.5 ${i % 2 === 0 ? "" : "bg-[var(--muted)]/10"}`}>
+                    <span className="text-[10px] text-[var(--muted-foreground)] w-5 shrink-0">{i + 1}</span>
+                    <span className="text-xs text-cosmic-400">{SIGN_SYMBOLS[h.sign]}</span>
+                    <span className="text-[10px] text-[var(--foreground)] truncate">{tS(h.sign as Parameters<typeof tS>[0])}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Aspects */}
+          {aspects.length > 0 && (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--card)] overflow-hidden">
+              <div className="px-3 py-2 border-b border-[var(--border)]">
+                <span className="text-[10px] font-medium uppercase tracking-wider text-[var(--muted-foreground)]">{tA("title")}</span>
+              </div>
+              <div className="divide-y divide-[var(--border)]/50">
+                {aspects.slice(0, 12).map(({ p1, p2, def, orb }) => {
+                  const sym1 = PLANET_SYMBOLS[p1] ?? SPECIAL_POINT_SYMBOLS[p1] ?? "•";
+                  const sym2 = PLANET_SYMBOLS[p2] ?? SPECIAL_POINT_SYMBOLS[p2] ?? "•";
+                  const orbD = Math.floor(orb);
+                  const orbM = Math.floor((orb - orbD) * 60);
+                  return (
+                    <div key={`${p1}-${p2}`} className="flex items-center gap-1.5 px-3 py-2">
+                      <span className="w-4 text-center text-xs text-[var(--muted-foreground)]">{sym1}</span>
+                      <span className="text-xs text-[var(--foreground)] w-14 truncate">{tP(p1 as Parameters<typeof tP>[0])}</span>
+                      <span className={`text-sm font-bold w-4 text-center ${def.color}`}>{def.symbol}</span>
+                      <span className="w-4 text-center text-xs text-[var(--muted-foreground)]">{sym2}</span>
+                      <span className="text-xs text-[var(--foreground)] flex-1 truncate">{tP(p2 as Parameters<typeof tP>[0])}</span>
+                      <span className="text-[10px] text-[var(--muted-foreground)] tabular-nums whitespace-nowrap">
+                        {orbD}°{orbM.toString().padStart(2, "0")}′
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+        </div>
+      )}
     </div>
   );
 }
@@ -482,11 +719,10 @@ export default function PeoplePage() {
   }
 
   function handleChatWith(chart: ChartRecord) {
-    // Navigate to chat page with chart context pre-selected via URL param
     router.push(`/app/chat?chart_ids=${chart.id}`, { locale });
   }
 
-  const selfChart = charts.find(ch => ch.relation === "self");
+  const selfChart  = charts.find(ch => ch.relation === "self");
   const otherCharts = charts.filter(ch => ch.relation !== "self");
 
   if (pageState === "loading") {
@@ -634,7 +870,7 @@ export default function PeoplePage() {
                       disabled={formState === "building"}
                       className={inputCls}
                     >
-                      {(["partner", "mom", "friend", "other"] as Relation[]).map(rel => (
+                      {(["partner", "parent", "child", "friend", "other"] as Relation[]).map(rel => (
                         <option key={rel} value={rel}>{c.relations[rel]}</option>
                       ))}
                     </select>

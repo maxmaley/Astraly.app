@@ -266,7 +266,7 @@ STYLE:
         );
 
         const stream = await anthropic.messages.create({
-          model: tier === "cosmic" ? "claude-sonnet-4-6" : "claude-haiku-4-5-20251001",
+          model: "claude-haiku-4-5-20251001",
           max_tokens: 4096,
           system: systemPrompt,
           messages: historyMessages,
