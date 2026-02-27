@@ -53,7 +53,7 @@ const C = {
     ru: {
       chat:          "AI-чат с астрологом",
       charts_limit:  (n: string) => `${n} натальная карта${n === "1" ? "" : " (до " + n + ")"}`,
-      multi_charts:  "Карты близких",
+      multi_charts:  "Мой круг — карты партнёра, мамы, друзей",
       horoscope:     "Ежедневный личный гороскоп",
       calendar:      "Полный астро-календарь",
       notifications: "Email-уведомления",
@@ -62,7 +62,7 @@ const C = {
     uk: {
       chat:          "AI-чат з астрологом",
       charts_limit:  (n: string) => `${n} натальна карта${n === "1" ? "" : " (до " + n + ")"}`,
-      multi_charts:  "Карти близьких",
+      multi_charts:  "Моє коло — карти партнера, мами, друзів",
       horoscope:     "Щоденний особистий гороскоп",
       calendar:      "Повний астро-календар",
       notifications: "Email-сповіщення",
@@ -71,7 +71,7 @@ const C = {
     en: {
       chat:          "AI astrologer chat",
       charts_limit:  (n: string) => `${n === "1" ? "1 natal" : "Up to " + n} chart${n === "1" ? "" : "s"}`,
-      multi_charts:  "Charts for loved ones",
+      multi_charts:  "My Circle — charts for partner, family & friends",
       horoscope:     "Daily personal horoscope",
       calendar:      "Full astro calendar",
       notifications: "Email notifications",
