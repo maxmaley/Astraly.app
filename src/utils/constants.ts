@@ -28,8 +28,8 @@ export const SUBSCRIPTION_TIERS = {
     id: "cosmic",
     name: { ru: "Космический разум", uk: "Космічний розум", en: "Cosmic Mind" },
     price: 17.99,
-    tokens: 200_000,
-    model: "claude-sonnet-4-6",
+    tokens: 5_000_000,
+    model: "claude-haiku-4-5-20251001",
   },
 } as const;
 

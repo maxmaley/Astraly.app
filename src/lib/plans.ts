@@ -123,7 +123,7 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientFrom:  "from-cosmic-600",
     gradientTo:    "to-nebula-500",
     price:         { monthly: 1799, yearly: 14392, yearlyMonthly: 1199 },
-    monthlyTokens: 1_500_000,
+    monthlyTokens: 5_000_000,
     maxCharts:     10,
     trialDays:     3,
     features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"],
