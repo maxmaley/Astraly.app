@@ -88,6 +88,10 @@
     "footerSupport": "Підтримка",
     "footerPolicy": "Політика конфіденційності",
     "footerTerms": "Умови використання",
+    "footerCookies": "Політика cookies",
+    "footerRefunds": "Повернення коштів",
+    "footerSectionProduct": "Продукт",
+    "footerSectionAccount": "Акаунт",
     "footerRights": "Всі права захищені"
   },
   "auth": {

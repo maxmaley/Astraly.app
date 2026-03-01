@@ -88,6 +88,10 @@
     "footerSupport": "Поддержка",
     "footerPolicy": "Политика конфиденциальности",
     "footerTerms": "Условия использования",
+    "footerCookies": "Политика cookies",
+    "footerRefunds": "Возврат средств",
+    "footerSectionProduct": "Продукт",
+    "footerSectionAccount": "Аккаунт",
     "footerRights": "Все права защищены"
   },
   "auth": {

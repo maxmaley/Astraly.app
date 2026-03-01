@@ -4,6 +4,7 @@ import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing, type Locale } from "@/routing";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
+import { CookieBanner } from "@/components/shared/CookieBanner";
 import "../globals.css";
 
 export const metadata: Metadata = {
@@ -52,6 +53,7 @@ export default async function LocaleLayout({
       <body className="min-h-screen bg-[var(--background)] text-[var(--foreground)] antialiased">
         <NextIntlClientProvider messages={messages}>
           <ThemeProvider>{children}</ThemeProvider>
+          <CookieBanner />
         </NextIntlClientProvider>
       </body>
     </html>
