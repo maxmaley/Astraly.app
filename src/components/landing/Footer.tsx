@@ -81,12 +81,15 @@ export async function Footer() {
               <a href="mailto:support@astraly.app" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("landing.footerSupport")}
               </a>
-              <a href="#" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+              <Link href="/privacy" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("landing.footerPolicy")}
-              </a>
-              <a href="#" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+              </Link>
+              <Link href="/terms" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("landing.footerTerms")}
-              </a>
+              </Link>
+              <Link href="/cookies" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+                {t("landing.footerCookies")}
+              </Link>
             </div>
 
             <div className="flex flex-col gap-3">
