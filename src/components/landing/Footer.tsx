@@ -61,13 +61,13 @@ export async function Footer() {
           <div className="flex flex-wrap justify-center gap-12 md:justify-end">
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-                Продукт
+                {t("landing.footerSectionProduct")}
               </p>
               <a href="#features" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
-                Возможности
+                {t("landing.sectionFeatures")}
               </a>
               <a href="#pricing" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
-                Цены
+                {t("landing.sectionPricing")}
               </a>
               <Link href="/register" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("common.register")}
@@ -76,7 +76,7 @@ export async function Footer() {
 
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-                Поддержка
+                {t("landing.footerSupport")}
               </p>
               <a href="mailto:support@astraly.app" className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("landing.footerSupport")}
@@ -97,7 +97,7 @@ export async function Footer() {
 
             <div className="flex flex-col gap-3">
               <p className="text-xs font-semibold uppercase tracking-wider text-[var(--muted-foreground)]">
-                Аккаунт
+                {t("landing.footerSectionAccount")}
               </p>
               <Link href="/login" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("common.login")}

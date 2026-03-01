@@ -90,6 +90,8 @@
     "footerTerms": "Terms of Service",
     "footerCookies": "Cookie Policy",
     "footerRefunds": "Refund Policy",
+    "footerSectionProduct": "Product",
+    "footerSectionAccount": "Account",
     "footerRights": "All rights reserved"
   },
   "auth": {
