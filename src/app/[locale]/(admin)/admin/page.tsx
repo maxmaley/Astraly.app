@@ -28,6 +28,10 @@ function pct(n: number, total: number) {
   return `${Math.round((n / total) * 100)}%`;
 }
 
+function fmt(n: number): string {
+  return new Intl.NumberFormat("en-US").format(n);
+}
+
 // ── Page ─────────────────────────────────────────────────────────────────────
 
 export default async function AdminDashboard({
@@ -38,32 +42,44 @@ export default async function AdminDashboard({
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const admin = createAdminClient() as any;
 
-  type UserStat    = { subscription_tier: SubscriptionTier; created_at: string };
-  type UserRecent  = { id: string; name: string | null; email: string; subscription_tier: SubscriptionTier; created_at: string };
+  type UserRecent = { id: string; name: string | null; email: string; subscription_tier: SubscriptionTier; created_at: string };
 
-  // Fetch all users (compact — only fields needed for stats)
-  const { data: allUsers }    = await admin
-    .from("users")
-    .select("subscription_tier, created_at") as { data: UserStat[] | null };
-
-  // Fetch recent sign-ups (last 8)
-  const { data: recentUsers } = await admin
-    .from("users")
-    .select("id, name, email, subscription_tier, created_at")
-    .order("created_at", { ascending: false })
-    .limit(8) as { data: UserRecent[] | null };
-
-  const total   = allUsers?.length ?? 0;
   const now     = Date.now();
   const dayAgo  = new Date(now - 86_400_000).toISOString();
   const weekAgo = new Date(now - 7 * 86_400_000).toISOString();
 
-  const newToday = allUsers?.filter(u => u.created_at >= dayAgo).length   ?? 0;
-  const newWeek  = allUsers?.filter(u => u.created_at >= weekAgo).length  ?? 0;
+  // All queries run in parallel; count queries fetch zero rows from the network.
+  const [
+    { count: total },
+    { count: newToday },
+    { count: newWeek },
+    { count: cntFree },
+    { count: cntMoonlight },
+    { count: cntSolar },
+    { count: cntCosmic },
+    { data: recentUsers },
+  ] = await Promise.all([
+    admin.from("users").select("*", { count: "exact", head: true }),
+    admin.from("users").select("*", { count: "exact", head: true }).gte("created_at", dayAgo),
+    admin.from("users").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
+    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "free"),
+    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "moonlight"),
+    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "solar"),
+    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "cosmic"),
+    admin.from("users")
+      .select("id, name, email, subscription_tier, created_at")
+      .order("created_at", { ascending: false })
+      .limit(8) as Promise<{ data: UserRecent[] | null }>,
+  ]);
 
-  const byPlan = PLAN_ORDER.reduce((acc, t) => { acc[t] = 0; return acc; }, {} as Record<SubscriptionTier, number>);
-  allUsers?.forEach(u => { byPlan[u.subscription_tier]++; });
-  const paid = byPlan.moonlight + byPlan.solar + byPlan.cosmic;
+  const byPlan: Record<SubscriptionTier, number> = {
+    free:      cntFree      ?? 0,
+    moonlight: cntMoonlight ?? 0,
+    solar:     cntSolar     ?? 0,
+    cosmic:    cntCosmic    ?? 0,
+  };
+  const totalN = total ?? 0;
+  const paid   = byPlan.moonlight + byPlan.solar + byPlan.cosmic;
 
   return (
     <div className="px-8 py-8 max-w-5xl">
@@ -78,10 +94,10 @@ export default async function AdminDashboard({
 
       {/* Stat cards */}
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-8">
-        <StatCard label="Total users"  value={total}    sub={`${paid} paid`}           />
-        <StatCard label="Paid users"   value={paid}     sub={pct(paid, total)}          />
-        <StatCard label="New today"    value={newToday} sub="last 24 h"                 />
-        <StatCard label="New this week" value={newWeek} sub="last 7 days"               />
+        <StatCard label="Total users"   value={fmt(totalN)}         sub={`${fmt(paid)} paid`}  />
+        <StatCard label="Paid users"    value={fmt(paid)}            sub={pct(paid, totalN)}    />
+        <StatCard label="New today"     value={fmt(newToday ?? 0)}   sub="last 24 h"            />
+        <StatCard label="New this week" value={fmt(newWeek ?? 0)}    sub="last 7 days"          />
       </div>
 
       {/* Plan breakdown + Recent sign-ups */}
@@ -98,14 +114,14 @@ export default async function AdminDashboard({
             {PLAN_ORDER.map(tier => {
               const plan  = PLANS[tier];
               const count = byPlan[tier];
-              const ratio = total ? count / total : 0;
+              const ratio = totalN ? count / totalN : 0;
               return (
                 <div key={tier} className="flex items-center gap-3 px-5 py-3.5">
                   <span className="text-xl leading-none">{plan.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
                       <span className={`text-sm font-medium ${plan.color}`}>{plan.name}</span>
-                      <span className="text-sm font-semibold text-[var(--foreground)]">{count}</span>
+                      <span className="text-sm font-semibold text-[var(--foreground)]">{fmt(count)}</span>
                     </div>
                     <div className="h-1 w-full overflow-hidden rounded-full bg-[var(--border)]">
                       <div
@@ -115,7 +131,7 @@ export default async function AdminDashboard({
                     </div>
                   </div>
                   <span className="w-10 text-right text-xs text-[var(--muted-foreground)]">
-                    {pct(count, total)}
+                    {pct(count, totalN)}
                   </span>
                 </div>
               );
