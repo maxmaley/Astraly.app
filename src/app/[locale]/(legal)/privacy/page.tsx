@@ -127,7 +127,7 @@ function ContentEN() {
   return (
     <Article title="Privacy Policy" date="Last updated: March 1, 2026">
       <Section title="1. General Information">
-        <p>Astraly ("Service", "we") is an astrology web service at astraly.app, operated by individual <strong>Maksym Olliinyk</strong>, Batumi, Georgia.</p>
+        <p>Astraly (&ldquo;Service&rdquo;, &ldquo;we&rdquo;) is an astrology web service at astraly.app, operated by individual <strong>Maksym Olliinyk</strong>, Batumi, Georgia.</p>
         <p>We take your privacy seriously. This Policy explains what data we collect, how we use it, and what rights you have regarding your data.</p>
         <p>For all privacy-related questions: <Email /></p>
       </Section>
@@ -146,7 +146,7 @@ function ContentEN() {
         <ul>
           <li><strong>Providing the Service:</strong> natal chart calculation, horoscopes, AI responses</li>
           <li><strong>Account management:</strong> authentication, saving settings</li>
-          <li><strong>Payment processing:</strong> transmitting required data to payment provider (we don't store card data)</li>
+          <li><strong>Payment processing:</strong> transmitting required data to payment provider (we don&apos;t store card data)</li>
           <li><strong>Service improvement:</strong> aggregated usage analytics (in the future — via Google Analytics)</li>
           <li><strong>Notifications:</strong> email and Telegram when corresponding settings are enabled</li>
         </ul>
@@ -229,9 +229,9 @@ function ContentUK() {
       </Section>
       <Section title="2. Які дані ми збираємо">
         <Sub>Дані для реєстрації та входу</Sub>
-        <ul><li>Адреса електронної пошти</li><li>Пароль (зберігається у зашифрованому вигляді; ми не маємо до нього доступу)</li><li>Дані Google-акаунту при OAuth: ім'я, email, фото</li></ul>
+        <ul><li>Адреса електронної пошти</li><li>Пароль (зберігається у зашифрованому вигляді; ми не маємо до нього доступу)</li><li>Дані Google-акаунту при OAuth: ім&apos;я, email, фото</li></ul>
         <Sub>Астрологічні дані</Sub>
-        <ul><li>Ім'я (відображуване)</li><li>Дата народження</li><li>Час народження (необов'язково)</li><li>Місто народження</li><li>Географічні координати (обчислюються автоматично за містом)</li></ul>
+        <ul><li>Ім'я (відображуване)</li><li>Дата народження</li><li>Час народження (необов&apos;язково)</li><li>Місто народження</li><li>Географічні координати (обчислюються автоматично за містом)</li></ul>
         <p>Ці дані необхідні для розрахунку натальної карти — основної функції Сервісу.</p>
         <Sub>Дані про використання</Sub>
         <ul><li>Історія чатів з AI-астрологом</li><li>Обраний план підписки та статус оплати</li><li>Налаштування акаунту (мова, тема, сповіщення)</li></ul>

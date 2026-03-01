@@ -94,7 +94,7 @@ function ContentEN() {
       </Section>
       <Section title="3. Managing Cookies">
         <p className="font-medium text-[var(--foreground)]">Through the Service banner</p>
-        <p>On your first visit, choose "Necessary only" or "Accept all". Your choice is saved in localStorage under the key <code className="text-cosmic-400 text-sm">astraly-cookie-consent</code>.</p>
+        <p>On your first visit, choose &ldquo;Necessary only&rdquo; or &ldquo;Accept all&rdquo;. Your choice is saved in localStorage under the key <code className="text-cosmic-400 text-sm">astraly-cookie-consent</code>.</p>
         <p className="font-medium text-[var(--foreground)] mt-4">Through browser settings</p>
         <ul>
           <li><strong>Chrome:</strong> Settings → Privacy → Cookies</li>
@@ -122,7 +122,7 @@ function ContentUK() {
   return (
     <Article title="Політика cookies" date="Останнє оновлення: 1 березня 2026 р.">
       <Section title="1. Що таке cookies">
-        <p>Cookies — невеликі текстові файли, що зберігаються у вашому браузері під час відвідування сайту. Вони дозволяють сайту запам'ятати налаштування та підтримувати сесію.</p>
+        <p>Cookies — невеликі текстові файли, що зберігаються у вашому браузері під час відвідування сайту. Вони дозволяють сайту запам&apos;ятати налаштування та підтримувати сесію.</p>
         <p>Крім cookies, ми використовуємо <strong>localStorage</strong> — сховище у вашому браузері — для запису вподобань (тема, згода на cookies).</p>
       </Section>
       <Section title="2. Типи cookies, які ми використовуємо">
@@ -156,7 +156,7 @@ function ContentUK() {
         </ul>
         <p>Блокування необхідних cookies порушить роботу Сервісу.</p>
         <p className="font-medium text-[var(--foreground)] mt-4">Скидання вибору</p>
-        <p>Видаліть <code className="text-cosmic-400 text-sm">astraly-cookie-consent</code> з localStorage (DevTools → Application → Local Storage) — банер з'явиться знову.</p>
+        <p>Видаліть <code className="text-cosmic-400 text-sm">astraly-cookie-consent</code> з localStorage (DevTools → Application → Local Storage) — банер з&apos;явиться знову.</p>
       </Section>
       <Section title="4. Посилання">
         <ul>

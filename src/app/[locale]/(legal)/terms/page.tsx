@@ -122,7 +122,7 @@ function ContentEN() {
       <Section title="6. Prohibited Use">
         <ul>
           <li>Using the Service for illegal purposes</li>
-          <li>Attempting unauthorized access to systems or other users' accounts</li>
+          <li>Attempting unauthorized access to systems or other users&apos; accounts</li>
           <li>Automated data extraction (scraping) without written permission</li>
           <li>Distributing malware</li>
           <li>Impersonating other individuals or organizations</li>
@@ -130,10 +130,10 @@ function ContentEN() {
         </ul>
       </Section>
       <Section title="7. Intellectual Property">
-        <p>Astraly's design, content, code, and logo are protected by copyright. AI-generated content based on your data is provided for your personal, non-commercial use.</p>
+        <p>Astraly&apos;s design, content, code, and logo are protected by copyright. AI-generated content based on your data is provided for your personal, non-commercial use.</p>
       </Section>
       <Section title="8. Disclaimer of Warranties">
-        <p>The Service is provided "as is". We do not warrant the accuracy of astrological interpretations, uninterrupted operation, or that the Service will meet your expectations.</p>
+        <p>The Service is provided &ldquo;as is&rdquo;. We do not warrant the accuracy of astrological interpretations, uninterrupted operation, or that the Service will meet your expectations.</p>
       </Section>
       <Section title="9. Limitation of Liability">
         <p>To the maximum extent permitted by law, Astraly is not liable for indirect or consequential damages. Maximum liability is limited to amounts paid for the last 3 months of subscription.</p>
