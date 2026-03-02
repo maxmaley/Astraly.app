@@ -1,31 +1,85 @@
-// Decorative chat interface mockup
+// Redesigned chat mockup — mirrors real app UI
 interface ChatMockupProps {
   locale: string;
 }
 
 const CONTENT = {
   ru: {
-    title: "AI Астролог ✦",
-    msg1: "Привет, Анастасия! ✨ Я вижу, что твоё Солнце в Стрельце создаёт удивительную энергию...",
-    msg2: "Расскажи мне о моей карьере",
-    msg3: "💼 С Марсом в 10-м доме ты рождена для лидерства! Сатурн транзит укрепляет позицию...",
-    prompts: ["💑 Совместимость", "❤️ Любовь", "💼 Карьера"],
+    title: "AI Астролог",
+    status: "Онлайн",
+    chartCtx: "\u2609 \u2650 Стрелец \u00B7 \u263D \u264B Рак \u00B7 ASC \u2648 Овен",
+    messages: [
+      { role: "assistant" as const, parts: [
+        { text: "Привет, Анастасия! ", bold: false },
+        { text: "Твоё Солнце в Стрельце", bold: true },
+        { text: " создаёт мощную энергию для роста. Вижу интересный транзит Юпитера к твоему MC — ", bold: false },
+        { text: "это редкое окно для карьеры.", bold: true },
+      ]},
+      { role: "user" as const, parts: [{ text: "А что насчёт карьеры в ближайший месяц?", bold: false }] },
+      { role: "assistant" as const, parts: [
+        { text: "С ", bold: false },
+        { text: "Марсом в 10-м доме", bold: true },
+        { text: " ты рождена для лидерства! Сатурн транзитом укрепляет позицию. Ключевые даты:", bold: false },
+      ]},
+      { role: "assistant-list" as const, parts: [
+        { text: "\u00B7  14 марта — подъём энергии", bold: false },
+        { text: "\u00B7  19 марта — полнолуние, важные решения", bold: false },
+        { text: "\u00B7  25 марта — финансовое укрепление", bold: false },
+      ]},
+    ],
+    prompts: ["\uD83D\uDC91 Совместимость", "\u2764\uFE0F Любовь", "\uD83D\uDCBC Карьера", "\uD83D\uDD2E Прогноз"],
     placeholder: "Спроси что угодно...",
   },
   uk: {
-    title: "AI Астролог ✦",
-    msg1: "Привіт, Анастасіє! ✨ Я бачу, що твоє Сонце у Стрільці створює дивовижну енергію...",
-    msg2: "Розкажи мені про мою кар'єру",
-    msg3: "💼 З Марсом у 10-му будинку ти народжена для лідерства! Транзит Сатурна зміцнює позицію...",
-    prompts: ["💑 Сумісність", "❤️ Кохання", "💼 Кар'єра"],
+    title: "AI Астролог",
+    status: "Онлайн",
+    chartCtx: "\u2609 \u2650 Стрілець \u00B7 \u263D \u264B Рак \u00B7 ASC \u2648 Овен",
+    messages: [
+      { role: "assistant" as const, parts: [
+        { text: "Привіт, Анастасіє! ", bold: false },
+        { text: "Твоє Сонце у Стрільці", bold: true },
+        { text: " створює потужну енергію для зростання. Бачу цікавий транзит Юпітера до MC — ", bold: false },
+        { text: "це рідкісне вікно для кар\u2019єри.", bold: true },
+      ]},
+      { role: "user" as const, parts: [{ text: "А що щодо кар\u2019єри найближчим часом?", bold: false }] },
+      { role: "assistant" as const, parts: [
+        { text: "З ", bold: false },
+        { text: "Марсом у 10-му будинку", bold: true },
+        { text: " ти народжена для лідерства! Транзит Сатурна зміцнює позицію. Ключові дати:", bold: false },
+      ]},
+      { role: "assistant-list" as const, parts: [
+        { text: "\u00B7  14 березня — підйом енергії", bold: false },
+        { text: "\u00B7  19 березня — повний місяць, важливі рішення", bold: false },
+        { text: "\u00B7  25 березня — фінансове зміцнення", bold: false },
+      ]},
+    ],
+    prompts: ["\uD83D\uDC91 Сумісність", "\u2764\uFE0F Кохання", "\uD83D\uDCBC Кар\u2019єра", "\uD83D\uDD2E Прогноз"],
     placeholder: "Запитай що завгодно...",
   },
   en: {
-    title: "AI Astrologer ✦",
-    msg1: "Hi, Anastasia! ✨ I can see your Sun in Sagittarius is creating amazing energy...",
-    msg2: "Tell me about my career",
-    msg3: "💼 With Mars in the 10th house, you were born to lead! Saturn transit strengthens your position...",
-    prompts: ["💑 Compatibility", "❤️ Love", "💼 Career"],
+    title: "AI Astrologer",
+    status: "Online",
+    chartCtx: "\u2609 \u2650 Sagittarius \u00B7 \u263D \u264B Cancer \u00B7 ASC \u2648 Aries",
+    messages: [
+      { role: "assistant" as const, parts: [
+        { text: "Hi Anastasia! ", bold: false },
+        { text: "Your Sun in Sagittarius", bold: true },
+        { text: " creates powerful growth energy. I see an interesting Jupiter transit to your MC \u2014 ", bold: false },
+        { text: "a rare career window.", bold: true },
+      ]},
+      { role: "user" as const, parts: [{ text: "What about my career this month?", bold: false }] },
+      { role: "assistant" as const, parts: [
+        { text: "With ", bold: false },
+        { text: "Mars in the 10th house", bold: true },
+        { text: ", you were born to lead! Saturn transit strengthens your position. Key dates:", bold: false },
+      ]},
+      { role: "assistant-list" as const, parts: [
+        { text: "\u00B7  March 14 \u2014 energy surge", bold: false },
+        { text: "\u00B7  March 19 \u2014 full moon, big decisions", bold: false },
+        { text: "\u00B7  March 25 \u2014 financial strengthening", bold: false },
+      ]},
+    ],
+    prompts: ["\uD83D\uDC91 Compatibility", "\u2764\uFE0F Love", "\uD83D\uDCBC Career", "\uD83D\uDD2E Forecast"],
     placeholder: "Ask anything...",
   },
 } as const;
@@ -33,57 +87,85 @@ const CONTENT = {
 export function ChatMockup({ locale }: ChatMockupProps) {
   const c = CONTENT[locale as keyof typeof CONTENT] ?? CONTENT.ru;
 
-  const messages = [
-    { role: "assistant", text: c.msg1 },
-    { role: "user", text: c.msg2 },
-    { role: "assistant", text: c.msg3 },
-  ];
-
   return (
     <div className="relative">
       <div className="absolute inset-0 rounded-2xl bg-nebula-500/10 blur-3xl" />
-      <div className="glass-card relative w-full max-w-sm rounded-2xl p-1 shadow-nebula">
-        {/* Title bar */}
-        <div className="flex items-center gap-2 rounded-t-xl border-b border-[var(--border)] px-4 py-3">
-          <div className="flex gap-1.5">
-            <div className="h-2.5 w-2.5 rounded-full bg-red-500/60" />
-            <div className="h-2.5 w-2.5 rounded-full bg-yellow-500/60" />
-            <div className="h-2.5 w-2.5 rounded-full bg-green-500/60" />
+
+      <div className="glass-card relative w-full max-w-sm overflow-hidden rounded-2xl shadow-nebula">
+        {/* ── App-style header ─────────────────────────── */}
+        <div className="flex items-center gap-2.5 border-b border-[var(--border)] px-4 py-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 text-sm text-white">
+            \u2726
           </div>
-          <span className="mx-auto text-xs text-[var(--muted-foreground)]">{c.title}</span>
+          <div className="min-w-0 flex-1">
+            <p className="text-sm font-semibold text-[var(--foreground)]">{c.title}</p>
+            <p className="flex items-center gap-1 text-[10px] text-emerald-500">
+              <span className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              {c.status}
+            </p>
+          </div>
         </div>
 
-        {/* Messages */}
-        <div className="flex flex-col gap-3 p-4">
-          {messages.map((msg, i) => (
-            <div key={i} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
-              {msg.role === "assistant" && (
-                <div className="mr-2 flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 text-xs text-white">
-                  ✦
+        {/* ── Chart context banner ─────────────────────── */}
+        <div className="border-b border-[var(--border)] bg-cosmic-500/5 px-4 py-1.5">
+          <p className="truncate text-[10px] font-medium text-cosmic-600 dark:text-cosmic-300">
+            {c.chartCtx}
+          </p>
+        </div>
+
+        {/* ── Messages ─────────────────────────────────── */}
+        <div className="flex flex-col gap-2.5 px-4 py-3">
+          {c.messages.map((msg, i) => {
+            const isUser = msg.role === "user";
+            const isList = msg.role === "assistant-list";
+
+            return (
+              <div key={i} className={`flex ${isUser ? "justify-end" : "justify-start"}`}>
+                {!isUser && !isList && (
+                  <div className="mr-2 mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 text-[10px] text-white">
+                    \u2726
+                  </div>
+                )}
+                {isList && <div className="mr-2 w-6 flex-shrink-0" />}
+                <div
+                  className={`max-w-[82%] rounded-2xl px-3 py-2 text-[11px] leading-relaxed ${
+                    isUser
+                      ? "bg-gradient-to-r from-cosmic-500/25 to-nebula-500/15 text-[var(--foreground)]"
+                      : isList
+                        ? "-mt-1 rounded-tl-md bg-[var(--muted)] pt-1.5 text-[var(--foreground)]"
+                        : "bg-[var(--muted)] text-[var(--foreground)]"
+                  }`}
+                >
+                  {isList ? (
+                    <div className="flex flex-col gap-0.5">
+                      {msg.parts.map((p, j) => (
+                        <span key={j} className="text-[var(--muted-foreground)]">{p.text}</span>
+                      ))}
+                    </div>
+                  ) : (
+                    <span>
+                      {msg.parts.map((p, j) =>
+                        p.bold
+                          ? <strong key={j} className="font-semibold text-cosmic-600 dark:text-cosmic-300">{p.text}</strong>
+                          : <span key={j}>{p.text}</span>
+                      )}
+                    </span>
+                  )}
                 </div>
-              )}
-              <div
-                className={`max-w-[80%] rounded-2xl px-3.5 py-2.5 text-xs leading-relaxed ${
-                  msg.role === "user"
-                    ? "bg-cosmic-500/20 text-[var(--foreground)]"
-                    : "bg-[var(--muted)] text-[var(--foreground)]"
-                }`}
-              >
-                {msg.text}
               </div>
-            </div>
-          ))}
+            );
+          })}
 
           {/* Typing indicator */}
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 text-xs text-white">
-              ✦
+            <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 text-[10px] text-white">
+              \u2726
             </div>
-            <div className="flex gap-1 rounded-2xl bg-[var(--muted)] px-3.5 py-2.5">
+            <div className="flex gap-1 rounded-2xl bg-[var(--muted)] px-3 py-2">
               {[0, 1, 2].map((i) => (
                 <div
                   key={i}
-                  className="h-1.5 w-1.5 rounded-full bg-cosmic-400 animate-bounce"
+                  className="h-1.5 w-1.5 animate-bounce rounded-full bg-cosmic-400"
                   style={{ animationDelay: `${i * 0.15}s` }}
                 />
               ))}
@@ -91,27 +173,27 @@ export function ChatMockup({ locale }: ChatMockupProps) {
           </div>
         </div>
 
-        {/* Quick prompts */}
-        <div className="flex flex-wrap gap-1.5 px-4 pb-3">
+        {/* ── Quick prompts — 2×2 grid ─────────────────── */}
+        <div className="grid grid-cols-2 gap-1.5 px-4 pb-3">
           {c.prompts.map((p) => (
             <span
               key={p}
-              className="rounded-full border border-cosmic-500/30 bg-cosmic-500/10 px-2.5 py-1 text-xs text-cosmic-600 dark:text-cosmic-300"
+              className="rounded-xl border border-cosmic-500/20 bg-cosmic-500/5 px-2.5 py-1.5 text-center text-[10px] font-medium text-cosmic-600 transition-colors hover:bg-cosmic-500/10 dark:text-cosmic-300"
             >
               {p}
             </span>
           ))}
         </div>
 
-        {/* Input bar */}
-        <div className="flex items-center gap-2 rounded-b-xl border-t border-[var(--border)] px-3 py-2.5">
-          <div className="flex-1 rounded-xl bg-[var(--input)] px-3 py-2 text-xs text-[var(--muted-foreground)]">
+        {/* ── Input bar ────────────────────────────────── */}
+        <div className="flex items-center gap-2 border-t border-[var(--border)] px-3 py-2">
+          <span className="text-sm">\u2728</span>
+          <div className="flex-1 rounded-xl bg-[var(--input)] px-3 py-1.5 text-[11px] text-[var(--muted-foreground)]">
             {c.placeholder}
           </div>
-          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-cosmic-500 text-white">
+          <div className="flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-r from-cosmic-500 to-nebula-500 text-white shadow-sm">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m22 2-7 20-4-9-9-4Z" />
-              <path d="M22 2 11 13" />
+              <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
             </svg>
           </div>
         </div>
