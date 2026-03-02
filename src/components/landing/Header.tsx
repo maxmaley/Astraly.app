@@ -64,7 +64,7 @@ export function Header() {
 
           {/* Mobile menu button */}
           <button
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-[var(--border)] sm:hidden"
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border)] sm:hidden"
             onClick={() => setMenuOpen((o) => !o)}
             aria-label="Menu"
           >

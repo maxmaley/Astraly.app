@@ -110,7 +110,7 @@ export function HeroForm() {
           </div>
 
           {/* Date + Time */}
-          <div className="grid grid-cols-[3fr_2fr] gap-2">
+          <div className="grid grid-cols-1 min-[380px]:grid-cols-[3fr_2fr] gap-2">
             <div>
               <div className="relative">
                 <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted-foreground)]/50">

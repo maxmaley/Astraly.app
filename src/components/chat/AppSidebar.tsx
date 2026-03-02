@@ -131,7 +131,7 @@ export function AppSidebar({ isOpen, onClose }: Props) {
           </Link>
           <button
             onClick={onClose}
-            className="rounded-lg p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] lg:hidden"
+            className="rounded-lg p-3 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] lg:hidden"
             aria-label="Close menu"
           >
             <svg
@@ -181,7 +181,7 @@ export function AppSidebar({ isOpen, onClose }: Props) {
           ) : (
             groups.map((group) => (
               <div key={group.label} className="mb-4">
-                <p className="mb-1 px-3 text-[10px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]/50">
+                <p className="mb-1 px-3 text-[11px] font-semibold uppercase tracking-wider text-[var(--muted-foreground)]/50">
                   {group.label}
                 </p>
                 {group.chats.map((chat) => {
@@ -349,7 +349,7 @@ export function AppSidebar({ isOpen, onClose }: Props) {
 
             <button
               onClick={handleSignOut}
-              className="shrink-0 rounded-md p-1.5 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
+              className="shrink-0 rounded-md p-3 text-[var(--muted-foreground)] transition-colors hover:bg-[var(--muted)] hover:text-[var(--foreground)]"
               title={tCommon("logout")}
             >
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
