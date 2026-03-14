@@ -51,7 +51,7 @@ export default async function UserDetailPage({
     subscription_tier: import("@/types/database").SubscriptionTier;
     tokens_left: number; is_admin: boolean; is_banned: boolean;
     created_at: string; updated_at: string; lang: string;
-    notify_email: boolean; notify_telegram: boolean;
+    notify_email: boolean;
   };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -59,7 +59,7 @@ export default async function UserDetailPage({
   const [{ data: user }, { count: chartsCount }] = await Promise.all([
     adminAny
       .from("users")
-      .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, created_at, updated_at, lang, notify_email, notify_telegram")
+      .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, created_at, updated_at, lang, notify_email")
       .eq("id", id)
       .single() as Promise<{ data: AdminUser | null; error: unknown }>,
     adminAny

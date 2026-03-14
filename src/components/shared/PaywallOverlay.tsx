@@ -70,7 +70,7 @@ const FEATURE_META: Record<Feature, {
 
 const COPY = {
   includedIn:  { ru: "Доступно в",          uk: "Доступно в",         en: "Included in"          },
-  trialCta:    { ru: "Попробовать 3 дня ✦", uk: "Спробувати 3 дні ✦", en: "Try free for 3 days ✦" },
+
   viewPlans:   { ru: "Посмотреть все планы", uk: "Переглянути всі плани", en: "View all plans"      },
   andUp:       { ru: " и выше",             uk: " і вище",             en: " and above"            },
 };
@@ -80,12 +80,11 @@ const COPY = {
 export function PaywallOverlay({ feature }: { feature: Feature }) {
   const locale = useLocale() as "ru" | "uk" | "en";
   const router = useRouter();
-  const l = locale in COPY.trialCta ? locale : "ru";
+  const l = locale in COPY.viewPlans ? locale : "ru";
 
   const meta     = FEATURE_META[feature];
   const minPlan  = cheapestPlanFor(feature);
   const plan     = PLANS[minPlan];
-  const hasTrial = plan.trialDays > 0;
 
   // Build "included in X and above" label
   const tiers = ["moonlight", "solar", "cosmic"] as const;
@@ -156,7 +155,7 @@ export function PaywallOverlay({ feature }: { feature: Feature }) {
               "shadow-sm",
             ].join(" ")}
           >
-            {hasTrial ? COPY.trialCta[l] : COPY.viewPlans[l]}
+            {COPY.viewPlans[l]}
           </button>
 
           <button

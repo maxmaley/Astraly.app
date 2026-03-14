@@ -15,7 +15,7 @@ export type Feature =
   | "multi_charts"  // Multiple natal charts — moonlight+
   | "horoscope"     // Daily horoscope — solar+
   | "calendar"      // Astro calendar — solar+
-  | "notifications" // Email/Telegram notifications — solar+
+  | "notifications" // Email notifications — solar+
   | "priority_ai";  // Premium model — cosmic
 
 // ── Plan shape ────────────────────────────────────────────────────────────────
@@ -35,7 +35,7 @@ export interface PlanConfig {
   };
   monthlyTokens: number;         // -1 = unlimited
   maxCharts:     number;         // -1 = unlimited
-  trialDays:     number;         // 0 = no trial (free plan)
+
   features:      Feature[];
   featureLabels: Record<string, string>; // human-readable, kept here for admin override
   highlight:     boolean;        // "Most popular" badge
@@ -57,7 +57,6 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     price:         { monthly: 0, yearly: 0, yearlyMonthly: 0 },
     monthlyTokens: 10_000,
     maxCharts:     1,
-    trialDays:     0,
     features:      ["chat"],
     featureLabels: {
       chat:         "AI-чат с астрологом",
@@ -78,7 +77,6 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     price:         { monthly: 399, yearly: 3192, yearlyMonthly: 266 },
     monthlyTokens: 500_000,
     maxCharts:     3,
-    trialDays:     3,
     features:      ["chat", "multi_charts"],
     featureLabels: {
       chat:         "Расширенный AI-чат",
@@ -100,7 +98,6 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     price:         { monthly: 599, yearly: 4792, yearlyMonthly: 399 },
     monthlyTokens: 1_000_000,
     maxCharts:     5,
-    trialDays:     3,
     features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications"],
     featureLabels: {
       chat:         "Безграничный AI-чат",
@@ -125,7 +122,6 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     price:         { monthly: 1799, yearly: 14392, yearlyMonthly: 1199 },
     monthlyTokens: 5_000_000,
     maxCharts:     10,
-    trialDays:     3,
     features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"],
     featureLabels: {
       chat:         "Безлимитный AI-чат",
@@ -133,7 +129,7 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
       multi_charts: "Карты близких",
       horoscope:    "Ежедневный личный гороскоп",
       calendar:     "Полный астро-календарь",
-      notifications:"Email + Telegram уведомления",
+      notifications:"Email-уведомления",
       priority_ai:  "Приоритетный AI (Claude Sonnet)",
     },
     highlight:     false,

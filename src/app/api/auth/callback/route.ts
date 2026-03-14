@@ -31,6 +31,12 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Fire-and-forget welcome email for new users
+      fetch(`${origin}/api/email/welcome`, {
+        method: "POST",
+        headers: { cookie: cookieStore.getAll().map(c => `${c.name}=${c.value}`).join("; ") },
+      }).catch(() => {});
+
       // Redirect to chart page — it will handle onboarding if chart doesn't exist yet
       return NextResponse.redirect(`${origin}/${locale}/app/chart`);
     }

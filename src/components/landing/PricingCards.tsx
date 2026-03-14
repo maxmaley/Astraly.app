@@ -14,7 +14,7 @@ export interface PlanCardData {
   gradientFrom:  string;
   gradientTo:    string;
   isFree:        boolean;
-  trialDays:     number;
+
   monthlyPrice:  number;        // cents
   yearlyMonthly: number;        // cents — yearly ÷ 12
   yearlyTotal:   number;        // cents — billed amount
@@ -31,7 +31,6 @@ export interface PricingLabels {
   billedYearly: string;
   free:         string;
   popular:      string;
-  trial:        string;
 }
 
 export function PricingCards({
@@ -141,9 +140,6 @@ export function PricingCards({
                     <span className="font-display text-4xl font-bold text-[var(--foreground)]">
                       {labels.free}
                     </span>
-                  )}
-                  {!plan.isFree && plan.trialDays > 0 && (
-                    <p className="mt-1 text-xs text-cosmic-400">{labels.trial}</p>
                   )}
                 </div>
 

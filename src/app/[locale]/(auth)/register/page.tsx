@@ -53,6 +53,7 @@ export default function RegisterPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [consent, setConsent] = useState(false);
   const [emailSent, setEmailSent] = useState(false);
   const [sentTo, setSentTo] = useState("");
 
@@ -76,6 +77,7 @@ export default function RegisterPage() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
+    if (!consent) { setError(t("consentRequired")); return; }
     setError(null);
     setLoading(true);
 
@@ -249,6 +251,30 @@ export default function RegisterPage() {
                 minLength={6}
                 className={inputCls}
               />
+
+              {/* Consent checkbox */}
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={consent}
+                  onChange={(e) => { setConsent(e.target.checked); setError(null); }}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-[var(--border)] accent-cosmic-500"
+                />
+                <span className="text-xs text-[var(--muted-foreground)] leading-relaxed">
+                  {t.rich("consent", {
+                    terms: (chunks: React.ReactNode) => (
+                      <a href={`/${locale}/terms`} target="_blank" rel="noopener noreferrer" className="text-cosmic-400 hover:underline">
+                        {chunks}
+                      </a>
+                    ),
+                    privacy: (chunks: React.ReactNode) => (
+                      <a href={`/${locale}/privacy`} target="_blank" rel="noopener noreferrer" className="text-cosmic-400 hover:underline">
+                        {chunks}
+                      </a>
+                    ),
+                  })}
+                </span>
+              </label>
 
               {error && (
                 <p className="text-sm text-red-400" role="alert">{error}</p>

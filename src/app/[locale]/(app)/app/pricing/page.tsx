@@ -19,11 +19,9 @@ const C = {
   yearlyBadge:   { ru: "−33%",                         uk: "−33%",                           en: "−33%"                         },
   perMonth:      { ru: "/мес",                         uk: "/міс",                           en: "/mo"                          },
   billedYearly:  { ru: "в год",                        uk: "на рік",                         en: "/yr"                          },
-  trialBadge:    { ru: "3 дня бесплатно",              uk: "3 дні безкоштовно",              en: "3 days free"                  },
   popular:       { ru: "Популярный",                   uk: "Популярний",                     en: "Most popular"                 },
   current:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
   ctaFree:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
-  ctaTrial:      { ru: "Начать бесплатно →",           uk: "Почати безкоштовно →",           en: "Start free trial →"           },
   ctaPaid:       { ru: "Перейти на план →",            uk: "Перейти на план →",              en: "Get this plan →"              },
   ctaCurrent:    { ru: "✓ Активный план",              uk: "✓ Активний план",                en: "✓ Active plan"                },
   soonModal:     { ru: "Оплата подключается — скоро здесь появится кнопка 🔜", uk: "Оплата підключається — незабаром тут з'явиться кнопка 🔜", en: "Payment is coming — the button will appear here soon 🔜" },
@@ -218,11 +216,6 @@ function PlanCard({
                 {C.popular[l]}
               </span>
             )}
-            {!isCurrent && plan.trialDays > 0 && (
-              <span className="rounded-full bg-cosmic-500/15 px-2 py-0.5 text-[10px] font-medium text-cosmic-400">
-                {C.trialBadge[l]}
-              </span>
-            )}
             {isCurrent && (
               <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[10px] font-medium text-emerald-400">
                 {C.current[l]}
@@ -266,11 +259,9 @@ function PlanCard({
         >
           {isCurrent
             ? C.ctaCurrent[l]
-            : plan.trialDays > 0
-              ? C.ctaTrial[l]
-              : plan.price.monthly === 0
-                ? C.ctaFree[l]
-                : C.ctaPaid[l]}
+            : plan.price.monthly === 0
+              ? C.ctaFree[l]
+              : C.ctaPaid[l]}
         </button>
       </div>
 
@@ -322,7 +313,7 @@ export default function PricingPage() {
     if (id === currentTier) return;
     if (id === "free") return; // can't downgrade to free manually
 
-    // Lemon Squeezy checkout will be wired here.
+    // Paddle checkout will be wired here.
     // For now, show a coming-soon toast.
     setToast(C.soonModal[l]);
   }
@@ -379,12 +370,6 @@ export default function PricingPage() {
         ))}
       </div>
 
-      {/* Trial disclaimer */}
-      <p className="mt-6 text-center text-xs text-[var(--muted-foreground)]">
-        {l === "ru" && "Первые 3 дня — бесплатно для любого платного плана. Отмена в любой момент."}
-        {l === "uk" && "Перші 3 дні — безкоштовно для будь-якого платного плану. Скасування будь-коли."}
-        {l === "en" && "First 3 days free on any paid plan. Cancel anytime."}
-      </p>
 
     </div>
   );
