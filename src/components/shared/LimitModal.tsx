@@ -12,7 +12,7 @@ const COPY = {
   titleZero:  { ru: "Лимит исчерпан",              uk: "Ліміт вичерпано",                  en: "Limit reached"                  },
   resetOn:    { ru: "Обновление",                  uk: "Оновлення",                         en: "Resets"                         },
   upgrade:    { ru: "Открой больше с",             uk: "Відкрий більше з",                  en: "Unlock more with"               },
-  trialCta:   { ru: "Попробовать 3 дня бесплатно", uk: "Спробувати 3 дні безкоштовно",      en: "Try free for 3 days"            },
+
   viewAll:    { ru: "Все планы →",                 uk: "Всі плани →",                       en: "All plans →"                    },
   close:      { ru: "Закрыть",                     uk: "Закрити",                           en: "Close"                          },
   waitReset:  { ru: "Подожду обновления",          uk: "Почекаю оновлення",                 en: "Wait for reset"                 },
@@ -128,7 +128,6 @@ export function LimitModal({ tier, tokensLeft, tokensResetAt, onClose }: LimitMo
 
             {suggestedTiers.map((id) => {
               const p          = PLANS[id];
-              const hasTrial   = p.trialDays > 0;
               const isUnlimited = p.monthlyTokens === -1;
               const multiplier = isUnlimited
                 ? "∞"
@@ -159,11 +158,6 @@ export function LimitModal({ tier, tokensLeft, tokensResetAt, onClose }: LimitMo
                     {p.price.monthly > 0 && (
                       <p className="text-sm font-semibold text-[var(--foreground)]">
                         {formatPrice(p.price.monthly, l)}
-                      </p>
-                    )}
-                    {hasTrial && (
-                      <p className="text-[10px] text-cosmic-400 font-medium">
-                        {COPY.trialCta[l as keyof typeof COPY.trialCta] ?? COPY.trialCta.ru}
                       </p>
                     )}
                   </div>

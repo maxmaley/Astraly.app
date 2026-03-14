@@ -81,7 +81,7 @@
     "featureCalB3": "Notifications for important days",
     "featureCalCta": "Get my Astro Calendar →",
     "pricingTitle": "Choose your path to the stars",
-    "pricingSubtitle": "3 days free on all paid plans",
+    "pricingSubtitle": "Cancel anytime, no hidden fees",
     "reviewsTitle": "They already know their destiny",
     "reviewsSubtitle": "10,000+ people trust Astraly",
     "footerTagline": "Your AI astrologer with personal memory",
@@ -191,7 +191,6 @@
   "pricing": {
     "free": "Free",
     "popular": "Most Popular",
-    "trial": "3 days free",
     "perMonth": "/mo",
     "monthly": "Monthly",
     "yearly": "Yearly",
@@ -200,7 +199,7 @@
     "cancel": "Cancel anytime",
     "noHidden": "No hidden fees",
     "startFree": "Start for free",
-    "startTrial": "Try 3 days free",
+    "startPaid": "Get started →",
     "featureLabels": {
       "chat_free": "Basic AI chat ●○○○",
       "chat_moonlight": "Extended AI chat ●●○○",

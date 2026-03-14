@@ -93,7 +93,7 @@ CREATE TABLE subscriptions (
   id                UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   user_id           UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   plan              subscription_tier NOT NULL,
-  status            TEXT NOT NULL DEFAULT 'active', -- active | cancelled | expired | trialing
+  status            TEXT NOT NULL DEFAULT 'active', -- active | cancelled | expired
   lemon_squeezy_id  TEXT UNIQUE,
   started_at        TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   expires_at        TIMESTAMPTZ,

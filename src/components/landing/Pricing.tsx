@@ -42,7 +42,6 @@ export async function Pricing() {
     billedYearly: t("pricing.billedYearly"),
     free:         t("pricing.free"),
     popular:      t("pricing.popular"),
-    trial:        t("pricing.trial"),
   };
 
   const plans: PlanCardData[] = PLAN_ORDER.map((id) => {
@@ -57,12 +56,11 @@ export async function Pricing() {
       gradientFrom:  plan.gradientFrom,
       gradientTo:    plan.gradientTo,
       isFree:        plan.price.monthly === 0,
-      trialDays:     plan.trialDays,
       monthlyPrice:  plan.price.monthly,
       yearlyMonthly: plan.price.yearlyMonthly,
       yearlyTotal:   plan.price.yearly,
       features:      buildFeatures(id, t),
-      ctaLabel:      plan.price.monthly === 0 ? t("pricing.startFree") : t("pricing.startTrial"),
+      ctaLabel:      plan.price.monthly === 0 ? t("pricing.startFree") : t("pricing.startPaid"),
       ctaHref:       `/${locale}/register`,
     };
   });
@@ -85,7 +83,7 @@ export async function Pricing() {
             <span className="gradient-text">{t("landing.pricingTitle")}</span>
           </h2>
           <p className="mt-4 text-[var(--muted-foreground)]">
-            {t("pricing.cancel")} · {t("pricing.noHidden")} · {t("pricing.trial")}
+            {t("pricing.cancel")} · {t("pricing.noHidden")}
           </p>
         </div>
 

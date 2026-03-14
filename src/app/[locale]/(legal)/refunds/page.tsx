@@ -21,14 +21,11 @@ export default function RefundsPage({ params }: { params: { locale: string } }) 
 function ContentRU() {
   return (
     <Article title="Политика возврата средств" date="Последнее обновление: 1 марта 2026 г.">
-      <Section title="1. Бесплатный пробный период">
-        <p>Все платные планы Astraly включают <strong>3-дневный бесплатный пробный период</strong>. Отменив подписку до его окончания, вы не будете charged.</p>
-      </Section>
-      <Section title="2. Общее правило">
-        <p>После завершения пробного периода и списания средств <strong>возврат за текущий оплаченный период не предусмотрен</strong>.</p>
+      <Section title="1. Общее правило">
+        <p>После оплаты подписки <strong>возврат за текущий оплаченный период не предусмотрен</strong>.</p>
         <p>При отмене подписки доступ к платным функциям сохраняется до конца оплаченного периода. Повторного списания не происходит.</p>
       </Section>
-      <Section title="3. Когда возврат возможен">
+      <Section title="2. Когда возврат возможен">
         <ul>
           <li><strong>Технический сбой:</strong> Сервис был недоступен более 72 часов подряд по нашей вине</li>
           <li><strong>Двойное списание:</strong> с вас ошибочно списали средства дважды за один период</li>
@@ -36,7 +33,7 @@ function ContentRU() {
           <li><strong>Требования законодательства:</strong> если ваша страна предусматривает обязательное право на возврат — мы его соблюдаем</li>
         </ul>
       </Section>
-      <Section title="4. Как запросить возврат">
+      <Section title="3. Как запросить возврат">
         <p>Напишите на <Email /> и укажите:</p>
         <ul>
           <li>Email вашего аккаунта</li>
@@ -45,10 +42,10 @@ function ContentRU() {
         </ul>
         <p>Рассмотрим в течение <strong>5 рабочих дней</strong>. Одобренный возврат поступит на счёт в течение 5–10 рабочих дней.</p>
       </Section>
-      <Section title="5. Годовые подписки">
+      <Section title="4. Годовые подписки">
         <p>Если вы оформили годовую подписку и обращаетесь в первые <strong>14 дней</strong> после первого списания — напишите нам, рассмотрим пропорциональный возврат за неиспользованные месяцы.</p>
       </Section>
-      <Section title="6. Контакты">
+      <Section title="5. Контакты">
         <p><strong>Email:</strong> <Email /></p>
         <p><strong>Оператор:</strong> Maksym Olliinyk, г. Батуми, Грузия</p>
       </Section>
@@ -60,14 +57,11 @@ function ContentRU() {
 function ContentEN() {
   return (
     <Article title="Refund Policy" date="Last updated: March 1, 2026">
-      <Section title="1. Free Trial Period">
-        <p>All paid Astraly plans include a <strong>3-day free trial</strong>. Cancel before the trial ends and you will not be charged.</p>
-      </Section>
-      <Section title="2. General Policy">
-        <p>After the trial ends and a payment is processed, <strong>refunds for the current paid period are not provided</strong>.</p>
+      <Section title="1. General Policy">
+        <p>Once a payment is processed, <strong>refunds for the current paid period are not provided</strong>.</p>
         <p>When you cancel your subscription, access to paid features continues until the end of the paid period. No further charges occur.</p>
       </Section>
-      <Section title="3. When a Refund Is Possible">
+      <Section title="2. When a Refund Is Possible">
         <ul>
           <li><strong>Technical outage:</strong> the Service was unavailable for more than 72 consecutive hours due to our fault</li>
           <li><strong>Duplicate charge:</strong> you were charged twice for the same period by mistake</li>
@@ -75,7 +69,7 @@ function ContentEN() {
           <li><strong>Applicable law:</strong> if your country requires a statutory right to a refund, we comply</li>
         </ul>
       </Section>
-      <Section title="4. How to Request a Refund">
+      <Section title="3. How to Request a Refund">
         <p>Email us at <Email /> and include:</p>
         <ul>
           <li>Your account email</li>
@@ -84,10 +78,10 @@ function ContentEN() {
         </ul>
         <p>We will review your request within <strong>5 business days</strong>. Approved refunds are returned to your account within 5–10 business days depending on your bank.</p>
       </Section>
-      <Section title="5. Annual Subscriptions">
+      <Section title="4. Annual Subscriptions">
         <p>If you purchased an annual plan and contact us within the first <strong>14 days</strong> of the initial charge, we will review your request for a pro-rated refund for unused months.</p>
       </Section>
-      <Section title="6. Contact">
+      <Section title="5. Contact">
         <p><strong>Email:</strong> <Email /></p>
         <p><strong>Operator:</strong> Maksym Olliinyk, Batumi, Georgia</p>
       </Section>
@@ -99,14 +93,11 @@ function ContentEN() {
 function ContentUK() {
   return (
     <Article title="Політика повернення коштів" date="Останнє оновлення: 1 березня 2026 р.">
-      <Section title="1. Безкоштовний пробний період">
-        <p>Усі платні плани Astraly включають <strong>3-денний безкоштовний пробний період</strong>. Скасувавши підписку до його закінчення, ви не будете charged.</p>
-      </Section>
-      <Section title="2. Загальне правило">
-        <p>Після завершення пробного періоду та списання коштів <strong>повернення за поточний оплачений період не передбачено</strong>.</p>
+      <Section title="1. Загальне правило">
+        <p>Після оплати підписки <strong>повернення за поточний оплачений період не передбачено</strong>.</p>
         <p>При скасуванні підписки доступ до платних функцій зберігається до кінця оплаченого терміну. Повторного списання не відбувається.</p>
       </Section>
-      <Section title="3. Коли повернення можливе">
+      <Section title="2. Коли повернення можливе">
         <ul>
           <li><strong>Технічний збій:</strong> Сервіс був недоступний більше 72 годин поспіль з нашої вини</li>
           <li><strong>Подвійне списання:</strong> з вас помилково списали кошти двічі за один період</li>
@@ -114,7 +105,7 @@ function ContentUK() {
           <li><strong>Вимоги законодавства:</strong> якщо ваша країна передбачає обов&apos;язкове право на повернення — ми його дотримуємося</li>
         </ul>
       </Section>
-      <Section title="4. Як запросити повернення">
+      <Section title="3. Як запросити повернення">
         <p>Напишіть на <Email /> і вкажіть:</p>
         <ul>
           <li>Email вашого акаунту</li>
@@ -123,10 +114,10 @@ function ContentUK() {
         </ul>
         <p>Розглянемо протягом <strong>5 робочих днів</strong>. Схвалене повернення надійде на рахунок протягом 5–10 робочих днів.</p>
       </Section>
-      <Section title="5. Річні підписки">
+      <Section title="4. Річні підписки">
         <p>Якщо ви оформили річний план і звертаєтеся протягом перших <strong>14 днів</strong> після першого списання — напишіть нам, розглянемо пропорційне повернення за невикористані місяці.</p>
       </Section>
-      <Section title="6. Контакти">
+      <Section title="5. Контакти">
         <p><strong>Email:</strong> <Email /></p>
         <p><strong>Оператор:</strong> Maksym Olliinyk, м. Батумі, Грузія</p>
       </Section>
