@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getUsageLevel, PLANS, canAccess } from "@/lib/plans";
 import { LimitModal } from "@/components/shared/LimitModal";
 import type { SubscriptionTier } from "@/types/database";
+import { VoiceInputButton } from "./VoiceInputButton";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -905,6 +906,17 @@ export function ChatInterface({
               rows={1}
               disabled={isLoading || isTokenBlocked}
               className="max-h-[200px] flex-1 resize-none bg-transparent text-sm leading-relaxed text-[var(--foreground)] outline-none placeholder-[var(--muted-foreground)]/50 disabled:opacity-60"
+            />
+            <VoiceInputButton
+              locale={locale}
+              disabled={isLoading || isTokenBlocked}
+              onTranscript={(text) => {
+                setInput(text);
+                if (textareaRef.current) {
+                  textareaRef.current.style.height = "auto";
+                  textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 200) + "px";
+                }
+              }}
             />
             <button
               onClick={() => isTokenBlocked ? setShowLimitModal(true) : sendMessage(input)}
