@@ -118,7 +118,9 @@
     "errorEmailNotConfirmed": "Сначала подтверди email",
     "errorEmailExists": "Email уже зарегистрирован",
     "errorWeakPassword": "Пароль минимум 6 символов",
-    "errorGeneric": "Что-то пошло не так, попробуй снова"
+    "errorGeneric": "Что-то пошло не так, попробуй снова",
+    "consent": "Я соглашаюсь с <terms>Условиями использования</terms>, <privacy>Политикой конфиденциальности</privacy> и на получение email-уведомлений",
+    "consentRequired": "Необходимо принять условия"
   },
   "chat": {
     "placeholder": "Спроси что угодно...",

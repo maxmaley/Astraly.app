@@ -313,7 +313,7 @@ export default function PricingPage() {
     if (id === currentTier) return;
     if (id === "free") return; // can't downgrade to free manually
 
-    // Lemon Squeezy checkout will be wired here.
+    // Paddle checkout will be wired here.
     // For now, show a coming-soon toast.
     setToast(C.soonModal[l]);
   }

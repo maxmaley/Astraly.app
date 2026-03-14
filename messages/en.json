@@ -118,7 +118,9 @@
     "errorEmailNotConfirmed": "Please confirm your email first",
     "errorEmailExists": "Email already registered",
     "errorWeakPassword": "Password must be at least 6 characters",
-    "errorGeneric": "Something went wrong, please try again"
+    "errorGeneric": "Something went wrong, please try again",
+    "consent": "I agree to the <terms>Terms of Service</terms>, <privacy>Privacy Policy</privacy> and to receiving email notifications",
+    "consentRequired": "You must accept the terms"
   },
   "chat": {
     "placeholder": "Ask anything...",

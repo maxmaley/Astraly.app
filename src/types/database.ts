@@ -218,7 +218,7 @@ export interface Database {
           user_id: string;
           plan: SubscriptionTier;
           status: string;
-          lemon_squeezy_id: string | null;
+          paddle_subscription_id: string | null;
           started_at: string;
           expires_at: string | null;
           created_at: string;
@@ -229,7 +229,7 @@ export interface Database {
           user_id: string;
           plan: SubscriptionTier;
           status: string;
-          lemon_squeezy_id?: string | null;
+          paddle_subscription_id?: string | null;
           started_at?: string;
           expires_at?: string | null;
           created_at?: string;
@@ -238,7 +238,7 @@ export interface Database {
         Update: {
           plan?: SubscriptionTier;
           status?: string;
-          lemon_squeezy_id?: string | null;
+          paddle_subscription_id?: string | null;
           expires_at?: string | null;
           updated_at?: string;
         };
