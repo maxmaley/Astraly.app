@@ -248,7 +248,7 @@
         "features": [
           "Everything in Moonlight",
           "Active daily dialogue",
-          "Daily horoscope via email & Telegram",
+          "Daily horoscope via email",
           "Advanced AI astrologer"
         ]
       },
@@ -284,9 +284,6 @@
     "notifications": "Notifications",
     "notifEmail": "Email digest",
     "notifEmailDesc": "Daily horoscope delivered every morning",
-    "notifTelegram": "Telegram bot",
-    "notifTelegramDesc": "Instant horoscope and transits in your messenger",
-    "comingSoon": "Soon",
     "logout": "Log out of account"
   },
   "signs": {
@@ -398,7 +395,7 @@
     "r1": "Finally understood why I couldn't find fulfilling work — it was all in my natal chart. The AI explained in 5 minutes what I'd been searching for for years. Now I know which direction to go!",
     "r2": "It predicted a fight with my boyfriend 3 days in advance — Mercury was square my Mars. Now I track transits daily and conflicts have become so much rarer.",
     "r3": "I added my mom's chart and learned why our relationship is so complex. Everything matched perfectly. For the first time I found a way to understand her instead of just getting angry.",
-    "r4": "The paid subscription is the best investment I made this year. The daily horoscope arrives in Telegram every morning and is always surprisingly accurate. My husband wants a chart now too 😄",
+    "r4": "The paid subscription is the best investment I made this year. The daily horoscope arrives every morning and is always surprisingly accurate. My husband wants a chart now too 😄",
     "r5": "I found the perfect day for a negotiation in the astro calendar — Jupiter trine my Mercury. I went to the meeting that exact day and got promoted. Coincidence? I don't think so.",
     "r6": "I used to think astrology was made up. Came out of curiosity, now I don't make important decisions without the AI astrologer. It's just a different level of self-knowledge."
   },

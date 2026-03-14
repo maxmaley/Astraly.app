@@ -55,9 +55,7 @@ export interface Database {
           tokens_reset_at: string | null;
           lang: string;
           theme: string;
-          telegram_chat_id: string | null;
           notify_email: boolean;
-          notify_telegram: boolean;
           is_admin: boolean;
           is_banned: boolean;
           created_at: string;
@@ -72,9 +70,7 @@ export interface Database {
           tokens_reset_at?: string | null;
           lang?: string;
           theme?: string;
-          telegram_chat_id?: string | null;
           notify_email?: boolean;
-          notify_telegram?: boolean;
           is_admin?: boolean;
           is_banned?: boolean;
           created_at?: string;
@@ -87,9 +83,7 @@ export interface Database {
           tokens_reset_at?: string | null;
           lang?: string;
           theme?: string;
-          telegram_chat_id?: string | null;
           notify_email?: boolean;
-          notify_telegram?: boolean;
           is_admin?: boolean;
           is_banned?: boolean;
           updated_at?: string;
@@ -195,7 +189,6 @@ export interface Database {
           date: string;
           content: string;
           sent_email: boolean;
-          sent_tg: boolean;
           created_at: string;
         };
         Insert: {
@@ -204,12 +197,10 @@ export interface Database {
           date: string;
           content: string;
           sent_email?: boolean;
-          sent_tg?: boolean;
           created_at?: string;
         };
         Update: {
           sent_email?: boolean;
-          sent_tg?: boolean;
         };
       };
       subscriptions: {

@@ -20,7 +20,6 @@ interface UserSettings {
   lang:               string;
   theme:              string;
   notify_email:       boolean;
-  notify_telegram:    boolean;
 }
 
 // ── Plan display config ────────────────────────────────────────────────────
@@ -268,7 +267,7 @@ export default function SettingsPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await supabase
         .from("users")
-        .select("id, email, name, subscription_tier, tokens_left, lang, theme, notify_email, notify_telegram")
+        .select("id, email, name, subscription_tier, tokens_left, lang, theme, notify_email")
         .eq("id", auth.id)
         .single() as { data: UserSettings | null; error: unknown };
 
@@ -478,14 +477,6 @@ export default function SettingsPage() {
           />
         </Row>
 
-        <Row label={t("notifTelegram")} desc={t("notifTelegramDesc")}>
-          <div className="flex items-center gap-2.5">
-            <span className="rounded-full bg-[var(--muted)] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[var(--muted-foreground)]">
-              {t("comingSoon")}
-            </span>
-            <Toggle checked={false} onChange={() => {}} disabled />
-          </div>
-        </Row>
       </Section>
 
       {/* ── Logout ── */}

@@ -15,7 +15,7 @@ export type Feature =
   | "multi_charts"  // Multiple natal charts — moonlight+
   | "horoscope"     // Daily horoscope — solar+
   | "calendar"      // Astro calendar — solar+
-  | "notifications" // Email/Telegram notifications — solar+
+  | "notifications" // Email notifications — solar+
   | "priority_ai";  // Premium model — cosmic
 
 // ── Plan shape ────────────────────────────────────────────────────────────────
@@ -129,7 +129,7 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
       multi_charts: "Карты близких",
       horoscope:    "Ежедневный личный гороскоп",
       calendar:     "Полный астро-календарь",
-      notifications:"Email + Telegram уведомления",
+      notifications:"Email-уведомления",
       priority_ai:  "Приоритетный AI (Claude Sonnet)",
     },
     highlight:     false,

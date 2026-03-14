@@ -52,7 +52,7 @@ function ContentRU() {
           <li><strong>Управление аккаунтом:</strong> аутентификация, настройки</li>
           <li><strong>Обработка платежей:</strong> передача данных провайдеру (карты мы не храним)</li>
           <li><strong>Улучшение Сервиса:</strong> агрегированная аналитика (в будущем — Google Analytics)</li>
-          <li><strong>Уведомления:</strong> email и Telegram при включённых настройках</li>
+          <li><strong>Уведомления:</strong> email при включённых настройках</li>
         </ul>
       </Section>
       <Section title="4. Правовые основания (GDPR)">
@@ -148,7 +148,7 @@ function ContentEN() {
           <li><strong>Account management:</strong> authentication, saving settings</li>
           <li><strong>Payment processing:</strong> transmitting required data to payment provider (we don&apos;t store card data)</li>
           <li><strong>Service improvement:</strong> aggregated usage analytics (in the future — via Google Analytics)</li>
-          <li><strong>Notifications:</strong> email and Telegram when corresponding settings are enabled</li>
+          <li><strong>Notifications:</strong> email when corresponding settings are enabled</li>
         </ul>
       </Section>
       <Section title="4. Legal Basis (GDPR)">
@@ -244,7 +244,7 @@ function ContentUK() {
           <li><strong>Управління акаунтом:</strong> автентифікація, налаштування</li>
           <li><strong>Обробка платежів:</strong> передача даних провайдеру (картки ми не зберігаємо)</li>
           <li><strong>Покращення Сервісу:</strong> агрегована аналітика (у майбутньому — Google Analytics)</li>
-          <li><strong>Сповіщення:</strong> email і Telegram при ввімкнених налаштуваннях</li>
+          <li><strong>Сповіщення:</strong> email при ввімкнених налаштуваннях</li>
         </ul>
       </Section>
       <Section title="4. Правові підстави (GDPR)">
