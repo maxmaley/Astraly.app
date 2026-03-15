@@ -5,6 +5,7 @@ import { useTranslations, useLocale } from "next-intl";
 import { Link } from "@/navigation";
 import { PaywallOverlay } from "@/components/shared/PaywallOverlay";
 
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface HoroscopeData {

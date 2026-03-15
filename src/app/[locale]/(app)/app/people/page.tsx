@@ -6,6 +6,7 @@ import { useRouter } from "@/navigation";
 import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
 import { PLANS, canAccess } from "@/lib/plans";
 import type { Relation, SubscriptionTier } from "@/types/database";
+import { trackEvent } from "@/lib/analytics";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -510,6 +511,7 @@ export default function PeoplePage() {
     if (isEdit) {
       setCharts(prev => prev.map(ch => ch.id === json.chart.id ? json.chart : ch));
     } else {
+      trackEvent("chart_created", { relation: form.relation });
       setCharts(prev => [...prev, json.chart]);
     }
     setShowAddForm(false);

@@ -9,6 +9,7 @@ import {
 }                                        from "@/lib/plans";
 import { usePaddleCheckout }             from "@/components/shared/PaddleProvider";
 import type { SubscriptionTier }         from "@/types/database";
+import { trackEvent }                   from "@/lib/analytics";
 
 // ── Copy (inline — no i18n namespace needed for this single page) ─────────────
 
@@ -330,7 +331,9 @@ export default function PricingPage() {
         .select("subscription_tier")
         .eq("id", user.id)
         .single();
-      setCurrentTier(data?.subscription_tier ?? "free");
+      const tier = data?.subscription_tier ?? "free";
+      setCurrentTier(tier);
+      trackEvent("pricing_viewed", { current_tier: tier });
     }
     load();
   }, [supabase]);
@@ -345,6 +348,7 @@ export default function PricingPage() {
       return;
     }
 
+    trackEvent("checkout_opened", { plan: id });
     openCheckout({ priceId, email: userEmail, userId, plan: id });
   }
 

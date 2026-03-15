@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getUsageLevel, PLANS, canAccess } from "@/lib/plans";
 import { LimitModal } from "@/components/shared/LimitModal";
 import type { SubscriptionTier } from "@/types/database";
+import { trackEvent } from "@/lib/analytics";
 import { VoiceInputButton } from "./VoiceInputButton";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -648,6 +649,7 @@ export function ChatInterface({
         { id: assistantMsgId, role: "assistant", content: "", created_at: new Date().toISOString() },
       ]);
       setIsLoading(true);
+      trackEvent("chat_message_sent", { tier, has_chart: selectedChartIds.length > 0 });
 
       try {
         // Determine which chart_ids to send
@@ -671,6 +673,7 @@ export function ChatInterface({
             const errData = await response.json().catch(() => ({}));
             setTokensLeft(0);
             if (errData.tokens_reset_at) setTokensReset(errData.tokens_reset_at);
+            trackEvent("token_limit_reached", { tier });
             setShowLimitModal(true);
             setMessages(prev => prev.filter(m => m.id !== assistantMsgId));
             return;

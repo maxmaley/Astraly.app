@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { Link } from "@/navigation";
 import { CityAutocomplete } from "@/components/shared/CityAutocomplete";
+import { trackEvent } from "@/lib/analytics";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -182,6 +183,7 @@ export default function ChartPage() {
 
     const json = await res.json() as { chart: ChartRecord };
     localStorage.removeItem("astraly_birth_data");
+    trackEvent("chart_created", { relation: "self" });
     setChart(json.chart);
     setState("chart");
   }, [t]);

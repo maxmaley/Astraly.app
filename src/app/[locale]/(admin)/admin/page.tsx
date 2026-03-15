@@ -48,6 +48,8 @@ export default async function AdminDashboard({
   const dayAgo  = new Date(now - 86_400_000).toISOString();
   const weekAgo = new Date(now - 7 * 86_400_000).toISOString();
 
+  const today = new Date().toLocaleDateString("en-CA"); // YYYY-MM-DD
+
   // All queries run in parallel; count queries fetch zero rows from the network.
   const [
     { count: total },
@@ -58,6 +60,12 @@ export default async function AdminDashboard({
     { count: cntSolar },
     { count: cntCosmic },
     { data: recentUsers },
+    // Engagement metrics
+    { count: msgToday },
+    { count: msgWeek },
+    { count: chartsTotal },
+    { count: horoscopesToday },
+    { count: activeSubs },
   ] = await Promise.all([
     admin.from("users").select("*", { count: "exact", head: true }),
     admin.from("users").select("*", { count: "exact", head: true }).gte("created_at", dayAgo),
@@ -70,6 +78,15 @@ export default async function AdminDashboard({
       .select("id, name, email, subscription_tier, created_at")
       .order("created_at", { ascending: false })
       .limit(8) as Promise<{ data: UserRecent[] | null }>,
+    // Messages today & this week
+    admin.from("chat_messages").select("*", { count: "exact", head: true }).gte("created_at", dayAgo),
+    admin.from("chat_messages").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
+    // Total charts
+    admin.from("natal_charts").select("*", { count: "exact", head: true }),
+    // Horoscopes generated today
+    admin.from("daily_horoscopes").select("*", { count: "exact", head: true }).eq("date", today),
+    // Active subscriptions
+    admin.from("subscriptions").select("*", { count: "exact", head: true }).eq("status", "active"),
   ]);
 
   const byPlan: Record<SubscriptionTier, number> = {
@@ -98,6 +115,15 @@ export default async function AdminDashboard({
         <StatCard label="Paid users"    value={fmt(paid)}            sub={pct(paid, totalN)}    />
         <StatCard label="New today"     value={fmt(newToday ?? 0)}   sub="last 24 h"            />
         <StatCard label="New this week" value={fmt(newWeek ?? 0)}    sub="last 7 days"          />
+      </div>
+
+      {/* Engagement stats */}
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-5 mb-8">
+        <StatCard label="Messages today"    value={fmt(msgToday ?? 0)}         sub={`${fmt(msgWeek ?? 0)} this week`} />
+        <StatCard label="Total charts"      value={fmt(chartsTotal ?? 0)}      />
+        <StatCard label="Horoscopes today"  value={fmt(horoscopesToday ?? 0)}  />
+        <StatCard label="Active subs"       value={fmt(activeSubs ?? 0)}       />
+        <StatCard label="Conversion"        value={pct(paid, totalN)}          sub={`${fmt(paid)} of ${fmt(totalN)}`} />
       </div>
 
       {/* Plan breakdown + Recent sign-ups */}

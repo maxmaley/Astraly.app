@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "@/navigation";
 import { useLocale } from "next-intl";
 import { PLANS, cheapestPlanFor, type Feature } from "@/lib/plans";
+import { trackEvent } from "@/lib/analytics";
 
 // ── Feature display config ────────────────────────────────────────────────────
 
@@ -11,6 +13,16 @@ const FEATURE_META: Record<Feature, {
   title:   Record<string, string>;
   desc:    Record<string, string>;
 }> = {
+  memory: {
+    icon:  "🧠",
+    title: { ru: "Память AI",             uk: "Пам'ять AI",           en: "AI Memory",          pl: "Pamięć AI"           },
+    desc:  {
+      ru: "Astraly запоминает важные факты о тебе между сессиями — твои вопросы, контекст, предпочтения.",
+      uk: "Astraly запам'ятовує важливі факти про тебе між сесіями — твої питання, контекст, вподобання.",
+      en: "Astraly remembers important facts about you between sessions — your questions, context, and preferences.",
+      pl: "Astraly zapamiętuje ważne fakty o Tobie między sesjami — Twoje pytania, kontekst i preferencje.",
+    },
+  },
   horoscope: {
     icon:  "☀️",
     title: { ru: "Ежедневный гороскоп", uk: "Щоденний гороскоп",  en: "Daily Horoscope",   pl: "Horoskop dzienny"   },
@@ -87,6 +99,10 @@ export function PaywallOverlay({ feature }: { feature: Feature }) {
   const locale = useLocale() as "ru" | "uk" | "en" | "pl";
   const router = useRouter();
   const l = locale in COPY.viewPlans ? locale : "ru";
+
+  useEffect(() => {
+    trackEvent("paywall_hit", { feature, tier: "free" });
+  }, [feature]);
 
   const meta     = FEATURE_META[feature];
   const minPlan  = cheapestPlanFor(feature);

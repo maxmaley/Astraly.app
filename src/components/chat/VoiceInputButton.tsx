@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import { trackEvent } from "@/lib/analytics";
 
 const LOCALE_TO_LANG: Record<string, string> = {
   ru: "ru-RU",
@@ -63,6 +64,7 @@ export function VoiceInputButton({ locale, disabled, onTranscript }: VoiceInputB
     recognitionRef.current = recognition;
     recognition.start();
     setListening(true);
+    trackEvent("voice_input_used", {});
   }, [listening, locale, onTranscript]);
 
   // Cleanup on unmount
