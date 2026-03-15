@@ -103,38 +103,84 @@ export async function POST(request: NextRequest) {
     const eventType = event.event_type as string;
     const data = event.data as Record<string, unknown>;
 
-    console.log(`[paddle-webhook] ${eventType}`, data.id);
+    console.log(`[paddle-webhook] ${eventType}`, JSON.stringify({
+      id: data.id,
+      status: data.status,
+      custom_data: data.custom_data,
+      items: (data.items as Array<Record<string, unknown>>)?.map((i) => ({
+        price_id: (i.price as Record<string, unknown>)?.id,
+      })),
+    }));
 
     const db = createAdminClient();
     const { userId, plan } = extractMeta(data);
+
+    console.log(`[paddle-webhook] extractMeta →`, { userId, plan });
 
     switch (eventType) {
       // ── New subscription created (first checkout) ──────────────────────
       case "subscription.created": {
         if (!userId || !plan) break;
 
+        const createdStatus = (data.status as string) ?? "active";
+
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         await (db.from("subscriptions") as any).upsert({
           user_id: userId,
           plan,
-          status: (data.status as string) ?? "active",
+          status: createdStatus,
           paddle_subscription_id: data.id as string,
           started_at: new Date().toISOString(),
           expires_at: (data.current_billing_period as Record<string, string>)?.ends_at ?? null,
         }, { onConflict: "user_id" });
+
+        // In sandbox (and sometimes production), subscription may arrive
+        // already active — no separate "activated" event follows.
+        // Upgrade user immediately when status is "active".
+        if (createdStatus === "active") {
+          console.log(`[paddle-webhook] subscription.created already active — upgrading user ${userId}`);
+          const createdTokens = getMonthlyTokens(plan);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { error: createdUserErr } = await (db.from("users") as any).update({
+            subscription_tier: plan,
+            tokens_left: createdTokens,
+            tokens_reset_at: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000,
+            ).toISOString(),
+          }).eq("id", userId);
+
+          if (createdUserErr) console.error(`[paddle-webhook] users.update error (created):`, createdUserErr);
+
+          // Send activation email
+          const createdUser = await getUser(db, userId);
+          if (createdUser) {
+            await sendEmail({
+              to: createdUser.email,
+              subject: "Subscription activated — Astraly ✦",
+              react: SubscriptionActivated({
+                planName: PLAN_NAMES[plan] ?? plan,
+                locale: (createdUser.lang as Locale) ?? "ru",
+              }),
+            });
+          }
+        }
 
         break;
       }
 
       // ── Subscription activated (payment confirmed) ─────────────────────
       case "subscription.activated": {
-        if (!userId || !plan) break;
+        if (!userId || !plan) {
+          console.error(`[paddle-webhook] subscription.activated: missing userId=${userId} plan=${plan}`);
+          break;
+        }
 
         const tokens = getMonthlyTokens(plan);
+        console.log(`[paddle-webhook] Upgrading user ${userId} → tier=${plan}, tokens=${tokens}`);
 
         // Upgrade user tier + reset tokens
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (db.from("users") as any).update({
+        const { error: userErr } = await (db.from("users") as any).update({
           subscription_tier: plan,
           tokens_left: tokens,
           tokens_reset_at: new Date(
@@ -142,9 +188,11 @@ export async function POST(request: NextRequest) {
           ).toISOString(),
         }).eq("id", userId);
 
+        if (userErr) console.error(`[paddle-webhook] users.update error:`, userErr);
+
         // Upsert subscription record
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (db.from("subscriptions") as any).upsert({
+        const { error: subErr } = await (db.from("subscriptions") as any).upsert({
           user_id: userId,
           plan,
           status: "active",
@@ -152,6 +200,8 @@ export async function POST(request: NextRequest) {
           started_at: new Date().toISOString(),
           expires_at: (data.current_billing_period as Record<string, string>)?.ends_at ?? null,
         }, { onConflict: "user_id" });
+
+        if (subErr) console.error(`[paddle-webhook] subscriptions.upsert error:`, subErr);
 
         // Send activation email
         const user = await getUser(db, userId);
