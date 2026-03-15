@@ -80,7 +80,7 @@ export async function Footer() {
               <Link href="/cookies" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("landing.footerCookies")}
               </Link>
-              <Link href="/refunds" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
+              <Link href="/refund" locale={locale} className="text-sm text-[var(--muted-foreground)] hover:text-[var(--foreground)] transition-colors">
                 {t("landing.footerRefunds")}
               </Link>
             </div>

@@ -50,7 +50,7 @@ function ContentRU() {
         <ul>
           <li><strong>Предоставление Сервиса:</strong> расчёт карты, гороскопы, ответы AI</li>
           <li><strong>Управление аккаунтом:</strong> аутентификация, настройки</li>
-          <li><strong>Обработка платежей:</strong> передача данных провайдеру (карты мы не храним)</li>
+          <li><strong>Обработка платежей:</strong> передача данных Paddle (карты мы не храним)</li>
           <li><strong>Улучшение Сервиса:</strong> агрегированная аналитика (в будущем — Google Analytics)</li>
           <li><strong>Уведомления:</strong> email при включённых настройках</li>
         </ul>
@@ -70,7 +70,7 @@ function ContentRU() {
           ["Google (OAuth)", "Авторизация через Google", "США"],
           ["Google Analytics", "Аналитика (не активна)", "США"],
           ["Google Ads", "Реклама (не активна)", "США"],
-          ["Платёжный провайдер", "Обработка платежей (будет подключён)", "—"],
+          ["Paddle", "Обработка платежей", "Великобритания"],
           ["Resend", "Email-уведомления", "США"],
         ]} headers={["Поставщик", "Назначение", "Страна"]} />
       </Section>
@@ -146,7 +146,7 @@ function ContentEN() {
         <ul>
           <li><strong>Providing the Service:</strong> natal chart calculation, horoscopes, AI responses</li>
           <li><strong>Account management:</strong> authentication, saving settings</li>
-          <li><strong>Payment processing:</strong> transmitting required data to payment provider (we don&apos;t store card data)</li>
+          <li><strong>Payment processing:</strong> transmitting required data to Paddle (we don&apos;t store card data)</li>
           <li><strong>Service improvement:</strong> aggregated usage analytics (in the future — via Google Analytics)</li>
           <li><strong>Notifications:</strong> email when corresponding settings are enabled</li>
         </ul>
@@ -166,7 +166,7 @@ function ContentEN() {
           ["Google (OAuth)", "Google sign-in", "USA"],
           ["Google Analytics", "Usage analytics (inactive)", "USA"],
           ["Google Ads", "Advertising (inactive)", "USA"],
-          ["Payment provider", "Payment processing (to be connected)", "—"],
+          ["Paddle", "Payment processing", "UK"],
           ["Resend", "Email notifications", "USA"],
         ]} headers={["Provider", "Purpose", "Country"]} />
       </Section>
@@ -242,7 +242,7 @@ function ContentUK() {
         <ul>
           <li><strong>Надання Сервісу:</strong> розрахунок карти, гороскопи, відповіді AI</li>
           <li><strong>Управління акаунтом:</strong> автентифікація, налаштування</li>
-          <li><strong>Обробка платежів:</strong> передача даних провайдеру (картки ми не зберігаємо)</li>
+          <li><strong>Обробка платежів:</strong> передача даних Paddle (картки ми не зберігаємо)</li>
           <li><strong>Покращення Сервісу:</strong> агрегована аналітика (у майбутньому — Google Analytics)</li>
           <li><strong>Сповіщення:</strong> email при ввімкнених налаштуваннях</li>
         </ul>
@@ -262,7 +262,7 @@ function ContentUK() {
           ["Google (OAuth)", "Авторизація через Google", "США"],
           ["Google Analytics", "Аналітика (не активна)", "США"],
           ["Google Ads", "Реклама (не активна)", "США"],
-          ["Платіжний провайдер", "Обробка платежів (буде підключено)", "—"],
+          ["Paddle", "Обробка платежів", "Великобританія"],
           ["Resend", "Email-сповіщення", "США"],
         ]} headers={["Постачальник", "Призначення", "Країна"]} />
       </Section>

@@ -133,6 +133,60 @@ export async function toggleBanAction(formData: FormData) {
   redirect(`/${locale}/admin/users/${userId}?msg=ban`);
 }
 
+// ── Set subscription expiry date ──────────────────────────────────────────────
+
+export async function setExpiresAtAction(formData: FormData) {
+  await requireAdmin();
+
+  const userId   = formData.get("userId")   as string;
+  const locale   = formData.get("locale")   as string;
+  const dateStr  = formData.get("expiresAt") as string;
+
+  const db = adminDb();
+
+  if (!dateStr) {
+    // Clear expiry → remove subscription record and downgrade to free
+    await db.from("subscriptions").delete().eq("user_id", userId);
+    await db.from("users").update({
+      subscription_tier: "free",
+      tokens_left: PLANS.free.monthlyTokens,
+    }).eq("id", userId);
+  } else {
+    const expiresAt = new Date(dateStr).toISOString();
+
+    // Upsert subscription with the new expiry
+    const { data: existing } = await db
+      .from("subscriptions")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    if (existing) {
+      await db.from("subscriptions")
+        .update({ expires_at: expiresAt, status: "active" })
+        .eq("user_id", userId);
+    } else {
+      // Get user's current tier for the subscription record
+      const { data: user } = await db
+        .from("users")
+        .select("subscription_tier")
+        .eq("id", userId)
+        .single();
+
+      const plan = (user?.subscription_tier as SubscriptionTier) ?? "free";
+      await db.from("subscriptions").insert({
+        user_id: userId,
+        plan,
+        status: "active",
+        expires_at: expiresAt,
+        started_at: new Date().toISOString(),
+      });
+    }
+  }
+
+  redirect(`/${locale}/admin/users/${userId}?msg=expiry`);
+}
+
 // ── Grant / revoke admin role ─────────────────────────────────────────────────
 
 export async function toggleAdminAction(formData: FormData) {

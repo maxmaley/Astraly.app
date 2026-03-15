@@ -25,8 +25,10 @@ export default async function UsersPage({
   params: { locale: string };
   searchParams: { q?: string; plan?: string; page?: string };
 }) {
-  const q    = searchParams.q?.trim() ?? "";
-  const plan = searchParams.plan ?? "";
+  const rawQ = searchParams.q;
+  const q    = (Array.isArray(rawQ) ? rawQ[0] : rawQ)?.trim() ?? "";
+  const rawP = searchParams.plan;
+  const plan = (Array.isArray(rawP) ? rawP[0] : rawP) ?? "";
   const page = Math.max(1, Number(searchParams.page ?? 1));
   const offset = (page - 1) * PAGE_SIZE;
 
@@ -97,8 +99,6 @@ export default async function UsersPage({
           ))}
         </div>
 
-        {/* Hidden q reset when plan tab is clicked */}
-        <input type="hidden" name="q" value={q} />
       </form>
 
       {/* Table */}

@@ -5,8 +5,9 @@ import { useLocale }                     from "next-intl";
 import { createClient }                  from "@/lib/supabase/client";
 import {
   PLANS, PLAN_ORDER, formatPrice,
-  canAccess,
+  canAccess, getPaddlePriceId,
 }                                        from "@/lib/plans";
+import { usePaddleCheckout }             from "@/components/shared/PaddleProvider";
 import type { SubscriptionTier }         from "@/types/database";
 
 // ── Copy (inline — no i18n namespace needed for this single page) ─────────────
@@ -288,16 +289,21 @@ export default function PricingPage() {
   const locale     = useLocale() as "ru" | "uk" | "en";
   const l          = (["ru", "uk", "en"] as const).includes(locale) ? locale : "ru" as const;
   const supabase   = useMemo(() => createClient(), []);
+  const { openCheckout } = usePaddleCheckout();
 
   const [yearly,      setYearly]      = useState(false);
   const [currentTier, setCurrentTier] = useState<SubscriptionTier | null>(null);
   const [toast,       setToast]       = useState<string | null>(null);
+  const [userEmail,   setUserEmail]   = useState<string | null>(null);
+  const [userId,      setUserId]      = useState<string | null>(null);
 
-  // Load current tier
+  // Load current tier + user info
   useEffect(() => {
     async function load() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      setUserEmail(user.email ?? null);
+      setUserId(user.id);
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (supabase as any)
         .from("users")
@@ -311,11 +317,15 @@ export default function PricingPage() {
 
   function handleUpgrade(id: SubscriptionTier) {
     if (id === currentTier) return;
-    if (id === "free") return; // can't downgrade to free manually
+    if (id === "free") return;
 
-    // Paddle checkout will be wired here.
-    // For now, show a coming-soon toast.
-    setToast(C.soonModal[l]);
+    const priceId = getPaddlePriceId(id, yearly ? "yearly" : "monthly");
+    if (!priceId || !userEmail || !userId) {
+      setToast(C.soonModal[l]);
+      return;
+    }
+
+    openCheckout({ priceId, email: userEmail, userId, plan: id });
   }
 
   return (
