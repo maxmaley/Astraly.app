@@ -6,6 +6,7 @@ import {
   changePlanAction,
   resetTokensAction,
   grantTokensAction,
+  setExpiresAtAction,
   toggleBanAction,
   toggleAdminAction,
 } from "../../_actions";
@@ -28,11 +29,12 @@ function Section({ title, children }: { title: string; children: React.ReactNode
 // ── Toast message ─────────────────────────────────────────────────────────────
 
 const MSG_MAP: Record<string, { text: string; color: string }> = {
-  plan:  { text: "Plan updated successfully.",     color: "text-emerald-400" },
-  reset: { text: "Tokens reset to plan limit.",    color: "text-emerald-400" },
-  grant: { text: "Tokens granted.",                color: "text-emerald-400" },
-  ban:   { text: "Account status updated.",        color: "text-amber-400"   },
-  admin: { text: "Admin role updated.",            color: "text-cosmic-400"  },
+  plan:   { text: "Plan updated successfully.",     color: "text-emerald-400" },
+  reset:  { text: "Tokens reset to plan limit.",    color: "text-emerald-400" },
+  grant:  { text: "Tokens granted.",                color: "text-emerald-400" },
+  expiry: { text: "Subscription expiry updated.",   color: "text-emerald-400" },
+  ban:    { text: "Account status updated.",        color: "text-amber-400"   },
+  admin:  { text: "Admin role updated.",            color: "text-cosmic-400"  },
 };
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -54,9 +56,15 @@ export default async function UserDetailPage({
     notify_email: boolean;
   };
 
+  type SubRecord = {
+    plan: string; status: string;
+    paddle_subscription_id: string | null;
+    expires_at: string | null; started_at: string | null;
+  };
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const adminAny = createAdminClient() as any;
-  const [{ data: user }, { count: chartsCount }] = await Promise.all([
+  const [{ data: user }, { count: chartsCount }, { data: subscription }] = await Promise.all([
     adminAny
       .from("users")
       .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, created_at, updated_at, lang, notify_email")
@@ -66,6 +74,11 @@ export default async function UserDetailPage({
       .from("natal_charts")
       .select("*", { count: "exact", head: true })
       .eq("user_id", id),
+    adminAny
+      .from("subscriptions")
+      .select("plan, status, paddle_subscription_id, expires_at, started_at")
+      .eq("user_id", id)
+      .single() as Promise<{ data: SubRecord | null; error: unknown }>,
   ]);
 
   if (!user) notFound();
@@ -186,6 +199,72 @@ export default async function UserDetailPage({
           >
             Reset
           </button>
+        </form>
+
+        {/* Subscription record info */}
+        {subscription && (
+          <div className="rounded-xl border border-[var(--border)] bg-[var(--background)] px-4 py-3 space-y-1">
+            <div className="flex items-center gap-2 text-xs text-[var(--muted-foreground)]">
+              <span>Status:</span>
+              <span className={
+                subscription.status === "active" ? "text-emerald-400 font-medium" :
+                subscription.status === "cancelled" ? "text-amber-400 font-medium" :
+                subscription.status === "past_due" ? "text-rose-400 font-medium" :
+                "text-[var(--foreground)]"
+              }>
+                {subscription.status}
+              </span>
+              {subscription.paddle_subscription_id && (
+                <>
+                  <span>·</span>
+                  <span className="font-mono text-[10px]">{subscription.paddle_subscription_id}</span>
+                </>
+              )}
+            </div>
+            {subscription.expires_at && (
+              <p className="text-xs text-[var(--muted-foreground)]">
+                Expires: <span className="text-[var(--foreground)]">
+                  {new Date(subscription.expires_at).toLocaleDateString("en-US", {
+                    month: "short", day: "numeric", year: "numeric", hour: "2-digit", minute: "2-digit",
+                  })}
+                </span>
+              </p>
+            )}
+          </div>
+        )}
+
+        {/* Set expiry date */}
+        <form action={setExpiresAtAction} className="flex items-center gap-3">
+          <input type="hidden" name="userId" value={user.id} />
+          <input type="hidden" name="locale" value={locale} />
+          <div className="flex-1">
+            <p className="text-sm font-medium text-[var(--foreground)]">Subscription expiry</p>
+            <p className="text-xs text-[var(--muted-foreground)] mb-2">Set when this subscription ends. Clear to downgrade to free immediately.</p>
+            <input
+              name="expiresAt"
+              type="datetime-local"
+              defaultValue={subscription?.expires_at
+                ? new Date(subscription.expires_at).toISOString().slice(0, 16)
+                : ""}
+              className="h-9 w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-3 text-sm text-[var(--foreground)] focus:outline-none focus:ring-2 focus:ring-cosmic-500/40"
+            />
+          </div>
+          <div className="flex gap-2 pt-6">
+            <button
+              type="submit"
+              className="h-9 rounded-xl bg-cosmic-500 px-4 text-sm font-medium text-white hover:opacity-90 transition-opacity"
+            >
+              Set
+            </button>
+            <button
+              type="submit"
+              name="expiresAt"
+              value=""
+              className="h-9 rounded-xl border border-rose-500/30 px-4 text-sm font-medium text-rose-400 hover:bg-rose-500/10 transition-colors"
+            >
+              Clear
+            </button>
+          </div>
         </form>
       </Section>
 
