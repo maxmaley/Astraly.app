@@ -746,6 +746,13 @@ export function ChatInterface({
     [isLoading, locale, router, t, tier, selectedChartIds, existingChartIds]
   );
 
+  // Re-focus textarea when streaming finishes (disabled attr drops focus)
+  useEffect(() => {
+    if (!isLoading && textareaRef.current) {
+      textareaRef.current.focus();
+    }
+  }, [isLoading]);
+
   // Auto-send initial prompt once history loads
   useEffect(() => {
     if (!initialPrompt || initialPromptSentRef.current || loadingHistory) return;
