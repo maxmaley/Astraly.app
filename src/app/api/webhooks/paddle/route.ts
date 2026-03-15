@@ -1,53 +1,64 @@
 /**
  * Paddle webhook handler.
  *
- * Handles subscription lifecycle events:
- *   - subscription.activated  → upgrade user tier, send activation email
- *   - subscription.canceled   → mark subscription canceled, send email
+ * Verifies webhook signature and handles subscription lifecycle events:
+ *   - subscription.created    → initial record in DB
+ *   - subscription.activated  → upgrade user tier, reset tokens, send email
+ *   - subscription.updated    → plan change (up/downgrade)
+ *   - subscription.canceled   → mark canceled, send email
+ *   - subscription.past_due   → mark past_due status
+ *   - transaction.completed   → update billing period
  *   - transaction.payment_failed → send payment failed email
- *
- * Paddle integration details (variant IDs, signature verification)
- * will be wired once Paddle dashboard is configured.
  */
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient }              from "@/lib/supabase/admin";
 import { sendEmail }                      from "@/lib/email";
+import { PLANS, tierFromPriceId, getMonthlyTokens } from "@/lib/plans";
 import SubscriptionActivated              from "@/emails/SubscriptionActivated";
 import SubscriptionCanceled               from "@/emails/SubscriptionCanceled";
 import PaymentFailed                      from "@/emails/PaymentFailed";
 import type { SubscriptionTier }          from "@/types/database";
 
-// TODO: Replace with Paddle SDK signature verification
-// import { verifyPaddleWebhook } from "@/lib/paddle";
+// Paddle Node SDK for webhook signature verification
+import { Webhooks } from "@paddle/paddle-node-sdk";
 
 type Locale = "ru" | "uk" | "en";
 
-interface PaddleEvent {
-  event_type: string;
-  data: {
-    id: string;
-    customer_id?: string;
-    custom_data?: {
-      user_id?: string;
-      plan?: SubscriptionTier;
-    };
-    status?: string;
-    current_billing_period?: {
-      ends_at?: string;
-    };
-    scheduled_change?: {
-      action?: string;
-      effective_at?: string;
-    };
-  };
-}
-
 const PLAN_NAMES: Record<string, string> = {
   moonlight: "Moonlight",
-  solar: "Solar Oracle",
-  cosmic: "Cosmic Mind",
+  solar:     "Solar Oracle",
+  cosmic:    "Cosmic Mind",
 };
+
+// ── Signature verification ──────────────────────────────────────────────────
+
+const webhookSecret = process.env.PADDLE_WEBHOOK_SECRET ?? "";
+
+async function verifyWebhook(request: NextRequest): Promise<Record<string, unknown> | null> {
+  const rawBody = await request.text();
+
+  // If no secret configured, parse without verification (dev only)
+  if (!webhookSecret) {
+    console.warn("[paddle-webhook] No PADDLE_WEBHOOK_SECRET — skipping signature verification");
+    return JSON.parse(rawBody);
+  }
+
+  const signature = request.headers.get("paddle-signature");
+  if (!signature) return null;
+
+  try {
+    const webhooks = new Webhooks();
+    const verified = await webhooks.unmarshal(rawBody, webhookSecret, signature);
+    if (!verified) return null;
+    return JSON.parse(rawBody);
+  } catch (err) {
+    console.error("[paddle-webhook] Signature verification failed:", err);
+    return null;
+  }
+}
+
+// ── Helpers ─────────────────────────────────────────────────────────────────
 
 async function getUser(db: ReturnType<typeof createAdminClient>, userId: string) {
   const { data } = await db
@@ -58,30 +69,78 @@ async function getUser(db: ReturnType<typeof createAdminClient>, userId: string)
   return data as { email: string; lang: string; subscription_tier: SubscriptionTier } | null;
 }
 
+/** Extract user_id and plan from Paddle event custom_data or items */
+function extractMeta(data: Record<string, unknown>): {
+  userId: string | null;
+  plan: SubscriptionTier | null;
+} {
+  // custom_data passed at checkout
+  const customData = data.custom_data as Record<string, string> | undefined;
+  const userId = customData?.user_id ?? null;
+
+  // Plan can be explicit in custom_data or resolved from price ID
+  let plan: SubscriptionTier | null = (customData?.plan as SubscriptionTier) ?? null;
+
+  if (!plan) {
+    // Try resolving from items/price
+    const items = data.items as Array<{ price?: { id?: string } }> | undefined;
+    const priceId = items?.[0]?.price?.id;
+    if (priceId) plan = tierFromPriceId(priceId) ?? null;
+  }
+
+  return { userId, plan };
+}
+
+// ── Handler ─────────────────────────────────────────────────────────────────
+
 export async function POST(request: NextRequest) {
   try {
-    // TODO: Verify Paddle webhook signature
-    // const signature = request.headers.get("paddle-signature");
-    // if (!verifyPaddleWebhook(body, signature)) {
-    //   return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
-    // }
+    const event = await verifyWebhook(request);
+    if (!event) {
+      return NextResponse.json({ error: "Invalid signature" }, { status: 401 });
+    }
 
-    const event = (await request.json()) as PaddleEvent;
-    const { event_type, data } = event;
+    const eventType = event.event_type as string;
+    const data = event.data as Record<string, unknown>;
 
-    console.log(`[paddle-webhook] ${event_type}`, data.id);
+    console.log(`[paddle-webhook] ${eventType}`, data.id);
 
     const db = createAdminClient();
+    const { userId, plan } = extractMeta(data);
 
-    switch (event_type) {
-      case "subscription.activated": {
-        const userId = data.custom_data?.user_id;
-        const plan   = data.custom_data?.plan;
+    switch (eventType) {
+      // ── New subscription created (first checkout) ──────────────────────
+      case "subscription.created": {
         if (!userId || !plan) break;
 
-        // Upgrade user tier
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        await (db.from("users") as any).update({ subscription_tier: plan }).eq("id", userId);
+        await (db.from("subscriptions") as any).upsert({
+          user_id: userId,
+          plan,
+          status: (data.status as string) ?? "active",
+          paddle_subscription_id: data.id as string,
+          started_at: new Date().toISOString(),
+          expires_at: (data.current_billing_period as Record<string, string>)?.ends_at ?? null,
+        }, { onConflict: "user_id" });
+
+        break;
+      }
+
+      // ── Subscription activated (payment confirmed) ─────────────────────
+      case "subscription.activated": {
+        if (!userId || !plan) break;
+
+        const tokens = getMonthlyTokens(plan);
+
+        // Upgrade user tier + reset tokens
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db.from("users") as any).update({
+          subscription_tier: plan,
+          tokens_left: tokens,
+          tokens_reset_at: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        }).eq("id", userId);
 
         // Upsert subscription record
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -89,9 +148,9 @@ export async function POST(request: NextRequest) {
           user_id: userId,
           plan,
           status: "active",
-          paddle_subscription_id: data.id,
+          paddle_subscription_id: data.id as string,
           started_at: new Date().toISOString(),
-          expires_at: data.current_billing_period?.ends_at ?? null,
+          expires_at: (data.current_billing_period as Record<string, string>)?.ends_at ?? null,
         }, { onConflict: "user_id" });
 
         // Send activation email
@@ -109,13 +168,48 @@ export async function POST(request: NextRequest) {
         break;
       }
 
-      case "subscription.canceled": {
-        const userId = data.custom_data?.user_id;
+      // ── Subscription updated (plan change, billing update) ─────────────
+      case "subscription.updated": {
         if (!userId) break;
 
-        const expiresAt = data.scheduled_change?.effective_at
-          ?? data.current_billing_period?.ends_at
-          ?? new Date().toISOString();
+        const newPlan = plan;
+        const status = data.status as string;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const update: Record<string, unknown> = {
+          status,
+          expires_at: (data.current_billing_period as Record<string, string>)?.ends_at ?? null,
+        };
+        if (newPlan) update.plan = newPlan;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db.from("subscriptions") as any)
+          .update(update)
+          .eq("user_id", userId);
+
+        // If plan changed, update user tier + tokens
+        if (newPlan) {
+          const tokens = getMonthlyTokens(newPlan);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          await (db.from("users") as any).update({
+            subscription_tier: newPlan,
+            tokens_left: tokens,
+            tokens_reset_at: new Date(
+              Date.now() + 30 * 24 * 60 * 60 * 1000,
+            ).toISOString(),
+          }).eq("id", userId);
+        }
+        break;
+      }
+
+      // ── Subscription canceled ──────────────────────────────────────────
+      case "subscription.canceled": {
+        if (!userId) break;
+
+        const expiresAt =
+          (data.scheduled_change as Record<string, string>)?.effective_at ??
+          (data.current_billing_period as Record<string, string>)?.ends_at ??
+          new Date().toISOString();
 
         // Mark subscription as canceled (access until expires_at)
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -144,13 +238,50 @@ export async function POST(request: NextRequest) {
         break;
       }
 
+      // ── Subscription past due (payment retry pending) ──────────────────
+      case "subscription.past_due": {
+        if (!userId) break;
+
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db.from("subscriptions") as any)
+          .update({ status: "past_due" })
+          .eq("user_id", userId);
+
+        break;
+      }
+
+      // ── Transaction completed (renewal / initial) ──────────────────────
+      case "transaction.completed": {
+        if (!userId || !plan) break;
+
+        // Refresh tokens on successful renewal
+        const tokens = getMonthlyTokens(plan);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db.from("users") as any).update({
+          tokens_left: tokens,
+          tokens_reset_at: new Date(
+            Date.now() + 30 * 24 * 60 * 60 * 1000,
+          ).toISOString(),
+        }).eq("id", userId);
+
+        // Update subscription expiry
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        await (db.from("subscriptions") as any)
+          .update({
+            status: "active",
+            expires_at: (data.current_billing_period as Record<string, string>)?.ends_at ?? null,
+          })
+          .eq("user_id", userId);
+
+        break;
+      }
+
+      // ── Payment failed ─────────────────────────────────────────────────
       case "transaction.payment_failed": {
-        const userId = data.custom_data?.user_id;
         if (!userId) break;
 
         const user = await getUser(db, userId);
         if (user) {
-          // TODO: Generate Paddle update payment URL
           await sendEmail({
             to: user.email,
             subject: "Payment issue — Astraly",
@@ -163,7 +294,7 @@ export async function POST(request: NextRequest) {
       }
 
       default:
-        console.log(`[paddle-webhook] Unhandled event: ${event_type}`);
+        console.log(`[paddle-webhook] Unhandled event: ${eventType}`);
     }
 
     return NextResponse.json({ received: true });

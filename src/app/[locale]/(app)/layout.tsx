@@ -1,4 +1,5 @@
 import { AppShell } from "@/components/chat/AppShell";
+import { PaddleProvider } from "@/components/shared/PaddleProvider";
 
 export default function AppLayout({
   children,
@@ -7,5 +8,9 @@ export default function AppLayout({
   children: React.ReactNode;
   params: { locale: string };
 }) {
-  return <AppShell locale={params.locale}>{children}</AppShell>;
+  return (
+    <PaddleProvider>
+      <AppShell locale={params.locale}>{children}</AppShell>
+    </PaddleProvider>
+  );
 }

@@ -33,6 +33,10 @@ export interface PlanConfig {
     yearly:      number;         // USD cents total — 0 for free
     yearlyMonthly: number;       // yearly price ÷ 12 (display only)
   };
+  paddlePriceId: {
+    monthly:     string;         // Paddle price ID — empty for free
+    yearly:      string;         // Paddle price ID — empty for free
+  };
   monthlyTokens: number;         // -1 = unlimited
   maxCharts:     number;         // -1 = unlimited
 
@@ -55,6 +59,7 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientFrom:  "from-slate-500",
     gradientTo:    "to-slate-400",
     price:         { monthly: 0, yearly: 0, yearlyMonthly: 0 },
+    paddlePriceId: { monthly: "", yearly: "" },
     monthlyTokens: 10_000,
     maxCharts:     1,
     features:      ["chat"],
@@ -75,6 +80,10 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientFrom:  "from-blue-600",
     gradientTo:    "to-indigo-500",
     price:         { monthly: 399, yearly: 3192, yearlyMonthly: 266 },
+    paddlePriceId: {
+      monthly: "pri_01kkqen32asscm69h698q4m8bt",
+      yearly:  "pri_01kkqephdg765a7z1rnj5jqf5f",
+    },
     monthlyTokens: 500_000,
     maxCharts:     3,
     features:      ["chat", "multi_charts"],
@@ -96,6 +105,10 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientFrom:  "from-amber-500",
     gradientTo:    "to-orange-400",
     price:         { monthly: 599, yearly: 4792, yearlyMonthly: 399 },
+    paddlePriceId: {
+      monthly: "pri_01kkqeqywk3vbftfzg5z9svmmr",
+      yearly:  "pri_01kkqery0px7wwes0enh18t54n",
+    },
     monthlyTokens: 1_000_000,
     maxCharts:     5,
     features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications"],
@@ -120,6 +133,10 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     gradientFrom:  "from-cosmic-600",
     gradientTo:    "to-nebula-500",
     price:         { monthly: 1799, yearly: 14392, yearlyMonthly: 1199 },
+    paddlePriceId: {
+      monthly: "pri_01kkqesvgv55mjs4t384jzjthv",
+      yearly:  "pri_01kkqetr63jw5m1jszjqh8nvjy",
+    },
     monthlyTokens: 5_000_000,
     maxCharts:     10,
     features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"],
@@ -186,6 +203,23 @@ export function cheapestPlanFor(feature: Feature): SubscriptionTier {
     if (PLANS[id].features.includes(feature)) return id;
   }
   return "cosmic";
+}
+
+/** Paddle price ID for a tier + billing interval. Returns empty string for free. */
+export function getPaddlePriceId(
+  tier: SubscriptionTier,
+  interval: "monthly" | "yearly",
+): string {
+  return PLANS[tier].paddlePriceId[interval];
+}
+
+/** Resolve subscription tier from a Paddle price ID. Returns null if not found. */
+export function tierFromPriceId(priceId: string): SubscriptionTier | null {
+  for (const id of PLAN_ORDER) {
+    const p = PLANS[id].paddlePriceId;
+    if (p.monthly === priceId || p.yearly === priceId) return id;
+  }
+  return null;
 }
 
 /** Max number of natal charts for a tier (-1 = unlimited, treated as 10 for Cosmic) */
