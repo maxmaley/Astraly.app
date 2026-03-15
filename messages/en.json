@@ -316,7 +316,18 @@
     "cancelConfirm": "Cancel subscription",
     "cancellingBtn": "Cancelling…",
     "cancelledBanner": "Your subscription is active until {date}. After that you'll be downgraded to the free plan.",
-    "cancelledBannerSub": "You can resubscribe anytime from the pricing page."
+    "cancelledBannerSub": "You can resubscribe anytime from the pricing page.",
+    "memory": "Memory",
+    "memoryDesc": "Astraly remembers key facts about you from your conversations. You can edit or clear this memory at any time.",
+    "memoryEmpty": "No memories yet. Astraly will start remembering important facts about you as you chat.",
+    "memoryEdit": "Edit",
+    "memorySave": "Save",
+    "memoryCancel": "Cancel",
+    "memoryClear": "Clear memory",
+    "memoryClearConfirm": "Clear all memory?",
+    "memoryClearDesc": "This will erase everything Astraly remembers about you. This action cannot be undone.",
+    "memoryClearYes": "Clear",
+    "memoryClearNo": "Keep"
   },
   "signs": {
     "Aries": "Aries",
