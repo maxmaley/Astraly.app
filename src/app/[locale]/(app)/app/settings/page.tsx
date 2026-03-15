@@ -369,7 +369,7 @@ export default function SettingsPage() {
             .from("subscriptions")
             .select("status, expires_at, paddle_subscription_id")
             .eq("user_id", auth.id)
-            .single() as { data: SubStatus | null; error: unknown };
+            .maybeSingle() as { data: SubStatus | null; error: unknown };
           if (sub) {
             setSubStatus(sub);
             if (sub.status === "cancelled" && sub.expires_at) {
