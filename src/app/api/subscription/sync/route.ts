@@ -187,11 +187,11 @@ export async function POST() {
   const expiresAt = billingPeriod?.ends_at ?? null;
 
   // Upsert subscription record
+  // Note: paddle_subscription_id omitted — column may not exist in production yet
   const { error: subErr } = await db.from("subscriptions").upsert({
     user_id: user.id,
     plan,
     status: "active",
-    paddle_subscription_id: activeSub.id,
     started_at: new Date().toISOString(),
     expires_at: expiresAt,
   }, { onConflict: "user_id" });
