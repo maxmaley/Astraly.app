@@ -16,7 +16,7 @@ const adminDb = () => createAdminClient() as any;
 
 // ── Auth guard ────────────────────────────────────────────────────────────────
 
-async function requireAdmin(): Promise<void> {
+async function requireAdmin(): Promise<string> {
   const cookieStore = await cookies();
 
   const supabase = createServerClient<Database>(
@@ -41,6 +41,15 @@ async function requireAdmin(): Promise<void> {
     .single() as { data: { is_admin: boolean } | null };
 
   if (!profile?.is_admin) throw new Error("Forbidden");
+
+  return user.email!;
+}
+
+const SUPER_ADMIN_EMAIL = "oksmaleyniks@gmail.com";
+
+async function requireSuperAdmin(): Promise<void> {
+  const email = await requireAdmin();
+  if (email !== SUPER_ADMIN_EMAIL) throw new Error("Only the super admin can do this");
 }
 
 // ── Change subscription plan ──────────────────────────────────────────────────
@@ -194,7 +203,7 @@ export async function setExpiresAtAction(formData: FormData) {
 // ── Grant / revoke admin role ─────────────────────────────────────────────────
 
 export async function toggleAdminAction(formData: FormData) {
-  await requireAdmin();
+  await requireSuperAdmin();
 
   const userId   = formData.get("userId") as string;
   const locale   = formData.get("locale") as string;
@@ -207,4 +216,29 @@ export async function toggleAdminAction(formData: FormData) {
 
   revalidatePath(`/${locale}/admin/users/${userId}`);
   redirect(`/${locale}/admin/users/${userId}?msg=admin`);
+}
+
+// ── Toggle test user ────────────────────────────────────────────────────────
+
+export async function toggleTestAction(formData: FormData) {
+  await requireSuperAdmin();
+
+  const userId  = formData.get("userId") as string;
+  const locale  = formData.get("locale") as string;
+  const is_test = formData.get("grant") === "true";
+
+  // When granting test: also set cosmic tier + max tokens
+  const updates: Record<string, unknown> = { is_test };
+  if (is_test) {
+    updates.subscription_tier = "cosmic";
+    updates.tokens_left = PLANS.cosmic.monthlyTokens;
+  }
+
+  await adminDb()
+    .from("users")
+    .update(updates)
+    .eq("id", userId);
+
+  revalidatePath(`/${locale}/admin/users/${userId}`);
+  redirect(`/${locale}/admin/users/${userId}?msg=test`);
 }

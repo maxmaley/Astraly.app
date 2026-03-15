@@ -9,6 +9,7 @@ import {
   setExpiresAtAction,
   toggleBanAction,
   toggleAdminAction,
+  toggleTestAction,
 } from "../../_actions";
 
 // ── Section card ─────────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ const MSG_MAP: Record<string, { text: string; color: string }> = {
   expiry: { text: "Subscription expiry updated.",   color: "text-emerald-400" },
   ban:    { text: "Account status updated.",        color: "text-amber-400"   },
   admin:  { text: "Admin role updated.",            color: "text-cosmic-400"  },
+  test:   { text: "Test user status updated.",     color: "text-blue-400"    },
 };
 
 // ── Page ─────────────────────────────────────────────────────────────────────
@@ -52,6 +54,7 @@ export default async function UserDetailPage({
     id: string; name: string | null; email: string;
     subscription_tier: import("@/types/database").SubscriptionTier;
     tokens_left: number; is_admin: boolean; is_banned: boolean;
+    is_test: boolean;
     created_at: string; updated_at: string; lang: string;
     notify_email: boolean;
   };
@@ -67,7 +70,7 @@ export default async function UserDetailPage({
   const [{ data: user }, { count: chartsCount }, { data: subscription }] = await Promise.all([
     adminAny
       .from("users")
-      .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, created_at, updated_at, lang, notify_email")
+      .select("id, name, email, subscription_tier, tokens_left, is_admin, is_banned, is_test, created_at, updated_at, lang, notify_email")
       .eq("id", id)
       .single() as Promise<{ data: AdminUser | null; error: unknown }>,
     adminAny
@@ -125,6 +128,9 @@ export default async function UserDetailPage({
             </p>
             {user.is_admin && (
               <span className="rounded-full bg-cosmic-500/15 px-2 py-0.5 text-[10px] font-medium text-cosmic-400">admin</span>
+            )}
+            {user.is_test && (
+              <span className="rounded-full bg-blue-500/15 px-2 py-0.5 text-[10px] font-medium text-blue-400">test</span>
             )}
             {user.is_banned && (
               <span className="rounded-full bg-rose-500/15 px-2 py-0.5 text-[10px] font-medium text-rose-400">suspended</span>
@@ -301,6 +307,36 @@ export default async function UserDetailPage({
             Grant
           </button>
         </form>
+      </Section>
+
+      {/* ── Test user ── */}
+      <Section title="Test user">
+        <div className="flex items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-medium text-[var(--foreground)]">
+              {user.is_test ? "Test access active" : "Not a test user"}
+            </p>
+            <p className="text-xs text-[var(--muted-foreground)]">
+              Test users get Cosmic plan with no payment, no expiry, unlimited tokens.
+            </p>
+          </div>
+          <form action={toggleTestAction}>
+            <input type="hidden" name="userId" value={user.id} />
+            <input type="hidden" name="locale" value={locale} />
+            <input type="hidden" name="grant" value={user.is_test ? "false" : "true"} />
+            <button
+              type="submit"
+              className={[
+                "h-9 rounded-xl px-4 text-sm font-medium transition-colors",
+                user.is_test
+                  ? "border border-[var(--border)] text-[var(--foreground)] hover:bg-[var(--muted)]"
+                  : "bg-blue-500/15 text-blue-400 hover:bg-blue-500/25",
+              ].join(" ")}
+            >
+              {user.is_test ? "Revoke test" : "Grant test"}
+            </button>
+          </form>
+        </div>
       </Section>
 
       {/* ── Admin role ── */}

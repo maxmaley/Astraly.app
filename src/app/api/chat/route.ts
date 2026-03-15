@@ -35,12 +35,13 @@ export async function POST(request: NextRequest) {
   // ── Token limit check + monthly reset ────────────────────────────────────
   const { data: userRow } = await (supabase as any)
     .from("users")
-    .select("subscription_tier, tokens_left, tokens_reset_at, memory, memory_enabled")
+    .select("subscription_tier, tokens_left, tokens_reset_at, memory, memory_enabled, is_admin, is_test")
     .eq("id", user.id)
     .single();
 
-  const tier         = userRow?.subscription_tier ?? "free";
-  const monthlyLimit = getMonthlyTokens(tier);
+  const isPrivileged = !!userRow?.is_admin || !!userRow?.is_test;
+  const tier         = isPrivileged ? "cosmic" as const : (userRow?.subscription_tier ?? "free");
+  const monthlyLimit = isPrivileged ? -1 : getMonthlyTokens(tier);
   const memoryActive = canAccess(tier, "memory") && !!userRow?.memory_enabled;
   let   effectiveTokens: number = userRow?.tokens_left ?? 0;
 

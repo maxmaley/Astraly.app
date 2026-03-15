@@ -58,6 +58,7 @@ export interface Database {
           notify_email: boolean;
           is_admin: boolean;
           is_banned: boolean;
+          is_test: boolean;
           memory: string;
           memory_enabled: boolean;
           created_at: string;
@@ -75,6 +76,7 @@ export interface Database {
           notify_email?: boolean;
           is_admin?: boolean;
           is_banned?: boolean;
+          is_test?: boolean;
           memory?: string;
           memory_enabled?: boolean;
           created_at?: string;
@@ -90,6 +92,7 @@ export interface Database {
           notify_email?: boolean;
           is_admin?: boolean;
           is_banned?: boolean;
+          is_test?: boolean;
           memory?: string;
           memory_enabled?: boolean;
           updated_at?: string;
