@@ -54,7 +54,9 @@ export async function POST(request: NextRequest) {
 
     if (needsInit || needsReset) {
       effectiveTokens = monthlyLimit;
-      const nextReset = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+      // Reset tokens on a rolling 30-day cycle (aligned with subscription billing),
+      // not on calendar month boundaries.
+      const nextReset = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
       await (supabase as any).from("users").update({
         tokens_left:     monthlyLimit,
         tokens_reset_at: nextReset.toISOString(),
