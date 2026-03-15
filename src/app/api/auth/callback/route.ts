@@ -6,6 +6,7 @@ import type { Database } from "@/types/database";
 export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
+  const type = searchParams.get("type");
   const locale = request.cookies.get("astraly-locale")?.value ?? "ru";
 
   if (code) {
@@ -31,6 +32,11 @@ export async function GET(request: NextRequest) {
     const { error } = await supabase.auth.exchangeCodeForSession(code);
 
     if (!error) {
+      // Password recovery flow → redirect to reset-password page
+      if (type === "recovery") {
+        return NextResponse.redirect(`${origin}/${locale}/reset-password`);
+      }
+
       // Fire-and-forget welcome email for new users
       fetch(`${origin}/api/email/welcome`, {
         method: "POST",

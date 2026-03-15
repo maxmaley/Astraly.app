@@ -120,7 +120,24 @@
     "errorWeakPassword": "Пароль минимум 6 символов",
     "errorGeneric": "Что-то пошло не так, попробуй снова",
     "consent": "Я соглашаюсь с <terms>Условиями использования</terms>, <privacy>Политикой конфиденциальности</privacy> и на получение email-уведомлений",
-    "consentRequired": "Необходимо принять условия"
+    "consentRequired": "Необходимо принять условия",
+    "forgotPassword": "Забыли пароль?",
+    "forgotPasswordTitle": "Сброс пароля",
+    "forgotPasswordSubtitle": "Введите email и мы отправим ссылку для сброса",
+    "forgotPasswordButton": "Отправить ссылку",
+    "forgotPasswordSent": "Проверьте почту",
+    "forgotPasswordSentDesc": "Если аккаунт с {email} существует, мы отправили ссылку для сброса пароля",
+    "resetPasswordTitle": "Новый пароль",
+    "resetPasswordSubtitle": "Введите новый пароль",
+    "newPassword": "Новый пароль",
+    "newPasswordPlaceholder": "Минимум 6 символов",
+    "confirmPassword": "Подтвердите пароль",
+    "confirmPasswordPlaceholder": "Повторите пароль",
+    "resetPasswordButton": "Сохранить пароль",
+    "passwordUpdated": "Пароль обновлён",
+    "passwordUpdatedDesc": "Теперь вы можете войти с новым паролем",
+    "passwordMismatch": "Пароли не совпадают",
+    "passwordTooShort": "Пароль минимум 6 символов"
   },
   "chat": {
     "placeholder": "Спроси что угодно...",
@@ -284,7 +301,14 @@
     "notifications": "Уведомления",
     "notifEmail": "Email-дайджест",
     "notifEmailDesc": "Ежедневный гороскоп каждое утро",
-    "logout": "Выйти из аккаунта"
+    "logout": "Выйти из аккаунта",
+    "security": "Безопасность",
+    "password": "Пароль",
+    "setPassword": "Задать пароль",
+    "setPasswordDesc": "Вы вошли через Google. Задайте пароль, чтобы входить и по email",
+    "changePassword": "Сменить пароль",
+    "changePasswordDesc": "Отправим ссылку для сброса на вашу почту",
+    "passwordLinkSent": "Ссылка отправлена на вашу почту"
   },
   "signs": {
     "Aries": "Овен",

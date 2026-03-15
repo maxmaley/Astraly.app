@@ -72,8 +72,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Landing page or auth pages → redirect already-logged-in users to app
+  // (but NOT /reset-password — user needs to set their new password)
   if (
-    (pathWithoutLocale === "/" || pathWithoutLocale === "/login" || pathWithoutLocale === "/register") &&
+    (pathWithoutLocale === "/" || pathWithoutLocale === "/login" || pathWithoutLocale === "/register" || pathWithoutLocale === "/forgot-password") &&
     user
   ) {
     return NextResponse.redirect(new URL(`/${locale}/app/chart`, request.url));

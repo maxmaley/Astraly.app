@@ -256,6 +256,9 @@ export default function SettingsPage() {
 
   const [user,    setUser]    = useState<UserSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [hasPassword, setHasPassword] = useState(false);
+  const [pwLinkSent, setPwLinkSent]   = useState(false);
+  const [pwLinkBusy, setPwLinkBusy]   = useState(false);
 
   // ── Load ─────────────────────────────────────────────────────────────────
 
@@ -273,6 +276,9 @@ export default function SettingsPage() {
 
       if (data) {
         setUser(data);
+        // Check if user has email/password identity
+        const identities = auth.identities ?? [];
+        setHasPassword(identities.some(i => i.provider === "email"));
         // Sync theme from DB if no local override
         const stored = typeof window !== "undefined" ? localStorage.getItem("astraly-theme") : null;
         if (!stored && data.theme) setTheme(data.theme as "dark" | "light");
@@ -308,6 +314,16 @@ export default function SettingsPage() {
   async function switchLang(next: Locale) {
     await patch({ lang: next });
     router.replace(pathname, { locale: next });
+  }
+
+  async function sendPasswordLink() {
+    if (pwLinkBusy) return;
+    setPwLinkBusy(true);
+    await supabase.auth.resetPasswordForEmail(user!.email, {
+      redirectTo: `${window.location.origin}/api/auth/callback?type=recovery`,
+    });
+    setPwLinkSent(true);
+    setPwLinkBusy(false);
   }
 
   async function logout() {
@@ -477,6 +493,33 @@ export default function SettingsPage() {
           />
         </Row>
 
+      </Section>
+
+      {/* ── Security ── */}
+      <Section title={t("security")}>
+        <Row
+          label={t("password")}
+          desc={hasPassword ? t("changePasswordDesc") : t("setPasswordDesc")}
+        >
+          {pwLinkSent ? (
+            <span className="text-xs font-medium text-emerald-400">
+              {t("passwordLinkSent")}
+            </span>
+          ) : (
+            <button
+              onClick={sendPasswordLink}
+              disabled={pwLinkBusy}
+              className={[
+                "rounded-xl px-4 py-2 text-xs font-semibold transition-all",
+                "border border-[var(--border)] text-[var(--foreground)]",
+                "hover:border-cosmic-400/50 hover:text-cosmic-400",
+                "disabled:cursor-not-allowed disabled:opacity-50",
+              ].join(" ")}
+            >
+              {hasPassword ? t("changePassword") : t("setPassword")}
+            </button>
+          )}
+        </Row>
       </Section>
 
       {/* ── Logout ── */}

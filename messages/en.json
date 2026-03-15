@@ -120,7 +120,24 @@
     "errorWeakPassword": "Password must be at least 6 characters",
     "errorGeneric": "Something went wrong, please try again",
     "consent": "I agree to the <terms>Terms of Service</terms>, <privacy>Privacy Policy</privacy> and to receiving email notifications",
-    "consentRequired": "You must accept the terms"
+    "consentRequired": "You must accept the terms",
+    "forgotPassword": "Forgot password?",
+    "forgotPasswordTitle": "Reset password",
+    "forgotPasswordSubtitle": "Enter your email and we'll send a reset link",
+    "forgotPasswordButton": "Send reset link",
+    "forgotPasswordSent": "Check your inbox",
+    "forgotPasswordSentDesc": "If an account exists for {email}, we sent a password reset link",
+    "resetPasswordTitle": "New password",
+    "resetPasswordSubtitle": "Enter your new password",
+    "newPassword": "New password",
+    "newPasswordPlaceholder": "Minimum 6 characters",
+    "confirmPassword": "Confirm password",
+    "confirmPasswordPlaceholder": "Repeat password",
+    "resetPasswordButton": "Save password",
+    "passwordUpdated": "Password updated",
+    "passwordUpdatedDesc": "You can now sign in with your new password",
+    "passwordMismatch": "Passwords don't match",
+    "passwordTooShort": "Password must be at least 6 characters"
   },
   "chat": {
     "placeholder": "Ask anything...",
@@ -284,7 +301,14 @@
     "notifications": "Notifications",
     "notifEmail": "Email digest",
     "notifEmailDesc": "Daily horoscope delivered every morning",
-    "logout": "Log out of account"
+    "logout": "Log out of account",
+    "security": "Security",
+    "password": "Password",
+    "setPassword": "Set password",
+    "setPasswordDesc": "You signed in via Google. Set a password to also sign in with email",
+    "changePassword": "Change password",
+    "changePasswordDesc": "We'll send a reset link to your email",
+    "passwordLinkSent": "Reset link sent to your email"
   },
   "signs": {
     "Aries": "Aries",

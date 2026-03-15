@@ -142,6 +142,16 @@ export default function LoginPage() {
                 className={inputCls}
               />
 
+              <div className="flex justify-end">
+                <Link
+                  href="/forgot-password"
+                  locale={locale}
+                  className="text-xs text-[var(--muted-foreground)] transition-colors hover:text-cosmic-400"
+                >
+                  {t("forgotPassword")}
+                </Link>
+              </div>
+
               {error && (
                 <p className="text-sm text-red-400" role="alert">{error}</p>
               )}

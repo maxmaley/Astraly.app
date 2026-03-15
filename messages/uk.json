@@ -120,7 +120,24 @@
     "errorWeakPassword": "Пароль мінімум 6 символів",
     "errorGeneric": "Щось пішло не так, спробуй ще раз",
     "consent": "Я погоджуюсь з <terms>Умовами використання</terms>, <privacy>Політикою конфіденційності</privacy> та на отримання email-сповіщень",
-    "consentRequired": "Необхідно прийняти умови"
+    "consentRequired": "Необхідно прийняти умови",
+    "forgotPassword": "Забули пароль?",
+    "forgotPasswordTitle": "Скидання пароля",
+    "forgotPasswordSubtitle": "Введіть email і ми надішлемо посилання для скидання",
+    "forgotPasswordButton": "Надіслати посилання",
+    "forgotPasswordSent": "Перевірте пошту",
+    "forgotPasswordSentDesc": "Якщо акаунт з {email} існує, ми надіслали посилання для скидання пароля",
+    "resetPasswordTitle": "Новий пароль",
+    "resetPasswordSubtitle": "Введіть новий пароль",
+    "newPassword": "Новий пароль",
+    "newPasswordPlaceholder": "Мінімум 6 символів",
+    "confirmPassword": "Підтвердіть пароль",
+    "confirmPasswordPlaceholder": "Повторіть пароль",
+    "resetPasswordButton": "Зберегти пароль",
+    "passwordUpdated": "Пароль оновлено",
+    "passwordUpdatedDesc": "Тепер ви можете увійти з новим паролем",
+    "passwordMismatch": "Паролі не збігаються",
+    "passwordTooShort": "Пароль мінімум 6 символів"
   },
   "chat": {
     "placeholder": "Запитай що завгодно...",
@@ -284,7 +301,14 @@
     "notifications": "Сповіщення",
     "notifEmail": "Email-дайджест",
     "notifEmailDesc": "Щоденний гороскоп кожного ранку",
-    "logout": "Вийти з акаунту"
+    "logout": "Вийти з акаунту",
+    "security": "Безпека",
+    "password": "Пароль",
+    "setPassword": "Задати пароль",
+    "setPasswordDesc": "Ви увійшли через Google. Задайте пароль, щоб входити і по email",
+    "changePassword": "Змінити пароль",
+    "changePasswordDesc": "Надішлемо посилання для скидання на вашу пошту",
+    "passwordLinkSent": "Посилання надіслано на вашу пошту"
   },
   "signs": {
     "Aries": "Овен",
