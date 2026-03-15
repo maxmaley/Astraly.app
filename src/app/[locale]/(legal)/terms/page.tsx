@@ -45,7 +45,7 @@ function ContentRU() {
         <ul>
           <li>Часть функций доступна бесплатно</li>
           <li>Платные планы тарифицируются ежемесячно или ежегодно</li>
-          <li>Оплата обрабатывается сторонним провайдером; данные карты мы не храним</li>
+          <li>Оплата обрабатывается через Paddle (paddle.com); данные карты мы не храним</li>
           <li>Подписку можно отменить в любой момент; доступ сохраняется до конца периода</li>
           <li>Цены могут изменяться с уведомлением за 30 дней</li>
         </ul>
@@ -114,7 +114,7 @@ function ContentEN() {
         <ul>
           <li>Some features are available on the free plan</li>
           <li>Paid plans are billed monthly or annually</li>
-          <li>Payments are processed by a third-party provider; we do not store your card data</li>
+          <li>Payments are processed by Paddle (paddle.com); we do not store your card data</li>
           <li>Subscriptions can be cancelled at any time; access continues until the end of the paid period</li>
           <li>Prices may change with 30 days notice</li>
         </ul>
@@ -183,7 +183,7 @@ function ContentUK() {
         <ul>
           <li>Частина функцій доступна безкоштовно</li>
           <li>Платні плани тарифікуються щомісяця або щороку</li>
-          <li>Оплата обробляється стороннім провайдером; дані картки ми не зберігаємо</li>
+          <li>Оплата обробляється через Paddle (paddle.com); дані картки ми не зберігаємо</li>
           <li>Підписку можна скасувати в будь-який момент; доступ зберігається до кінця оплаченого терміну</li>
           <li>Ціни можуть змінюватися з повідомленням за 30 днів</li>
         </ul>
