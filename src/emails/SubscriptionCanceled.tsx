@@ -24,6 +24,13 @@ const copy = {
       `Your ${plan} plan has been canceled. You still have access to paid features until ${expiresAt}. You can always come back!`,
     cta: "View plans",
   },
+  pl: {
+    preview: "Subskrypcja anulowana — Astraly",
+    heading: "Subskrypcja anulowana",
+    body: (plan: string, expiresAt: string) =>
+      `Twój plan ${plan} został anulowany. Dostęp do płatnych funkcji jest zachowany do ${expiresAt}. Zawsze możesz wrócić!`,
+    cta: "Zobacz plany",
+  },
 };
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://astraly.app";
@@ -31,7 +38,7 @@ const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://astraly.app";
 interface Props {
   planName: string;
   expiresAt: string;
-  locale?: "ru" | "uk" | "en";
+  locale?: "ru" | "uk" | "en" | "pl";
 }
 
 export default function SubscriptionCanceled({ planName, expiresAt, locale = "ru" }: Props) {

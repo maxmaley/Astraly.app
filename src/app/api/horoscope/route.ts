@@ -108,9 +108,9 @@ export async function GET(request: NextRequest) {
   } catch { /* non-fatal */ }
 
   // ── Prompt ─────────────────────────────────────────────────────────────────
-  const langMap: Record<string, string> = { ru: "Russian", uk: "Ukrainian", en: "English" };
+  const langMap: Record<string, string> = { ru: "Russian", uk: "Ukrainian", en: "English", pl: "Polish" };
   const todayFormatted = now.toLocaleDateString(
-    locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : "ru-RU",
+    locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : locale === "pl" ? "pl-PL" : "ru-RU",
     { weekday: "long", year: "numeric", month: "long", day: "numeric" },
   );
 
@@ -142,7 +142,7 @@ Write in ${langMap[locale] || "Russian"}. Respond with ONLY a valid JSON object 
   ]
 }
 
-Style: warm, poetic, never preachy. Address as 'ты' in Russian/Ukrainian. Frame insights as tendencies and invitations, not absolutes.`;
+Style: warm, poetic, never preachy. Address as 'ты' in Russian/Ukrainian. In Polish, use a warm and friendly tone. Frame insights as tendencies and invitations, not absolutes.`;
 
   // ── Generate (Haiku — fast, cheap, perfect for daily horoscopes) ──────────
   try {

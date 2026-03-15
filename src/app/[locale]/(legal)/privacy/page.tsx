@@ -4,11 +4,13 @@ const titles = {
   ru: "Политика конфиденциальности",
   en: "Privacy Policy",
   uk: "Політика конфіденційності",
+  pl: "Polityka prywatności",
 };
 const descriptions = {
   ru: "Политика конфиденциальности сервиса Astraly",
   en: "Privacy Policy of the Astraly service",
   uk: "Політика конфіденційності сервісу Astraly",
+  pl: "Jak zbieramy i chronimy Twoje dane",
 };
 
 export async function generateMetadata({

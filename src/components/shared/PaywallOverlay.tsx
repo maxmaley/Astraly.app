@@ -13,72 +13,78 @@ const FEATURE_META: Record<Feature, {
 }> = {
   horoscope: {
     icon:  "☀️",
-    title: { ru: "Ежедневный гороскоп", uk: "Щоденний гороскоп",  en: "Daily Horoscope"   },
+    title: { ru: "Ежедневный гороскоп", uk: "Щоденний гороскоп",  en: "Daily Horoscope",   pl: "Horoskop dzienny"   },
     desc:  {
       ru: "Персональный прогноз на каждый день, построенный на основе твоей натальной карты и положения планет прямо сейчас.",
       uk: "Персональний прогноз на кожен день на основі твоєї натальної карти та положення планет.",
       en: "A personal forecast for every day, built on your natal chart and the planets' positions right now.",
+      pl: "Osobista prognoza na każdy dzień, oparta na Twoim wykresie urodzeniowym i aktualnej pozycji planet.",
     },
   },
   calendar: {
     icon:  "🗓",
-    title: { ru: "Астро-календарь",    uk: "Астро-календар",      en: "Astro Calendar"   },
+    title: { ru: "Астро-календарь",    uk: "Астро-календар",      en: "Astro Calendar",   pl: "Astro-kalendarz"   },
     desc:  {
       ru: "Лунные фазы, ретрограды, ингрессии планет — все астрологические события месяца в одном виде.",
       uk: "Місячні фази, ретрогради, інгресії планет — усі астрологічні події місяця в одному місці.",
       en: "Moon phases, retrogrades, planet ingresses — every astrological event of the month at a glance.",
+      pl: "Fazy Księżyca, retrogradacje, ingresje planet — wszystkie wydarzenia astrologiczne miesiąca w jednym miejscu.",
     },
   },
   multi_charts: {
     icon:  "✦",
-    title: { ru: "Карты близких",       uk: "Карти близьких",      en: "Charts for Others" },
+    title: { ru: "Карты близких",       uk: "Карти близьких",      en: "Charts for Others", pl: "Wykresy bliskich"  },
     desc:  {
       ru: "Добавь натальные карты партнёра, родителей или друзей. AI запомнит каждую и учтёт в разговоре.",
       uk: "Додай натальні карти партнера, батьків чи друзів. AI запам'ятає кожну з них.",
       en: "Add natal charts for your partner, family, or friends. The AI remembers each one in conversation.",
+      pl: "Dodaj wykresy urodzeniowe partnera, rodziców lub przyjaciół. AI zapamięta każdy z nich w rozmowie.",
     },
   },
   notifications: {
     icon:  "🔔",
-    title: { ru: "Уведомления",         uk: "Сповіщення",          en: "Notifications"    },
+    title: { ru: "Уведомления",         uk: "Сповіщення",          en: "Notifications",    pl: "Powiadomienia"     },
     desc:  {
       ru: "Получай гороскоп на email каждое утро и узнавай о важных транзитах заранее.",
       uk: "Отримуй гороскоп на email щоранку та дізнавайся про важливі транзити заздалегідь.",
       en: "Get your horoscope by email every morning and be alerted to important transits in advance.",
+      pl: "Otrzymuj horoskop e-mailem każdego ranka i dowiaduj się o ważnych tranzytach z wyprzedzeniem.",
     },
   },
   priority_ai: {
     icon:  "🌌",
-    title: { ru: "Приоритетный AI",     uk: "Пріоритетний AI",     en: "Priority AI"      },
+    title: { ru: "Приоритетный AI",     uk: "Пріоритетний AI",     en: "Priority AI",      pl: "Priorytetowe AI"   },
     desc:  {
       ru: "Глубокий анализ карты с более мощной моделью. Тонкие наблюдения, богатый контекст.",
       uk: "Глибокий аналіз карти з потужнішою моделлю. Тонкі спостереження, багатий контекст.",
       en: "Deeper chart analysis with a more powerful model. Richer insights, more nuanced context.",
+      pl: "Głębsza analiza wykresu z potężniejszym modelem. Bogatsze spostrzeżenia, bardziej szczegółowy kontekst.",
     },
   },
   chat: {
     icon:  "✨",
-    title: { ru: "AI-чат",              uk: "AI-чат",               en: "AI Chat"          },
+    title: { ru: "AI-чат",              uk: "AI-чат",               en: "AI Chat",          pl: "Czat AI"           },
     desc:  {
       ru: "Задавай любые вопросы астрологу с памятью о твоей карте.",
       uk: "Задавай будь-які питання астрологу, який пам'ятає твою карту.",
       en: "Ask the AI astrologer anything — it always knows your natal chart.",
+      pl: "Zadawaj dowolne pytania astrologowi, który pamięta Twój wykres urodzeniowy.",
     },
   },
 };
 
 
 const COPY = {
-  includedIn:  { ru: "Доступно в",          uk: "Доступно в",         en: "Included in"          },
+  includedIn:  { ru: "Доступно в",          uk: "Доступно в",         en: "Included in",          pl: "Dostępne w"            },
 
-  viewPlans:   { ru: "Посмотреть все планы", uk: "Переглянути всі плани", en: "View all plans"      },
-  andUp:       { ru: " и выше",             uk: " і вище",             en: " and above"            },
+  viewPlans:   { ru: "Посмотреть все планы", uk: "Переглянути всі плани", en: "View all plans",    pl: "Zobacz wszystkie plany" },
+  andUp:       { ru: " и выше",             uk: " і вище",             en: " and above",           pl: " i wyżej"              },
 };
 
 // ── Component ─────────────────────────────────────────────────────────────────
 
 export function PaywallOverlay({ feature }: { feature: Feature }) {
-  const locale = useLocale() as "ru" | "uk" | "en";
+  const locale = useLocale() as "ru" | "uk" | "en" | "pl";
   const router = useRouter();
   const l = locale in COPY.viewPlans ? locale : "ru";
 

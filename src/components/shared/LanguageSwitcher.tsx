@@ -10,12 +10,14 @@ const LANG_LABELS: Record<Locale, string> = {
   ru: "RU",
   uk: "UK",
   en: "EN",
+  pl: "PL",
 };
 
 const LANG_FULL: Record<Locale, string> = {
   ru: "Русский",
   uk: "Українська",
   en: "English",
+  pl: "Polski",
 };
 
 export function LanguageSwitcher() {

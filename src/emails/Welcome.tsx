@@ -36,13 +36,24 @@ const copy = {
     f2: "✦ AI astrologer that remembers you",
     f3: "✦ Daily horoscope and astro calendar",
   },
+  pl: {
+    preview: "Witamy w Astraly ✦",
+    heading: "Witamy w Astraly ✦",
+    body: (name: string) =>
+      `Cześć, ${name}! Cieszymy się, że jesteś wśród gwiazd. Twoja karta natalna już czeka — odkryj swoje przeznaczenie z astrologiem AI.`,
+    cta: "Otwórz moją kartę",
+    features: "Co Cię czeka:",
+    f1: "✦ Osobista karta natalna",
+    f2: "✦ Astrolog AI, który Cię pamięta",
+    f3: "✦ Codzienny horoskop i kalendarz astro",
+  },
 };
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://astraly.app";
 
 interface Props {
   name: string;
-  locale?: "ru" | "uk" | "en";
+  locale?: "ru" | "uk" | "en" | "pl";
 }
 
 export default function Welcome({ name, locale = "ru" }: Props) {

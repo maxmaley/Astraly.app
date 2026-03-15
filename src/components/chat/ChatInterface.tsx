@@ -184,7 +184,7 @@ function PeoplePicker({
   onToggle: (id: string) => void;
   locale: string;
 }) {
-  const label = locale === "en" ? "Reading context:" : locale === "uk" ? "Контекст розкладу:" : "Контекст расклада:";
+  const label = locale === "en" ? "Reading context:" : locale === "uk" ? "Контекст розкладу:" : locale === "pl" ? "Kontekst odczytu:" : "Контекст расклада:";
 
   return (
     <div className="mb-2 flex flex-wrap items-center gap-1.5">
@@ -227,7 +227,7 @@ function ContextBadge({
 }) {
   if (charts.length <= 1) return null;
   const names = charts.map(c => c.name).join(" + ");
-  const label = locale === "en" ? "Reading:" : locale === "uk" ? "Розклад:" : "Расклад:";
+  const label = locale === "en" ? "Reading:" : locale === "uk" ? "Розклад:" : locale === "pl" ? "Odczyt:" : "Расклад:";
   return (
     <div className="mx-auto max-w-3xl px-4 pt-3">
       <div className="flex items-center gap-2 rounded-xl border border-cosmic-500/25 bg-cosmic-500/8 px-3 py-2">
@@ -862,12 +862,13 @@ export function ChatInterface({
                 {locale === "ru" && "⚠ Сообщения почти закончились — обнови план"}
                 {locale === "uk" && "⚠ Повідомлення майже закінчилися — онови план"}
                 {locale === "en" && "⚠ Running low on messages — consider upgrading"}
+                {locale === "pl" && "⚠ Wiadomości się kończą — rozważ ulepszenie planu"}
               </p>
               <button
                 onClick={() => setShowLimitModal(true)}
                 className="text-[11px] font-semibold text-amber-400 hover:text-amber-300 transition-colors ml-3 shrink-0"
               >
-                {locale === "ru" ? "Планы →" : locale === "uk" ? "Плани →" : "Plans →"}
+                {locale === "ru" ? "Планы →" : locale === "uk" ? "Плани →" : locale === "pl" ? "Plany →" : "Plans →"}
               </button>
             </div>
           )}
@@ -879,12 +880,13 @@ export function ChatInterface({
                 {locale === "ru" && "Лимит сообщений исчерпан"}
                 {locale === "uk" && "Ліміт повідомлень вичерпано"}
                 {locale === "en" && "Message limit reached"}
+                {locale === "pl" && "Limit wiadomości wyczerpany"}
               </p>
               <button
                 onClick={() => setShowLimitModal(true)}
                 className="text-[11px] font-semibold text-cosmic-400 hover:text-cosmic-300 transition-colors ml-3 shrink-0"
               >
-                {locale === "ru" ? "Открыть доступ →" : locale === "uk" ? "Відкрити доступ →" : "Unlock →"}
+                {locale === "ru" ? "Открыть доступ →" : locale === "uk" ? "Відкрити доступ →" : locale === "pl" ? "Odblokuj →" : "Unlock →"}
               </button>
             </div>
           )}

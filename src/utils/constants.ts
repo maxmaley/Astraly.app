@@ -1,24 +1,24 @@
-export const LOCALES = ["ru", "uk", "en"] as const;
-export const DEFAULT_LOCALE = "ru";
+export const LOCALES = ["ru", "uk", "en", "pl"] as const;
+export const DEFAULT_LOCALE = "en";
 
 export const SUBSCRIPTION_TIERS = {
   free: {
     id: "free",
-    name: { ru: "Звёздный свет", uk: "Зоряне світло", en: "Starlight" },
+    name: { ru: "Звёздный свет", uk: "Зоряне світло", en: "Starlight", pl: "Blask gwiazd" },
     price: 0,
     tokens: 5_000,
     model: "deepseek-v3",
   },
   moonlight: {
     id: "moonlight",
-    name: { ru: "Лунный свет", uk: "Місячне світло", en: "Moonlight" },
+    name: { ru: "Лунный свет", uk: "Місячне світло", en: "Moonlight", pl: "Blask księżyca" },
     price: 3.99,
     tokens: 50_000,
     model: "deepseek-v3",
   },
   solar: {
     id: "solar",
-    name: { ru: "Солнечный оракул", uk: "Сонячний оракул", en: "Solar Oracle" },
+    name: { ru: "Солнечный оракул", uk: "Сонячний оракул", en: "Solar Oracle", pl: "Wyrocznia Słońca" },
     price: 5.99,
     tokens: 100_000,
     model: "claude-sonnet-4-6",
@@ -26,7 +26,7 @@ export const SUBSCRIPTION_TIERS = {
   },
   cosmic: {
     id: "cosmic",
-    name: { ru: "Космический разум", uk: "Космічний розум", en: "Cosmic Mind" },
+    name: { ru: "Космический разум", uk: "Космічний розум", en: "Cosmic Mind", pl: "Kosmiczny umysł" },
     price: 17.99,
     tokens: 5_000_000,
     model: "claude-haiku-4-5-20251001",
@@ -82,6 +82,13 @@ export const CHAT_SUGGESTIONS = {
     { label: "💼 Career", prompt: "What does my natal chart say about my career?" },
     { label: "💰 Finance", prompt: "What is my financial potential according to my chart?" },
     { label: "🌙 Today", prompt: "What do the planets say about today?" },
+  ],
+  pl: [
+    { label: "💑 Zgodność", prompt: "Opowiedz mi o mojej zgodności z innymi znakami" },
+    { label: "❤️ Miłość", prompt: "Co mówią gwiazdy o moim życiu miłosnym?" },
+    { label: "💼 Kariera", prompt: "Co mówi moja karta natalna o mojej karierze?" },
+    { label: "💰 Finanse", prompt: "Jaki jest mój potencjał finansowy według karty?" },
+    { label: "🌙 Dziś", prompt: "Co mówią planety o dzisiejszym dniu?" },
   ],
 };
 

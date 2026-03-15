@@ -612,6 +612,7 @@ export default function SettingsPage() {
               { value: "ru" as Locale, label: "RU" },
               { value: "uk" as Locale, label: "UA" },
               { value: "en" as Locale, label: "EN" },
+              { value: "pl" as Locale, label: "PL" },
             ]}
           />
         </Row>
