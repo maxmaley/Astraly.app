@@ -565,7 +565,9 @@ async function extractMemory(
     system: `You are a memory extraction assistant for an AI astrologer app. Your job is to extract and maintain key personal facts about the user.
 
 INSTRUCTIONS:
-- Extract only concrete personal facts: name, age, relationships, zodiac signs of people they mention, life events, job, preferences, goals, emotional concerns, recurring themes
+- Extract facts from the USER's messages only — ignore the assistant's astrological interpretations
+- NEVER store astrological data: no zodiac signs, planets, houses, aspects, transits, or natal chart details — this information is already available in every chat session
+- Focus on personal facts: name, age, current location, life events, relationships (names and roles), job/career, preferences and dislikes, goals and plans, emotional concerns, recurring life themes
 - Merge with existing memory — update contradicting facts, remove duplicates
 - Keep as concise bullet points (one fact per line, starting with "- ")
 - Maximum 30 bullet points
