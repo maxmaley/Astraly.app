@@ -22,6 +22,12 @@ interface UserSettings {
   notify_email:       boolean;
 }
 
+interface SubStatus {
+  status:                   string | null;
+  expires_at:               string | null;
+  paddle_subscription_id:   string | null;
+}
+
 // ── Plan display config ────────────────────────────────────────────────────
 
 const PLAN: Record<SubscriptionTier, {
@@ -243,6 +249,54 @@ function SettingsSkeleton() {
   );
 }
 
+// ── Cancel confirmation modal ─────────────────────────────────────────────
+
+function CancelModal({
+  open, busy, onConfirm, onClose, planLabel,
+}: {
+  open: boolean; busy: boolean;
+  onConfirm: () => void; onClose: () => void;
+  planLabel: string;
+}) {
+  const t = useTranslations("settings");
+
+  if (!open) return null;
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
+      {/* Backdrop */}
+      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+
+      {/* Dialog */}
+      <div className="relative mx-4 w-full max-w-sm rounded-2xl border border-[var(--border)] bg-[var(--card)] p-6 shadow-2xl">
+        <h3 className="text-lg font-bold text-[var(--foreground)]">
+          {t("cancelTitle")}
+        </h3>
+        <p className="mt-2 text-sm text-[var(--muted-foreground)]">
+          {t("cancelDesc", { plan: planLabel })}
+        </p>
+
+        <div className="mt-6 flex gap-3 justify-end">
+          <button
+            onClick={onClose}
+            disabled={busy}
+            className="h-9 rounded-xl border border-[var(--border)] px-4 text-sm font-medium text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors disabled:opacity-50"
+          >
+            {t("cancelKeep")}
+          </button>
+          <button
+            onClick={onConfirm}
+            disabled={busy}
+            className="h-9 rounded-xl bg-rose-500 px-4 text-sm font-medium text-white hover:bg-rose-600 transition-colors disabled:opacity-50"
+          >
+            {busy ? t("cancellingBtn") : t("cancelConfirm")}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── Main page ──────────────────────────────────────────────────────────────
 
 export default function SettingsPage() {
@@ -259,6 +313,12 @@ export default function SettingsPage() {
   const [hasPassword, setHasPassword] = useState(false);
   const [pwLinkSent, setPwLinkSent]   = useState(false);
   const [pwLinkBusy, setPwLinkBusy]   = useState(false);
+
+  // Subscription cancel state
+  const [subStatus, setSubStatus]             = useState<SubStatus | null>(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelBusy, setCancelBusy]           = useState(false);
+  const [cancelledUntil, setCancelledUntil]   = useState<string | null>(null);
 
   // ── Load ─────────────────────────────────────────────────────────────────
 
@@ -282,6 +342,22 @@ export default function SettingsPage() {
         // Sync theme from DB if no local override
         const stored = typeof window !== "undefined" ? localStorage.getItem("astraly-theme") : null;
         if (!stored && data.theme) setTheme(data.theme as "dark" | "light");
+
+        // Fetch subscription record for cancel flow
+        if (data.subscription_tier !== "free") {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const { data: sub } = await (supabase as any)
+            .from("subscriptions")
+            .select("status, expires_at, paddle_subscription_id")
+            .eq("user_id", auth.id)
+            .single() as { data: SubStatus | null; error: unknown };
+          if (sub) {
+            setSubStatus(sub);
+            if (sub.status === "cancelled" && sub.expires_at) {
+              setCancelledUntil(sub.expires_at);
+            }
+          }
+        }
       }
       setLoading(false);
     }
@@ -326,6 +402,27 @@ export default function SettingsPage() {
     setPwLinkBusy(false);
   }
 
+  async function cancelSubscription() {
+    setCancelBusy(true);
+    try {
+      const res = await fetch("/api/subscription/cancel", { method: "POST" });
+      const data = await res.json();
+
+      if (res.ok && data.effective_from) {
+        setCancelledUntil(data.effective_from);
+        setSubStatus(prev => prev ? { ...prev, status: "cancelled" } : prev);
+      } else if (res.status === 409 && data.expires_at) {
+        // Already cancelled
+        setCancelledUntil(data.expires_at);
+      }
+    } catch (err) {
+      console.error("[cancel]", err);
+    } finally {
+      setCancelBusy(false);
+      setShowCancelModal(false);
+    }
+  }
+
   async function logout() {
     await supabase.auth.signOut();
     router.replace("/");
@@ -348,6 +445,7 @@ export default function SettingsPage() {
   if (!user) return null;
 
   const plan   = PLAN[user.subscription_tier];
+  const isFree = user.subscription_tier === "free";
   const isTop  = user.subscription_tier === "cosmic";
   const avatar = initials(user.name, user.email);
 
@@ -433,6 +531,22 @@ export default function SettingsPage() {
             )}
           </div>
 
+          {/* Cancelled banner */}
+          {cancelledUntil && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/5 px-4 py-3">
+              <p className="text-sm font-medium text-amber-400">
+                {t("cancelledBanner", {
+                  date: new Date(cancelledUntil).toLocaleDateString(locale, {
+                    month: "long", day: "numeric", year: "numeric",
+                  }),
+                })}
+              </p>
+              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                {t("cancelledBannerSub")}
+              </p>
+            </div>
+          )}
+
           {/* Token progress bar */}
           <div>
             <div className="mb-1.5 flex justify-between">
@@ -453,8 +567,27 @@ export default function SettingsPage() {
               {t("energyReset")}
             </p>
           </div>
+
+          {/* Cancel subscription */}
+          {!isFree && subStatus?.paddle_subscription_id && !cancelledUntil && (
+            <button
+              onClick={() => setShowCancelModal(true)}
+              className="text-xs text-[var(--muted-foreground)] hover:text-rose-400 transition-colors"
+            >
+              {t("cancelLink")}
+            </button>
+          )}
         </div>
       </Section>
+
+      {/* Cancel confirmation modal */}
+      <CancelModal
+        open={showCancelModal}
+        busy={cancelBusy}
+        onConfirm={cancelSubscription}
+        onClose={() => setShowCancelModal(false)}
+        planLabel={plan.label}
+      />
 
       {/* ── Appearance ── */}
       <Section title={t("appearance")}>

@@ -308,7 +308,15 @@
     "setPasswordDesc": "You signed in via Google. Set a password to also sign in with email",
     "changePassword": "Change password",
     "changePasswordDesc": "We'll send a reset link to your email",
-    "passwordLinkSent": "Reset link sent to your email"
+    "passwordLinkSent": "Reset link sent to your email",
+    "cancelLink": "Cancel subscription",
+    "cancelTitle": "Cancel subscription?",
+    "cancelDesc": "Are you sure you want to cancel your {plan} plan? You'll keep access to all features until the end of your current billing period.",
+    "cancelKeep": "Keep plan",
+    "cancelConfirm": "Cancel subscription",
+    "cancellingBtn": "Cancelling…",
+    "cancelledBanner": "Your subscription is active until {date}. After that you'll be downgraded to the free plan.",
+    "cancelledBannerSub": "You can resubscribe anytime from the pricing page."
   },
   "signs": {
     "Aries": "Aries",
