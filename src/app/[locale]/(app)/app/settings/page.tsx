@@ -322,6 +322,11 @@ export default function SettingsPage() {
   const [cancelBusy, setCancelBusy]           = useState(false);
   const [cancelledUntil, setCancelledUntil]   = useState<string | null>(null);
 
+  // Billing state
+  const [billingUrl, setBillingUrl]           = useState<string | null>(null);
+  const [nextBilledAt, setNextBilledAt]       = useState<string | null>(null);
+  const [billingLoading, setBillingLoading]   = useState(false);
+
   // Memory state
   const [memory, setMemory]                       = useState("");
   const [memoryDraft, setMemoryDraft]             = useState("");
@@ -377,6 +382,19 @@ export default function SettingsPage() {
               setCancelledUntil(sub.expires_at);
             }
           }
+
+          // Fetch billing details from Paddle
+          setBillingLoading(true);
+          fetch("/api/subscription/billing")
+            .then(r => r.ok ? r.json() : null)
+            .then(d => {
+              if (d) {
+                setBillingUrl(d.update_payment_method_url ?? null);
+                setNextBilledAt(d.next_billed_at ?? null);
+              }
+            })
+            .catch(() => {})
+            .finally(() => setBillingLoading(false));
         }
       }
       setLoading(false);
@@ -656,6 +674,58 @@ export default function SettingsPage() {
         onClose={() => setShowCancelModal(false)}
         planLabel={plan.label}
       />
+
+      {/* ── Billing ── */}
+      {!isFree && subStatus?.paddle_subscription_id && (
+        <Section title={t("billing")}>
+          <div className="px-5 py-4 space-y-3">
+
+            {/* Next payment date */}
+            {nextBilledAt && !cancelledUntil && (
+              <Row label={t("billingNextPayment")}>
+                <span className="text-sm text-[var(--foreground)] tabular-nums">
+                  {new Date(nextBilledAt).toLocaleDateString(locale, {
+                    month: "long", day: "numeric", year: "numeric",
+                  })}
+                </span>
+              </Row>
+            )}
+
+            {billingLoading && !billingUrl && (
+              <div className="flex justify-center py-2">
+                <SkeletonBlock className="h-4 w-40" />
+              </div>
+            )}
+
+            {/* Manage billing button → Paddle portal */}
+            <div className="flex flex-wrap gap-2">
+              {billingUrl && (
+                <a
+                  href={billingUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={[
+                    "inline-flex items-center gap-1.5 rounded-xl border border-[var(--border)]",
+                    "px-4 py-2 text-xs font-semibold text-[var(--foreground)]",
+                    "hover:border-cosmic-400/50 hover:text-cosmic-400 transition-all",
+                  ].join(" ")}
+                >
+                  {/* Credit card icon */}
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="1" y="4" width="22" height="16" rx="2" ry="2" />
+                    <line x1="1" y1="10" x2="23" y2="10" />
+                  </svg>
+                  {t("billingManage")}
+                </a>
+              )}
+            </div>
+
+            <p className="text-[10px] text-[var(--muted-foreground)]">
+              {t("billingDesc")}
+            </p>
+          </div>
+        </Section>
+      )}
 
       {/* ── Appearance ── */}
       <Section title={t("appearance")}>

@@ -349,7 +349,7 @@ export default function PricingPage() {
     }
 
     trackEvent("checkout_opened", { plan: id });
-    openCheckout({ priceId, email: userEmail, userId, plan: id });
+    openCheckout({ priceId, email: userEmail, userId, plan: id, locale: l });
   }
 
   return (
