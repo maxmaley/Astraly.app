@@ -30,23 +30,16 @@ function paddleBase(): string {
 function paddleHeaders(): HeadersInit {
   return {
     Authorization: `Bearer ${process.env.PADDLE_API_KEY}`,
-    "Content-Type": "application/json",
   };
 }
 
-interface PaddleCustomer {
-  id: string;
-  email: string;
-}
-
-interface PaddleSubscription {
-  id: string;
-  status: string;
-  customer_id: string;
-  items: Array<{ price?: { id?: string } }>;
-  custom_data?: Record<string, string>;
-  current_billing_period?: { starts_at: string; ends_at: string };
-  billing_cycle?: { interval: string };
+async function paddleGet(path: string): Promise<{ ok: boolean; status: number; data: unknown }> {
+  const url = `${paddleBase()}${path}`;
+  console.log(`[sync] GET ${url}`);
+  const res = await fetch(url, { headers: paddleHeaders() });
+  const body = await res.json().catch(() => null);
+  console.log(`[sync] → ${res.status}`, JSON.stringify(body)?.slice(0, 500));
+  return { ok: res.ok, status: res.status, data: body?.data ?? null };
 }
 
 // ── Handler ──────────────────────────────────────────────────────────────────
@@ -71,6 +64,8 @@ export async function POST() {
     return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
   }
 
+  console.log(`[sync] Starting sync for user ${user.id}, env=${process.env.NEXT_PUBLIC_PADDLE_ENV}`);
+
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const db = createAdminClient() as any;
 
@@ -82,6 +77,7 @@ export async function POST() {
     .single();
 
   if (existingSub?.status === "active") {
+    console.log(`[sync] Already active: plan=${existingSub.plan}`);
     return NextResponse.json({
       ok: false,
       reason: "already_active",
@@ -101,40 +97,41 @@ export async function POST() {
     return NextResponse.json({ ok: false, reason: "no_email" }, { status: 400 });
   }
 
-  // ── Search Paddle customers by email ────────────────────────────────────
-  const customersRes = await fetch(
-    `${paddleBase()}/customers?email=${encodeURIComponent(email)}`,
-    { headers: paddleHeaders() },
-  );
+  console.log(`[sync] Searching Paddle for email: ${email}`);
 
-  if (!customersRes.ok) {
-    console.error("[sync] Paddle customers API error:", customersRes.status);
-    return NextResponse.json({ error: "Paddle API error" }, { status: 502 });
+  // ── Search Paddle customers by email ────────────────────────────────────
+  const customersResult = await paddleGet(`/customers?email=${encodeURIComponent(email)}`);
+
+  if (!customersResult.ok) {
+    return NextResponse.json({ error: "Paddle API error", details: customersResult.status }, { status: 502 });
   }
 
-  const customersBody = await customersRes.json();
-  const customers: PaddleCustomer[] = customersBody.data ?? [];
+  const customers = (customersResult.data ?? []) as Array<{ id: string; email: string }>;
+  console.log(`[sync] Found ${customers.length} customer(s):`, customers.map(c => c.id));
 
   if (customers.length === 0) {
+    console.log(`[sync] No customers found for ${email}`);
     return NextResponse.json({ ok: false, reason: "not_found" });
   }
 
   // ── Find active subscription across all matching customers ──────────────
-  let activeSub: PaddleSubscription | null = null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let activeSub: Record<string, any> | null = null;
 
   for (const customer of customers) {
-    const subsRes = await fetch(
-      `${paddleBase()}/subscriptions?customer_id=${customer.id}&status=active`,
-      { headers: paddleHeaders() },
-    );
+    console.log(`[sync] Checking subscriptions for customer ${customer.id}`);
+    const subsResult = await paddleGet(`/subscriptions?customer_id=${customer.id}&status=active`);
 
-    if (!subsRes.ok) continue;
+    if (!subsResult.ok) {
+      console.error(`[sync] Failed to list subs for ${customer.id}: ${subsResult.status}`);
+      continue;
+    }
 
-    const subsBody = await subsRes.json();
-    const subs: PaddleSubscription[] = subsBody.data ?? [];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const subs = (subsResult.data ?? []) as Array<Record<string, any>>;
+    console.log(`[sync] Found ${subs.length} subscription(s) for ${customer.id}`);
 
-    // Take the first active subscription
-    const found = subs.find(s => s.status === "active");
+    const found = subs.find((s) => s.status === "active");
     if (found) {
       activeSub = found;
       break;
@@ -142,23 +139,52 @@ export async function POST() {
   }
 
   if (!activeSub) {
+    console.log(`[sync] No active subscriptions found for ${email}`);
     return NextResponse.json({ ok: false, reason: "not_found" });
   }
 
-  // ── Resolve plan from price ID ──────────────────────────────────────────
-  const priceId = activeSub.items?.[0]?.price?.id;
-  const plan: SubscriptionTier | null =
-    (activeSub.custom_data?.plan as SubscriptionTier) ??
-    (priceId ? tierFromPriceId(priceId) : null);
+  console.log(`[sync] Found active sub: ${activeSub.id}, fetching full details...`);
+
+  // ── Fetch full subscription details (list may omit items/custom_data) ──
+  const subDetail = await paddleGet(`/subscriptions/${activeSub.id}`);
+  if (subDetail.ok && subDetail.data) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    activeSub = subDetail.data as Record<string, any>;
+  }
+
+  // ── Resolve plan — prefer price ID over custom_data ─────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const items = activeSub.items as Array<Record<string, any>> | undefined;
+  const priceId =
+    items?.[0]?.price?.id           // nested price object
+    ?? items?.[0]?.price            // price might be a string ID
+    ?? null;
+
+  console.log(`[sync] Price ID: ${priceId}, custom_data:`, activeSub.custom_data);
+
+  // Trust price ID first (custom_data can be wrong), then fall back to custom_data
+  let plan: SubscriptionTier | null =
+    (priceId ? tierFromPriceId(String(priceId)) : null)
+    ?? (activeSub.custom_data?.plan as SubscriptionTier) ?? null;
+
+  // Validate plan is a known tier
+  if (plan && !["free", "moonlight", "solar", "cosmic"].includes(plan)) {
+    console.error(`[sync] Unknown plan value: ${plan}`);
+    plan = null;
+  }
 
   if (!plan) {
-    console.error("[sync] Could not resolve plan from subscription:", activeSub.id);
+    console.error(`[sync] Could not resolve plan from subscription ${activeSub.id}`);
     return NextResponse.json({ ok: false, reason: "unknown_plan" }, { status: 500 });
   }
 
+  console.log(`[sync] Resolved plan: ${plan}`);
+
   // ── Sync to local DB (same logic as webhook handler) ────────────────────
   const tokens = getMonthlyTokens(plan);
-  const expiresAt = activeSub.current_billing_period?.ends_at ?? null;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const billingPeriod = activeSub.current_billing_period as Record<string, string> | undefined;
+  const expiresAt = billingPeriod?.ends_at ?? null;
 
   // Upsert subscription record
   const { error: subErr } = await db.from("subscriptions").upsert({
@@ -187,7 +213,7 @@ export async function POST() {
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
-  console.log(`[sync] Restored subscription for user ${user.id}: plan=${plan}, paddle_sub=${activeSub.id}`);
+  console.log(`[sync] ✓ Restored subscription for user ${user.id}: plan=${plan}, paddle_sub=${activeSub.id}`);
 
   return NextResponse.json({ ok: true, plan, status: "active" });
 }
