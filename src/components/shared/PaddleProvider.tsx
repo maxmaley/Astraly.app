@@ -55,21 +55,27 @@ export function usePaddleCheckout() {
       email,
       userId,
       plan,
+      locale,
     }: {
       priceId: string;
       email: string;
       userId: string;
       plan: string;
+      locale: string;
     }) => {
       if (!paddle) {
         console.warn("[paddle] SDK not loaded yet");
         return;
       }
 
+      const origin = typeof window !== "undefined" ? window.location.origin : "https://astraly.app";
       const opts = {
         items: [{ priceId, quantity: 1 }],
         customer: { email },
         customData: { user_id: userId, plan },
+        settings: {
+          successUrl: `${origin}/${locale}/app/settings?msg=subscribed`,
+        },
       };
       console.log("[paddle] checkout.open", opts);
       paddle.Checkout.open(opts);
