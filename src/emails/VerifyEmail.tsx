@@ -24,11 +24,18 @@ const copy = {
     cta: "Verify email",
     expire: "This link expires in 24 hours.",
   },
+  pl: {
+    preview: "Potwierdź swój email — Astraly",
+    heading: "Potwierdź swój email ✦",
+    body: "Kliknij przycisk poniżej, aby potwierdzić adres i rozpocząć podróż ku gwiazdom.",
+    cta: "Potwierdź email",
+    expire: "Link jest ważny 24 godziny.",
+  },
 };
 
 interface Props {
   confirmUrl: string;
-  locale?: "ru" | "uk" | "en";
+  locale?: "ru" | "uk" | "en" | "pl";
 }
 
 export default function VerifyEmail({ confirmUrl, locale = "ru" }: Props) {

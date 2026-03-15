@@ -10,12 +10,14 @@ const LANG_LABELS: Record<Locale, string> = {
   ru: "RU",
   uk: "UK",
   en: "EN",
+  pl: "PL",
 };
 
 const LANG_FULL: Record<Locale, string> = {
   ru: "Русский",
   uk: "Українська",
   en: "English",
+  pl: "Polski",
 };
 
 export function LanguageSwitcher() {
@@ -75,6 +77,7 @@ export function LanguageSwitcher() {
   }, [open, updatePosition]);
 
   function switchLocale(next: Locale) {
+    document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
     router.replace(pathname, { locale: next });
     setOpen(false);
   }

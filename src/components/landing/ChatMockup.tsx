@@ -28,6 +28,14 @@ const CONTENT = {
     prompts: ["💑 Compatibility", "❤️ Love", "💼 Career"],
     placeholder: "Ask anything...",
   },
+  pl: {
+    title: "AI Astrolog ✦",
+    msg1: "Cześć, Anastazjo! ✨ Widzę, że Twoje Słońce w Strzelcu tworzy niesamowitą energię...",
+    msg2: "Opowiedz mi o mojej karierze",
+    msg3: "💼 Z Marsem w 10. domu urodziłaś się, by przewodzić! Tranzyt Saturna wzmacnia Twoją pozycję...",
+    prompts: ["💑 Kompatybilność", "❤️ Miłość", "💼 Kariera"],
+    placeholder: "Zapytaj o cokolwiek...",
+  },
 } as const;
 
 export function ChatMockup({ locale }: ChatMockupProps) {

@@ -13,20 +13,20 @@ import type { SubscriptionTier }         from "@/types/database";
 // ── Copy (inline — no i18n namespace needed for this single page) ─────────────
 
 const C = {
-  title:         { ru: "Тарифы",                       uk: "Тарифи",                        en: "Pricing"                      },
-  subtitle:      { ru: "Выбери свой путь к звёздам",   uk: "Оберіть свій шлях до зір",      en: "Choose your path to the stars" },
-  monthly:       { ru: "Месяц",                        uk: "Місяць",                         en: "Monthly"                      },
-  yearly:        { ru: "Год",                          uk: "Рік",                            en: "Yearly"                       },
-  yearlyBadge:   { ru: "−33%",                         uk: "−33%",                           en: "−33%"                         },
-  perMonth:      { ru: "/мес",                         uk: "/міс",                           en: "/mo"                          },
-  billedYearly:  { ru: "в год",                        uk: "на рік",                         en: "/yr"                          },
-  popular:       { ru: "Популярный",                   uk: "Популярний",                     en: "Most popular"                 },
-  current:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
-  ctaFree:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
-  ctaPaid:       { ru: "Перейти на план →",            uk: "Перейти на план →",              en: "Get this plan →"              },
-  ctaCurrent:    { ru: "✓ Активный план",              uk: "✓ Активний план",                en: "✓ Active plan"                },
-  soonModal:     { ru: "Оплата подключается — скоро здесь появится кнопка 🔜", uk: "Оплата підключається — незабаром тут з'явиться кнопка 🔜", en: "Payment is coming — the button will appear here soon 🔜" },
-  free:          { ru: "Бесплатно",                    uk: "Безкоштовно",                    en: "Free"                         },
+  title:         { ru: "Тарифы",                       uk: "Тарифи",                        en: "Pricing",                      pl: "Cennik"                        },
+  subtitle:      { ru: "Выбери свой путь к звёздам",   uk: "Оберіть свій шлях до зір",      en: "Choose your path to the stars", pl: "Wybierz swoją drogę do gwiazd" },
+  monthly:       { ru: "Месяц",                        uk: "Місяць",                         en: "Monthly",                      pl: "Miesięcznie"                   },
+  yearly:        { ru: "Год",                          uk: "Рік",                            en: "Yearly",                       pl: "Rocznie"                       },
+  yearlyBadge:   { ru: "−33%",                         uk: "−33%",                           en: "−33%",                         pl: "−33%"                          },
+  perMonth:      { ru: "/мес",                         uk: "/міс",                           en: "/mo",                          pl: "/mies."                        },
+  billedYearly:  { ru: "в год",                        uk: "на рік",                         en: "/yr",                          pl: "/rok"                          },
+  popular:       { ru: "Популярный",                   uk: "Популярний",                     en: "Most popular",                 pl: "Najpopularniejszy"             },
+  current:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan",                 pl: "Aktualny plan"                 },
+  ctaFree:       { ru: "Бесплатный",                    uk: "Безкоштовний",                   en: "Free plan",                    pl: "Darmowy plan"                  },
+  ctaPaid:       { ru: "Перейти на план →",            uk: "Перейти на план →",              en: "Get this plan →",              pl: "Wybierz plan →"                },
+  ctaCurrent:    { ru: "✓ Активный план",              uk: "✓ Активний план",                en: "✓ Active plan",                pl: "✓ Aktywny plan"                },
+  soonModal:     { ru: "Оплата подключается — скоро здесь появится кнопка 🔜", uk: "Оплата підключається — незабаром тут з'явиться кнопка 🔜", en: "Payment is coming — the button will appear here soon 🔜", pl: "Płatności wkrótce — przycisk pojawi się tutaj niebawem 🔜" },
+  free:          { ru: "Бесплатно",                    uk: "Безкоштовно",                    en: "Free",                         pl: "Za darmo"                      },
   taglines: {
     ru: {
       free:      "Первые шаги к звёздам",
@@ -45,6 +45,12 @@ const C = {
       moonlight: "For family & loved ones",
       solar:     "Daily astrology",
       cosmic:    "Boundless knowledge",
+    },
+    pl: {
+      free:      "Pierwsze kroki ku gwiazdom",
+      moonlight: "Dla rodziny i bliskich",
+      solar:     "Codzienna astrologia",
+      cosmic:    "Bezgraniczne poznanie",
     },
   },
   // Feature label keys (match PLANS[x].featureLabels keys)
@@ -66,6 +72,12 @@ const C = {
       moonlight: "Extended AI chat ●●○○",
       solar:     "Deep AI chat ●●●○",
       cosmic:    "Max AI chat ●●●●",
+    },
+    pl: {
+      free:      "Podstawowy czat AI ●○○○",
+      moonlight: "Rozszerzony czat AI ●●○○",
+      solar:     "Zaawansowany czat AI ●●●○",
+      cosmic:    "Maksymalny czat AI ●●●●",
     },
   },
   featureLabels: {
@@ -93,6 +105,14 @@ const C = {
       notifications: "Email notifications",
       priority_ai:   "Priority AI",
     },
+    pl: {
+      charts_limit:  (n: string) => `${n === "1" ? "1 karta" : "Do " + n + " kart"} urodzeniow${n === "1" ? "a" : "ych"}`,
+      multi_charts:  "Mój krąg — karty partnera, rodziny i przyjaciół",
+      horoscope:     "Codzienny osobisty horoskop",
+      calendar:      "Pełny kalendarz astro",
+      notifications: "Powiadomienia email",
+      priority_ai:   "Priorytetowe AI",
+    },
   },
 };
 
@@ -102,7 +122,7 @@ interface FeatureItem { text: string; included: boolean }
 
 function buildFeatureList(
   id: SubscriptionTier,
-  l: "ru" | "uk" | "en",
+  l: "ru" | "uk" | "en" | "pl",
 ): FeatureItem[] {
   const plan     = PLANS[id];
   const labels   = C.featureLabels[l];
@@ -171,7 +191,7 @@ function PlanCard({
   id:          SubscriptionTier;
   yearly:      boolean;
   currentTier: SubscriptionTier | null;
-  locale:      "ru" | "uk" | "en";
+  locale:      "ru" | "uk" | "en" | "pl";
   onUpgrade:   (id: SubscriptionTier) => void;
 }) {
   const l    = locale;
@@ -286,8 +306,8 @@ function PlanCard({
 // ── Main page ─────────────────────────────────────────────────────────────────
 
 export default function PricingPage() {
-  const locale     = useLocale() as "ru" | "uk" | "en";
-  const l          = (["ru", "uk", "en"] as const).includes(locale) ? locale : "ru" as const;
+  const locale     = useLocale() as "ru" | "uk" | "en" | "pl";
+  const l          = (["ru", "uk", "en", "pl"] as const).includes(locale) ? locale : "ru" as const;
   const supabase   = useMemo(() => createClient(), []);
   const { openCheckout } = usePaddleCheckout();
 
@@ -310,7 +330,7 @@ export default function PricingPage() {
         .select("subscription_tier")
         .eq("id", user.id)
         .single();
-      if (data?.subscription_tier) setCurrentTier(data.subscription_tier);
+      setCurrentTier(data?.subscription_tier ?? "free");
     }
     load();
   }, [supabase]);

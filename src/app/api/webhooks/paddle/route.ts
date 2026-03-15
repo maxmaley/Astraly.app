@@ -23,7 +23,7 @@ import type { SubscriptionTier }          from "@/types/database";
 // Paddle Node SDK for webhook signature verification
 import { Webhooks } from "@paddle/paddle-node-sdk";
 
-type Locale = "ru" | "uk" | "en";
+type Locale = "ru" | "uk" | "en" | "pl";
 
 const PLAN_NAMES: Record<string, string> = {
   moonlight: "Moonlight",
@@ -222,7 +222,7 @@ export async function POST(request: NextRequest) {
         if (user) {
           const locale = (user.lang as Locale) ?? "ru";
           const formattedDate = new Date(expiresAt).toLocaleDateString(
-            locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : "ru-RU",
+            locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : locale === "pl" ? "pl-PL" : "ru-RU",
             { day: "numeric", month: "long", year: "numeric" },
           );
           await sendEmail({

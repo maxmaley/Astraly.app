@@ -8,17 +8,17 @@ import type { SubscriptionTier } from "@/types/database";
 // ── Copy ─────────────────────────────────────────────────────────────────────
 
 const COPY = {
-  title:      { ru: "Сообщения на исходе",         uk: "Повідомлення закінчуються",        en: "Messages running low"           },
-  titleZero:  { ru: "Лимит исчерпан",              uk: "Ліміт вичерпано",                  en: "Limit reached"                  },
-  resetOn:    { ru: "Обновление",                  uk: "Оновлення",                         en: "Resets"                         },
-  upgrade:    { ru: "Открой больше с",             uk: "Відкрий більше з",                  en: "Unlock more with"               },
+  title:      { ru: "Сообщения на исходе",         uk: "Повідомлення закінчуються",        en: "Messages running low",          pl: "Wiadomości się kończą"          },
+  titleZero:  { ru: "Лимит исчерпан",              uk: "Ліміт вичерпано",                  en: "Limit reached",                 pl: "Limit wyczerpany"               },
+  resetOn:    { ru: "Обновление",                  uk: "Оновлення",                         en: "Resets",                        pl: "Odnowienie"                     },
+  upgrade:    { ru: "Открой больше с",             uk: "Відкрий більше з",                  en: "Unlock more with",              pl: "Odblokuj więcej z"              },
 
-  viewAll:    { ru: "Все планы →",                 uk: "Всі плани →",                       en: "All plans →"                    },
-  close:      { ru: "Закрыть",                     uk: "Закрити",                           en: "Close"                          },
-  waitReset:  { ru: "Подожду обновления",          uk: "Почекаю оновлення",                 en: "Wait for reset"                 },
-  unlimited:  { ru: "Безлимитно",                  uk: "Безлімітно",                        en: "Unlimited"                      },
-  xMore:      { ru: "× больше сообщений",          uk: "× більше повідомлень",              en: "× more messages"                },
-  perMonth:   { ru: "/мес",                        uk: "/міс",                              en: "/mo"                            },
+  viewAll:    { ru: "Все планы →",                 uk: "Всі плани →",                       en: "All plans →",                   pl: "Wszystkie plany →"              },
+  close:      { ru: "Закрыть",                     uk: "Закрити",                           en: "Close",                         pl: "Zamknij"                        },
+  waitReset:  { ru: "Подожду обновления",          uk: "Почекаю оновлення",                 en: "Wait for reset",                pl: "Poczekam na odnowienie"         },
+  unlimited:  { ru: "Безлимитно",                  uk: "Безлімітно",                        en: "Unlimited",                     pl: "Bez limitu"                     },
+  xMore:      { ru: "× больше сообщений",          uk: "× більше повідомлень",              en: "× more messages",               pl: "× więcej wiadomości"            },
+  perMonth:   { ru: "/мес",                        uk: "/міс",                              en: "/mo",                           pl: "/mies."                         },
 };
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -26,7 +26,7 @@ const COPY = {
 function formatResetDate(resetAt: string | null | undefined, locale: string): string {
   if (!resetAt) return "";
   return new Date(resetAt).toLocaleDateString(
-    locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : "ru-RU",
+    locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : locale === "pl" ? "pl-PL" : "ru-RU",
     { day: "numeric", month: "long" },
   );
 }
@@ -47,7 +47,7 @@ interface LimitModalProps {
 
 export function LimitModal({ tier, tokensLeft, tokensResetAt, onClose }: LimitModalProps) {
   const locale = useLocale() as string;
-  const l      = ["ru", "uk", "en"].includes(locale) ? locale : "ru";
+  const l      = ["ru", "uk", "en", "pl"].includes(locale) ? locale : "ru";
   const router = useRouter();
 
   const plan      = PLANS[tier];

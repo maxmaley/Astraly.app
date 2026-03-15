@@ -18,6 +18,11 @@ const copy = {
     heading: (sign: string) => `${sign} — today's horoscope ✦`,
     cta: "Discuss with astrologer",
   },
+  pl: {
+    preview: (sign: string) => `Horoskop na dziś — ${sign} ✦`,
+    heading: (sign: string) => `${sign} — horoskop na dziś ✦`,
+    cta: "Omów z astrologiem",
+  },
 };
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://astraly.app";
@@ -31,7 +36,7 @@ interface Props {
   sunSign: string;
   date: string;
   sections: HoroscopeSection[];
-  locale?: "ru" | "uk" | "en";
+  locale?: "ru" | "uk" | "en" | "pl";
 }
 
 export default function DailyHoroscope({ sunSign, date, sections, locale = "ru" }: Props) {

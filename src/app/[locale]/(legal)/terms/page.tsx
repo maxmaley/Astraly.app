@@ -4,6 +4,7 @@ const titles = {
   ru: "Условия использования",
   en: "Terms of Service",
   uk: "Умови використання",
+  pl: "Regulamin",
 };
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {

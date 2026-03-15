@@ -15,13 +15,15 @@ export default getRequestConfig(async ({ requestLocale }) => {
     locale = routing.defaultLocale;
   }
 
-  // Static imports so webpack can bundle all three files
+  // Static imports so webpack can bundle all locale files
   const messages =
     locale === "ru"
       ? (await import("../messages/ru.json")).default
       : locale === "uk"
         ? (await import("../messages/uk.json")).default
-        : (await import("../messages/en.json")).default;
+        : locale === "pl"
+          ? (await import("../messages/pl.json")).default
+          : (await import("../messages/en.json")).default;
 
   return { locale, messages };
 });

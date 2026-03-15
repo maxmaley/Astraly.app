@@ -7,7 +7,9 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get("code");
   const type = searchParams.get("type");
-  const locale = request.cookies.get("astraly-locale")?.value ?? "ru";
+  const locale = request.cookies.get("astraly-locale")?.value
+    ?? request.cookies.get("NEXT_LOCALE")?.value
+    ?? "en";
 
   if (code) {
     const cookieStore = await cookies();

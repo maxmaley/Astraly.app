@@ -21,13 +21,19 @@ const copy = {
     body: "We were unable to process your Astraly subscription payment. Please update your payment details to keep access to paid features.",
     cta: "Update payment details",
   },
+  pl: {
+    preview: "Problem z płatnością — Astraly",
+    heading: "Problem z płatnością",
+    body: "Nie udało się przetworzyć płatności za subskrypcję Astraly. Zaktualizuj dane płatności, aby zachować dostęp do płatnych funkcji.",
+    cta: "Zaktualizuj dane płatności",
+  },
 };
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://astraly.app";
 
 interface Props {
   updateUrl?: string;
-  locale?: "ru" | "uk" | "en";
+  locale?: "ru" | "uk" | "en" | "pl";
 }
 
 export default function PaymentFailed({ updateUrl, locale = "ru" }: Props) {

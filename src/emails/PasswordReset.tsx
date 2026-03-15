@@ -24,11 +24,18 @@ const copy = {
     cta: "Reset password",
     expire: "This link expires in 1 hour.",
   },
+  pl: {
+    preview: "Resetowanie hasła — Astraly",
+    heading: "Resetowanie hasła",
+    body: "Ktoś poprosił o resetowanie hasła do Twojego konta Astraly. Jeśli to nie Ty — po prostu zignoruj ten email.",
+    cta: "Resetuj hasło",
+    expire: "Link jest ważny 1 godzinę.",
+  },
 };
 
 interface Props {
   resetUrl: string;
-  locale?: "ru" | "uk" | "en";
+  locale?: "ru" | "uk" | "en" | "pl";
 }
 
 export default function PasswordReset({ resetUrl, locale = "ru" }: Props) {

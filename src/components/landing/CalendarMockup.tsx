@@ -37,6 +37,17 @@ const CONTENT = {
       { day: 25, label: "♄ Financial strengthening" },
     ],
   },
+  pl: {
+    month: "Marzec 2025",
+    days: ["Pn", "Wt", "Śr", "Cz", "Pt", "So", "Nd"],
+    events: [
+      { day: 3, label: "☿ Merkury w retrogradacji" },
+      { day: 8, label: "♀ Wenus aktywuje 7. dom" },
+      { day: 14, label: "♃ Szczęśliwy dzień dla kariery" },
+      { day: 19, label: "🌕 Pełnia — czas na decyzje" },
+      { day: 25, label: "♄ Wzmocnienie finansowe" },
+    ],
+  },
 } as const;
 
 const EVENT_COLORS = [

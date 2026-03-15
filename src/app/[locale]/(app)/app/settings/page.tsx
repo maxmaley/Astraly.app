@@ -388,6 +388,7 @@ export default function SettingsPage() {
   }
 
   async function switchLang(next: Locale) {
+    document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
     await patch({ lang: next });
     router.replace(pathname, { locale: next });
   }
@@ -611,6 +612,7 @@ export default function SettingsPage() {
               { value: "ru" as Locale, label: "RU" },
               { value: "uk" as Locale, label: "UA" },
               { value: "en" as Locale, label: "EN" },
+              { value: "pl" as Locale, label: "PL" },
             ]}
           />
         </Row>

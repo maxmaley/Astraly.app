@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-const titles = { ru: "Политика cookies", en: "Cookie Policy", uk: "Політика cookies" };
+const titles = { ru: "Политика cookies", en: "Cookie Policy", uk: "Політика cookies", pl: "Polityka cookies" };
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {
   const l = params.locale as keyof typeof titles;

@@ -4,6 +4,7 @@ const titles = {
   ru: "Политика возврата средств",
   en: "Refund Policy",
   uk: "Політика повернення коштів",
+  pl: "Polityka zwrotów",
 };
 
 export async function generateMetadata({ params }: { params: { locale: string } }): Promise<Metadata> {

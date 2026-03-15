@@ -107,12 +107,12 @@ export async function POST(request: NextRequest) {
     if (charts?.length) contextCharts = charts;
   }
 
-  const langMap: Record<string, string> = { ru: "Russian", uk: "Ukrainian", en: "English" };
+  const langMap: Record<string, string> = { ru: "Russian", uk: "Ukrainian", en: "English", pl: "Polish" };
 
   const now = new Date();
   const today = now.toLocaleDateString("en-CA"); // YYYY-MM-DD
   const todayFormatted = now.toLocaleDateString(
-    locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : "ru-RU",
+    locale === "en" ? "en-US" : locale === "uk" ? "uk-UA" : locale === "pl" ? "pl-PL" : "ru-RU",
     { weekday: "long", year: "numeric", month: "long", day: "numeric" }
   );
 
@@ -225,7 +225,8 @@ STYLE:
 - Gentle markdown: **bold** for key ideas, bullet points for lists
 - End with a warm thought or a thoughtful question
 - Never make absolute predictions — frame as potential, tendency, invitation
-- Address the user as "ты" (informal) in Russian/Ukrainian`;
+- Address the user as "ты" (informal) in Russian/Ukrainian
+- In Polish, use a warm and friendly tone`;
 
   // ── Load recent history for context ───────────────────────────────────────
   const { data: recentMessages } = await (supabase as any)

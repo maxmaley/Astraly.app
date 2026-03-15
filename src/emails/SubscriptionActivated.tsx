@@ -21,13 +21,19 @@ const copy = {
     body: (plan: string) => `Welcome to ${plan}! All plan features are now available. Enjoy your journey to the stars.`,
     cta: "Open Astraly",
   },
+  pl: {
+    preview: "Subskrypcja aktywowana — Astraly",
+    heading: "Subskrypcja aktywowana ✦",
+    body: (plan: string) => `Witamy w ${plan}! Wszystkie funkcje planu są już dostępne. Ciesz się podróżą ku gwiazdom.`,
+    cta: "Otwórz Astraly",
+  },
 };
 
 const APP_URL = process.env.NEXT_PUBLIC_APP_URL ?? "https://astraly.app";
 
 interface Props {
   planName: string;
-  locale?: "ru" | "uk" | "en";
+  locale?: "ru" | "uk" | "en" | "pl";
 }
 
 export default function SubscriptionActivated({ planName, locale = "ru" }: Props) {
