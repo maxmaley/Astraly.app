@@ -327,6 +327,10 @@ export default function SettingsPage() {
   const [nextBilledAt, setNextBilledAt]       = useState<string | null>(null);
   const [billingLoading, setBillingLoading]   = useState(false);
 
+  // Restore purchase state
+  const [restoreBusy, setRestoreBusy]         = useState(false);
+  const [restoreResult, setRestoreResult]     = useState<"success" | "not_found" | null>(null);
+
   // Memory state
   const [memory, setMemory]                       = useState("");
   const [memoryDraft, setMemoryDraft]             = useState("");
@@ -366,6 +370,31 @@ export default function SettingsPage() {
             .then(r => r.json())
             .then(d => { if (d.memory) setMemory(d.memory); })
             .catch(() => {});
+        }
+
+        // Auto-sync after checkout: if ?msg=subscribed but still on free tier,
+        // the webhook likely hasn't arrived yet — pull from Paddle directly.
+        // Retry up to 3 times with 2s delay (Paddle may need a moment).
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("msg") === "subscribed" && data.subscription_tier === "free") {
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
+              const syncRes = await fetch("/api/subscription/sync", { method: "POST" });
+              const syncData = await syncRes.json();
+              if (syncData.ok && syncData.plan) {
+                window.location.replace(window.location.pathname);
+                return;
+              }
+              // If already_active, just reload without query param
+              if (syncData.reason === "already_active") {
+                window.location.replace(window.location.pathname);
+                return;
+              }
+            } catch (err) {
+              console.error("[settings] auto-sync attempt", attempt + 1, "failed:", err);
+            }
+          }
         }
 
         // Fetch subscription record for cancel flow
@@ -461,6 +490,28 @@ export default function SettingsPage() {
     } finally {
       setCancelBusy(false);
       setShowCancelModal(false);
+    }
+  }
+
+  async function restorePurchase() {
+    setRestoreBusy(true);
+    setRestoreResult(null);
+    try {
+      const res = await fetch("/api/subscription/sync", { method: "POST" });
+      const data = await res.json();
+
+      if (data.ok && data.plan) {
+        setRestoreResult("success");
+        // Reload the page to reflect new subscription state
+        setTimeout(() => window.location.reload(), 1500);
+      } else {
+        setRestoreResult("not_found");
+      }
+    } catch (err) {
+      console.error("[restore]", err);
+      setRestoreResult("not_found");
+    } finally {
+      setRestoreBusy(false);
     }
   }
 
@@ -662,6 +713,25 @@ export default function SettingsPage() {
             >
               {t("cancelLink")}
             </button>
+          )}
+
+          {/* Restore purchase — shown on free plan or when subscription record is missing */}
+          {(isFree || !subStatus?.paddle_subscription_id) && (
+            <div className="flex items-center gap-3">
+              <button
+                onClick={restorePurchase}
+                disabled={restoreBusy}
+                className="text-xs text-[var(--muted-foreground)] hover:text-cosmic-400 transition-colors disabled:opacity-50"
+              >
+                {restoreBusy ? t("restoreBusy") : t("restoreLink")}
+              </button>
+              {restoreResult === "success" && (
+                <span className="text-xs font-medium text-emerald-400">{t("restoreSuccess")}</span>
+              )}
+              {restoreResult === "not_found" && (
+                <span className="text-xs text-[var(--muted-foreground)]">{t("restoreNotFound")}</span>
+              )}
+            </div>
           )}
         </div>
       </Section>
