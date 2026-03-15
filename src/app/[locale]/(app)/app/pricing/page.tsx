@@ -22,7 +22,7 @@ const C = {
   billedYearly:  { ru: "в год",                        uk: "на рік",                         en: "/yr"                          },
   popular:       { ru: "Популярный",                   uk: "Популярний",                     en: "Most popular"                 },
   current:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
-  ctaFree:       { ru: "Текущий план",                 uk: "Поточний план",                  en: "Current plan"                 },
+  ctaFree:       { ru: "Бесплатный",                    uk: "Безкоштовний",                   en: "Free plan"                    },
   ctaPaid:       { ru: "Перейти на план →",            uk: "Перейти на план →",              en: "Get this plan →"              },
   ctaCurrent:    { ru: "✓ Активный план",              uk: "✓ Активний план",                en: "✓ Active plan"                },
   soonModal:     { ru: "Оплата подключается — скоро здесь появится кнопка 🔜", uk: "Оплата підключається — незабаром тут з'явиться кнопка 🔜", en: "Payment is coming — the button will appear here soon 🔜" },
@@ -310,7 +310,7 @@ export default function PricingPage() {
         .select("subscription_tier")
         .eq("id", user.id)
         .single();
-      if (data?.subscription_tier) setCurrentTier(data.subscription_tier);
+      setCurrentTier(data?.subscription_tier ?? "free");
     }
     load();
   }, [supabase]);
