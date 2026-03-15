@@ -16,11 +16,24 @@ export function PaddleProvider({ children }: { children: React.ReactNode }) {
     const token = process.env.NEXT_PUBLIC_PADDLE_CLIENT_TOKEN;
     if (!token) return;
 
+    const env = process.env.NEXT_PUBLIC_PADDLE_ENV === "production" ? "production" : "sandbox";
+    console.log("[paddle] init", { env, token: token.slice(0, 8) + "..." });
+
     initializePaddle({
       token,
-      environment: process.env.NEXT_PUBLIC_PADDLE_ENV === "production" ? "production" : "sandbox",
+      environment: env,
+      eventCallback: (event) => {
+        console.log("[paddle] event", event.name, event);
+      },
     }).then((instance) => {
-      if (instance) setPaddle(instance);
+      if (instance) {
+        console.log("[paddle] SDK ready");
+        setPaddle(instance);
+      } else {
+        console.error("[paddle] init returned null");
+      }
+    }).catch((err) => {
+      console.error("[paddle] init error", err);
     });
   }, []);
 
@@ -53,11 +66,13 @@ export function usePaddleCheckout() {
         return;
       }
 
-      paddle.Checkout.open({
+      const opts = {
         items: [{ priceId, quantity: 1 }],
         customer: { email },
         customData: { user_id: userId, plan },
-      });
+      };
+      console.log("[paddle] checkout.open", opts);
+      paddle.Checkout.open(opts);
     },
     [paddle],
   );
