@@ -419,6 +419,11 @@ export default function SettingsPage() {
               if (d) {
                 setBillingUrl(d.update_payment_method_url ?? null);
                 setNextBilledAt(d.next_billed_at ?? null);
+                // Detect scheduled cancellation synced from Paddle
+                if (d.status === "cancelled" && d.scheduled_cancel_at) {
+                  setSubStatus(prev => prev ? { ...prev, status: "cancelled" } : { status: "cancelled", expires_at: d.scheduled_cancel_at });
+                  setCancelledUntil(d.scheduled_cancel_at);
+                }
               }
             })
             .catch(() => {})

@@ -105,10 +105,46 @@ export async function GET() {
     .eq("user_id", user.id)
     .maybeSingle();
 
+  // Detect scheduled cancellation from Paddle (may not be in local DB due to missed webhooks)
+  const scheduledChange = data?.scheduled_change as { action?: string; effective_at?: string } | null;
+  const isScheduledCancel = scheduledChange?.action === "cancel";
+
+  // If Paddle shows scheduled cancellation but local DB doesn't, sync it
+  if (isScheduledCancel && sub?.status !== "cancelled") {
+    const expiresAt = scheduledChange?.effective_at
+      ?? data?.current_billing_period?.ends_at
+      ?? null;
+    if (expiresAt) {
+      const existing = await db
+        .from("subscriptions")
+        .select("id")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existing?.data) {
+        await db.from("subscriptions").update({
+          status: "cancelled",
+          expires_at: expiresAt,
+          paddle_subscription_id: activeSub.id,
+        }).eq("id", existing.data.id);
+      } else {
+        await db.from("subscriptions").insert({
+          user_id: user.id,
+          status: "cancelled",
+          expires_at: expiresAt,
+          paddle_subscription_id: activeSub.id,
+          started_at: new Date().toISOString(),
+        });
+      }
+      console.log(`[billing] Synced scheduled cancellation to DB for user ${user.id}`);
+    }
+  }
+
   return NextResponse.json({
     update_payment_method_url: data?.management_urls?.update_payment_method ?? null,
     next_billed_at:            data?.next_billed_at ?? data?.current_billing_period?.ends_at ?? sub?.expires_at,
     billing_cycle_interval:    data?.billing_cycle?.interval ?? null,
-    status:                    sub?.status ?? "active",
+    status:                    isScheduledCancel ? "cancelled" : (sub?.status ?? "active"),
+    scheduled_cancel_at:       isScheduledCancel ? (scheduledChange?.effective_at ?? null) : null,
   });
 }
