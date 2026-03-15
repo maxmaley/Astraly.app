@@ -59,6 +59,7 @@ export interface Database {
           is_admin: boolean;
           is_banned: boolean;
           memory: string;
+          memory_enabled: boolean;
           created_at: string;
           updated_at: string;
         };
@@ -75,6 +76,7 @@ export interface Database {
           is_admin?: boolean;
           is_banned?: boolean;
           memory?: string;
+          memory_enabled?: boolean;
           created_at?: string;
           updated_at?: string;
         };
@@ -89,6 +91,7 @@ export interface Database {
           is_admin?: boolean;
           is_banned?: boolean;
           memory?: string;
+          memory_enabled?: boolean;
           updated_at?: string;
         };
       };

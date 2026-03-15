@@ -1,21 +1,43 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { canAccess } from "@/lib/plans";
+import type { SubscriptionTier } from "@/types/database";
 
 const MAX_MEMORY_CHARS = 6000;
 
-// GET — return current memory
-export async function GET() {
+/** Check auth + memory feature access. Returns user id or error response. */
+async function authorize() {
   const supabase = await createClient();
   const { data: { user }, error } = await supabase.auth.getUser();
   if (error || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
   }
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data } = await (supabase as any)
     .from("users")
-    .select("memory")
+    .select("subscription_tier")
     .eq("id", user.id)
+    .single();
+
+  if (!canAccess(data?.subscription_tier as SubscriptionTier, "memory")) {
+    return { error: NextResponse.json({ error: "Feature not available on your plan" }, { status: 403 }) };
+  }
+
+  return { userId: user.id, supabase };
+}
+
+// GET — return current memory
+export async function GET() {
+  const auth = await authorize();
+  if ("error" in auth && auth.error) return auth.error;
+  const { userId, supabase } = auth as { userId: string; supabase: Awaited<ReturnType<typeof createClient>> };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const { data } = await (supabase as any)
+    .from("users")
+    .select("memory")
+    .eq("id", userId)
     .single();
 
   return NextResponse.json({ memory: data?.memory ?? "" });
@@ -23,11 +45,9 @@ export async function GET() {
 
 // PUT — update memory (from settings editor)
 export async function PUT(request: Request) {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await authorize();
+  if ("error" in auth && auth.error) return auth.error;
+  const { userId, supabase } = auth as { userId: string; supabase: Awaited<ReturnType<typeof createClient>> };
 
   const body = await request.json();
   const memory = typeof body.memory === "string"
@@ -38,24 +58,22 @@ export async function PUT(request: Request) {
   await (supabase as any)
     .from("users")
     .update({ memory })
-    .eq("id", user.id);
+    .eq("id", userId);
 
   return NextResponse.json({ success: true });
 }
 
 // DELETE — clear memory
 export async function DELETE() {
-  const supabase = await createClient();
-  const { data: { user }, error } = await supabase.auth.getUser();
-  if (error || !user) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const auth = await authorize();
+  if ("error" in auth && auth.error) return auth.error;
+  const { userId, supabase } = auth as { userId: string; supabase: Awaited<ReturnType<typeof createClient>> };
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   await (supabase as any)
     .from("users")
     .update({ memory: "" })
-    .eq("id", user.id);
+    .eq("id", userId);
 
   return NextResponse.json({ success: true });
 }

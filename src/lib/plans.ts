@@ -12,6 +12,7 @@ import type { SubscriptionTier } from "@/types/database";
 
 export type Feature =
   | "chat"          // AI chat — all tiers, token-limited
+  | "memory"        // AI memory — moonlight+
   | "multi_charts"  // Multiple natal charts — moonlight+
   | "horoscope"     // Daily horoscope — solar+
   | "calendar"      // Astro calendar — solar+
@@ -86,9 +87,10 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     },
     monthlyTokens: 500_000,
     maxCharts:     3,
-    features:      ["chat", "multi_charts"],
+    features:      ["chat", "memory", "multi_charts"],
     featureLabels: {
       chat:         "Расширенный AI-чат",
+      memory:       "AI-память между сессиями",
       charts_limit: "До 3 натальных карт",
       multi_charts: "Карты близких — партнёр, семья",
     },
@@ -111,9 +113,10 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     },
     monthlyTokens: 1_000_000,
     maxCharts:     5,
-    features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications"],
+    features:      ["chat", "memory", "multi_charts", "horoscope", "calendar", "notifications"],
     featureLabels: {
       chat:         "Безграничный AI-чат",
+      memory:       "AI-память между сессиями",
       charts_limit: "До 5 натальных карт",
       multi_charts: "Карты близких",
       horoscope:    "Ежедневный личный гороскоп",
@@ -139,9 +142,10 @@ export const PLANS: Record<SubscriptionTier, PlanConfig> = {
     },
     monthlyTokens: 5_000_000,
     maxCharts:     10,
-    features:      ["chat", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"],
+    features:      ["chat", "memory", "multi_charts", "horoscope", "calendar", "notifications", "priority_ai"],
     featureLabels: {
       chat:         "Безлимитный AI-чат",
+      memory:       "AI-память между сессиями",
       charts_limit: "До 10 натальных карт",
       multi_charts: "Карты близких",
       horoscope:    "Ежедневный личный гороскоп",

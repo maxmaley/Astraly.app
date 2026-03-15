@@ -11,6 +11,16 @@ const FEATURE_META: Record<Feature, {
   title:   Record<string, string>;
   desc:    Record<string, string>;
 }> = {
+  memory: {
+    icon:  "🧠",
+    title: { ru: "Память AI",             uk: "Пам'ять AI",           en: "AI Memory",          pl: "Pamięć AI"           },
+    desc:  {
+      ru: "Astraly запоминает важные факты о тебе между сессиями — твои вопросы, контекст, предпочтения.",
+      uk: "Astraly запам'ятовує важливі факти про тебе між сесіями — твої питання, контекст, вподобання.",
+      en: "Astraly remembers important facts about you between sessions — your questions, context, and preferences.",
+      pl: "Astraly zapamiętuje ważne fakty o Tobie między sesjami — Twoje pytania, kontekst i preferencje.",
+    },
+  },
   horoscope: {
     icon:  "☀️",
     title: { ru: "Ежедневный гороскоп", uk: "Щоденний гороскоп",  en: "Daily Horoscope",   pl: "Horoskop dzienny"   },

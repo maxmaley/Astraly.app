@@ -8,6 +8,7 @@ import { useTheme }                                           from "@/components
 import type { SubscriptionTier }                              from "@/types/database";
 import type { Locale }                                        from "@/routing";
 import { Link }                                               from "@/navigation";
+import { canAccess }                                          from "@/lib/plans";
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -321,11 +322,13 @@ export default function SettingsPage() {
   const [cancelledUntil, setCancelledUntil]   = useState<string | null>(null);
 
   // Memory state
-  const [memory, setMemory]                   = useState("");
-  const [memoryDraft, setMemoryDraft]         = useState("");
-  const [memoryEditing, setMemoryEditing]     = useState(false);
-  const [memorySaving, setMemorySaving]       = useState(false);
-  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [memory, setMemory]                       = useState("");
+  const [memoryDraft, setMemoryDraft]             = useState("");
+  const [memoryEditing, setMemoryEditing]         = useState(false);
+  const [memorySaving, setMemorySaving]           = useState(false);
+  const [showClearConfirm, setShowClearConfirm]   = useState(false);
+  const [memoryEnabled, setMemoryEnabled]         = useState(false);
+  const [memoryToggleBusy, setMemoryToggleBusy]   = useState(false);
 
   // ── Load ─────────────────────────────────────────────────────────────────
 
@@ -335,14 +338,15 @@ export default function SettingsPage() {
       if (!auth) { router.replace("/login"); return; }
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { data } = await supabase
+      const { data } = await (supabase as any)
         .from("users")
-        .select("id, email, name, subscription_tier, tokens_left, lang, theme, notify_email")
+        .select("id, email, name, subscription_tier, tokens_left, lang, theme, notify_email, memory_enabled")
         .eq("id", auth.id)
-        .single() as { data: UserSettings | null; error: unknown };
+        .single() as { data: (UserSettings & { memory_enabled?: boolean }) | null; error: unknown };
 
       if (data) {
         setUser(data);
+        setMemoryEnabled(!!data.memory_enabled);
         // Check if user has email/password identity
         const identities = auth.identities ?? [];
         setHasPassword(identities.some(i => i.provider === "email"));
@@ -350,11 +354,13 @@ export default function SettingsPage() {
         const stored = typeof window !== "undefined" ? localStorage.getItem("astraly-theme") : null;
         if (!stored && data.theme) setTheme(data.theme as "dark" | "light");
 
-        // Fetch memory
-        fetch("/api/memory")
-          .then(r => r.json())
-          .then(d => { if (d.memory) setMemory(d.memory); })
-          .catch(() => {});
+        // Fetch memory (only if feature available)
+        if (canAccess(data.subscription_tier, "memory")) {
+          fetch("/api/memory")
+            .then(r => r.json())
+            .then(d => { if (d.memory) setMemory(d.memory); })
+            .catch(() => {});
+        }
 
         // Fetch subscription record for cancel flow
         if (data.subscription_tier !== "free") {
@@ -463,6 +469,21 @@ export default function SettingsPage() {
       setShowClearConfirm(false);
     } catch (err) {
       console.error("[memory]", err);
+    }
+  }
+
+  async function toggleMemoryEnabled(enabled: boolean) {
+    if (!user) return;
+    setMemoryToggleBusy(true);
+    setMemoryEnabled(enabled);
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await (supabase as any).from("users").update({ memory_enabled: enabled }).eq("id", user.id);
+    } catch (err) {
+      console.error("[memory-toggle]", err);
+      setMemoryEnabled(!enabled); // rollback
+    } finally {
+      setMemoryToggleBusy(false);
     }
   }
 
@@ -679,83 +700,114 @@ export default function SettingsPage() {
             {t("memoryDesc")}
           </p>
 
-          {memoryEditing ? (
-            <>
-              <textarea
-                value={memoryDraft}
-                onChange={e => setMemoryDraft(e.target.value)}
-                rows={8}
-                maxLength={6000}
-                className="w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 py-3 text-sm text-[var(--foreground)] placeholder-[var(--muted-foreground)]/50 outline-none focus:border-cosmic-400 focus:ring-2 focus:ring-cosmic-400/15 resize-y"
-                placeholder={t("memoryEmpty")}
-              />
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => { setMemoryEditing(false); setMemoryDraft(memory); }}
-                  disabled={memorySaving}
-                  className="rounded-xl border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors disabled:opacity-50"
-                >
-                  {t("memoryCancel")}
-                </button>
-                <button
-                  onClick={saveMemory}
-                  disabled={memorySaving}
-                  className="rounded-xl bg-cosmic-500 px-4 py-2 text-xs font-semibold text-white hover:bg-cosmic-600 transition-colors disabled:opacity-50"
-                >
-                  {memorySaving ? "..." : t("memorySave")}
-                </button>
-              </div>
-            </>
-          ) : memory ? (
-            <>
-              <div className="rounded-xl border border-[var(--border)] bg-[var(--input)]/50 px-4 py-3 text-sm text-[var(--foreground)] whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
-                {memory}
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setShowClearConfirm(true)}
-                  className="text-xs text-[var(--muted-foreground)] hover:text-rose-400 transition-colors"
-                >
-                  {t("memoryClear")}
-                </button>
-                <button
-                  onClick={() => { setMemoryDraft(memory); setMemoryEditing(true); }}
-                  className="rounded-xl border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--foreground)] hover:border-cosmic-400/50 hover:text-cosmic-400 transition-all"
-                >
-                  {t("memoryEdit")}
-                </button>
-              </div>
-            </>
-          ) : (
-            <p className="text-sm text-[var(--muted-foreground)] italic">
-              {t("memoryEmpty")}
-            </p>
-          )}
-
-          {/* Clear confirmation */}
-          {showClearConfirm && (
-            <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3">
-              <p className="text-sm font-medium text-rose-400">
-                {t("memoryClearConfirm")}
+          {/* Free plan — show upgrade nudge */}
+          {!canAccess(user.subscription_tier, "memory") ? (
+            <div className="rounded-xl border border-[var(--border)] bg-[var(--muted)]/30 px-4 py-4 text-center space-y-3">
+              <p className="text-sm text-[var(--muted-foreground)]">
+                {t("memoryPlanRequired")}
               </p>
-              <p className="mt-1 text-xs text-[var(--muted-foreground)]">
-                {t("memoryClearDesc")}
-              </p>
-              <div className="mt-3 flex gap-2 justify-end">
-                <button
-                  onClick={() => setShowClearConfirm(false)}
-                  className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
-                >
-                  {t("memoryClearNo")}
-                </button>
-                <button
-                  onClick={clearMemory}
-                  className="rounded-xl bg-rose-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-600 transition-colors"
-                >
-                  {t("memoryClearYes")}
-                </button>
-              </div>
+              <Link
+                href="/app/pricing"
+                className="inline-block rounded-xl bg-gradient-to-r from-cosmic-500 to-nebula-500 px-4 py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity"
+              >
+                {t("upgradeCta")}
+              </Link>
             </div>
+          ) : (
+            <>
+              {/* Consent toggle */}
+              <Row label={t("memoryToggle")} desc={t("memoryToggleDesc")}>
+                <Toggle
+                  checked={memoryEnabled}
+                  onChange={toggleMemoryEnabled}
+                  disabled={memoryToggleBusy}
+                />
+              </Row>
+
+              {/* Memory content — only shown when enabled */}
+              {memoryEnabled && (
+                <>
+                  {memoryEditing ? (
+                    <>
+                      <textarea
+                        value={memoryDraft}
+                        onChange={e => setMemoryDraft(e.target.value)}
+                        rows={8}
+                        maxLength={6000}
+                        className="w-full rounded-xl border border-[var(--border)] bg-[var(--input)] px-4 py-3 text-sm text-[var(--foreground)] placeholder-[var(--muted-foreground)]/50 outline-none focus:border-cosmic-400 focus:ring-2 focus:ring-cosmic-400/15 resize-y"
+                        placeholder={t("memoryEmpty")}
+                      />
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => { setMemoryEditing(false); setMemoryDraft(memory); }}
+                          disabled={memorySaving}
+                          className="rounded-xl border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors disabled:opacity-50"
+                        >
+                          {t("memoryCancel")}
+                        </button>
+                        <button
+                          onClick={saveMemory}
+                          disabled={memorySaving}
+                          className="rounded-xl bg-cosmic-500 px-4 py-2 text-xs font-semibold text-white hover:bg-cosmic-600 transition-colors disabled:opacity-50"
+                        >
+                          {memorySaving ? "..." : t("memorySave")}
+                        </button>
+                      </div>
+                    </>
+                  ) : memory ? (
+                    <>
+                      <div className="rounded-xl border border-[var(--border)] bg-[var(--input)]/50 px-4 py-3 text-sm text-[var(--foreground)] whitespace-pre-wrap leading-relaxed max-h-60 overflow-y-auto">
+                        {memory}
+                      </div>
+                      <div className="flex gap-2 justify-end">
+                        <button
+                          onClick={() => setShowClearConfirm(true)}
+                          className="text-xs text-[var(--muted-foreground)] hover:text-rose-400 transition-colors"
+                        >
+                          {t("memoryClear")}
+                        </button>
+                        <button
+                          onClick={() => { setMemoryDraft(memory); setMemoryEditing(true); }}
+                          className="rounded-xl border border-[var(--border)] px-4 py-2 text-xs font-semibold text-[var(--foreground)] hover:border-cosmic-400/50 hover:text-cosmic-400 transition-all"
+                        >
+                          {t("memoryEdit")}
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <p className="text-sm text-[var(--muted-foreground)] italic">
+                      {t("memoryEmpty")}
+                    </p>
+                  )}
+
+                  {/* Clear confirmation */}
+                  {showClearConfirm && (
+                    <div className="rounded-xl border border-rose-500/30 bg-rose-500/5 px-4 py-3">
+                      <p className="text-sm font-medium text-rose-400">
+                        {t("memoryClearConfirm")}
+                      </p>
+                      <p className="mt-1 text-xs text-[var(--muted-foreground)]">
+                        {t("memoryClearDesc")}
+                      </p>
+                      <div className="mt-3 flex gap-2 justify-end">
+                        <button
+                          onClick={() => setShowClearConfirm(false)}
+                          className="rounded-xl border border-[var(--border)] px-3 py-1.5 text-xs font-medium text-[var(--foreground)] hover:bg-[var(--muted)] transition-colors"
+                        >
+                          {t("memoryClearNo")}
+                        </button>
+                        <button
+                          onClick={clearMemory}
+                          className="rounded-xl bg-rose-500 px-3 py-1.5 text-xs font-medium text-white hover:bg-rose-600 transition-colors"
+                        >
+                          {t("memoryClearYes")}
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              )}
+            </>
           )}
         </div>
       </Section>
