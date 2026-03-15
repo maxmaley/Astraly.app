@@ -14,7 +14,7 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createAdminClient }              from "@/lib/supabase/admin";
 import { sendEmail }                      from "@/lib/email";
-import { PLANS, tierFromPriceId, getMonthlyTokens } from "@/lib/plans";
+import { tierFromPriceId, getMonthlyTokens } from "@/lib/plans";
 import SubscriptionActivated              from "@/emails/SubscriptionActivated";
 import SubscriptionCanceled               from "@/emails/SubscriptionCanceled";
 import PaymentFailed                      from "@/emails/PaymentFailed";
