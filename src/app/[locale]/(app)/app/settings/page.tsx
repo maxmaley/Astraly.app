@@ -372,6 +372,31 @@ export default function SettingsPage() {
             .catch(() => {});
         }
 
+        // Auto-sync after checkout: if ?msg=subscribed but still on free tier,
+        // the webhook likely hasn't arrived yet — pull from Paddle directly.
+        // Retry up to 3 times with 2s delay (Paddle may need a moment).
+        const params = new URLSearchParams(window.location.search);
+        if (params.get("msg") === "subscribed" && data.subscription_tier === "free") {
+          for (let attempt = 0; attempt < 3; attempt++) {
+            try {
+              if (attempt > 0) await new Promise(r => setTimeout(r, 2000));
+              const syncRes = await fetch("/api/subscription/sync", { method: "POST" });
+              const syncData = await syncRes.json();
+              if (syncData.ok && syncData.plan) {
+                window.location.replace(window.location.pathname);
+                return;
+              }
+              // If already_active, just reload without query param
+              if (syncData.reason === "already_active") {
+                window.location.replace(window.location.pathname);
+                return;
+              }
+            } catch (err) {
+              console.error("[settings] auto-sync attempt", attempt + 1, "failed:", err);
+            }
+          }
+        }
+
         // Fetch subscription record for cancel flow
         if (data.subscription_tier !== "free") {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
