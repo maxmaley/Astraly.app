@@ -186,18 +186,34 @@ export async function POST() {
   const billingPeriod = activeSub.current_billing_period as Record<string, string> | undefined;
   const expiresAt = billingPeriod?.ends_at ?? null;
 
-  // Upsert subscription record
-  // Note: paddle_subscription_id omitted — column may not exist in production yet
-  const { error: subErr } = await db.from("subscriptions").upsert({
-    user_id: user.id,
-    plan,
-    status: "active",
-    started_at: new Date().toISOString(),
-    expires_at: expiresAt,
-  }, { onConflict: "user_id" });
+  // Insert or update subscription record
+  // (no UNIQUE on user_id, so we can't use upsert — do select + insert/update)
+  const { data: existingRow } = await db
+    .from("subscriptions")
+    .select("id")
+    .eq("user_id", user.id)
+    .maybeSingle();
+
+  let subErr;
+  if (existingRow) {
+    ({ error: subErr } = await db.from("subscriptions").update({
+      plan,
+      status: "active",
+      started_at: new Date().toISOString(),
+      expires_at: expiresAt,
+    }).eq("id", existingRow.id));
+  } else {
+    ({ error: subErr } = await db.from("subscriptions").insert({
+      user_id: user.id,
+      plan,
+      status: "active",
+      started_at: new Date().toISOString(),
+      expires_at: expiresAt,
+    }));
+  }
 
   if (subErr) {
-    console.error("[sync] subscriptions.upsert error:", subErr);
+    console.error("[sync] subscriptions write error:", subErr);
     return NextResponse.json({ error: "Database error" }, { status: 500 });
   }
 
