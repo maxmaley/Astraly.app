@@ -3,6 +3,7 @@
  *
  * Fetches the current user's Paddle subscription details including
  * management URLs (update payment method) and next billing date.
+ * Looks up the subscription via Paddle API by email (no local paddle_subscription_id needed).
  */
 
 import { NextResponse }       from "next/server";
@@ -10,6 +11,16 @@ import { cookies }            from "next/headers";
 import { createServerClient } from "@supabase/ssr";
 import { createAdminClient }  from "@/lib/supabase/admin";
 import type { Database }      from "@/types/database";
+
+function paddleBase(): string {
+  return process.env.NEXT_PUBLIC_PADDLE_ENV === "production"
+    ? "https://api.paddle.com"
+    : "https://sandbox-api.paddle.com";
+}
+
+function paddleHeaders(): HeadersInit {
+  return { Authorization: `Bearer ${process.env.PADDLE_API_KEY}` };
+}
 
 export async function GET() {
   // ── Auth ──────────────────────────────────────────────────────────────────
@@ -25,59 +36,79 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthenticated" }, { status: 401 });
   }
 
-  // ── Find Paddle subscription ──────────────────────────────────────────────
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const db = createAdminClient() as any;
-
-  const { data: sub } = await db
-    .from("subscriptions")
-    .select("paddle_subscription_id, status, expires_at")
-    .eq("user_id", user.id)
-    .single();
-
-  if (!sub?.paddle_subscription_id) {
-    return NextResponse.json(
-      { error: "No active subscription found" },
-      { status: 404 },
-    );
-  }
-
-  // ── Fetch from Paddle API ─────────────────────────────────────────────────
   const paddleApiKey = process.env.PADDLE_API_KEY;
   if (!paddleApiKey) {
     console.error("[billing] PADDLE_API_KEY not set");
     return NextResponse.json({ error: "Server configuration error" }, { status: 500 });
   }
 
-  const paddleEnv = process.env.NEXT_PUBLIC_PADDLE_ENV === "production"
-    ? "https://api.paddle.com"
-    : "https://sandbox-api.paddle.com";
+  // ── Get user email ──────────────────────────────────────────────────────
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const db = createAdminClient() as any;
+  const { data: userData } = await db
+    .from("users")
+    .select("email")
+    .eq("id", user.id)
+    .single();
 
-  const res = await fetch(
-    `${paddleEnv}/subscriptions/${sub.paddle_subscription_id}`,
-    {
-      headers: {
-        "Authorization": `Bearer ${paddleApiKey}`,
-      },
-    },
-  );
-
-  if (!res.ok) {
-    const body = await res.text();
-    console.error("[billing] Paddle API error:", res.status, body);
-    return NextResponse.json(
-      { error: "Failed to fetch subscription details" },
-      { status: 502 },
-    );
+  const email = userData?.email ?? user.email;
+  if (!email) {
+    return NextResponse.json({ error: "No email found" }, { status: 400 });
   }
 
-  const paddle = await res.json();
-  const data = paddle.data;
+  // ── Find active Paddle subscription by email ────────────────────────────
+  const custRes = await fetch(
+    `${paddleBase()}/customers?email=${encodeURIComponent(email)}`,
+    { headers: paddleHeaders() },
+  );
+  if (!custRes.ok) {
+    return NextResponse.json({ error: "Paddle API error" }, { status: 502 });
+  }
+  const customers = ((await custRes.json()).data ?? []) as Array<{ id: string }>;
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  let activeSub: Record<string, any> | null = null;
+  for (const c of customers) {
+    const subsRes = await fetch(
+      `${paddleBase()}/subscriptions?customer_id=${c.id}&status=active`,
+      { headers: paddleHeaders() },
+    );
+    if (!subsRes.ok) continue;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const subs = ((await subsRes.json()).data ?? []) as Array<Record<string, any>>;
+    const found = subs.find((s) => s.status === "active");
+    if (found) { activeSub = found; break; }
+  }
+
+  if (!activeSub) {
+    return NextResponse.json({ error: "No active subscription found" }, { status: 404 });
+  }
+
+  // ── Fetch full subscription details ─────────────────────────────────────
+  const detailRes = await fetch(
+    `${paddleBase()}/subscriptions/${activeSub.id}`,
+    { headers: paddleHeaders() },
+  );
+
+  if (!detailRes.ok) {
+    const body = await detailRes.text();
+    console.error("[billing] Paddle API error:", detailRes.status, body);
+    return NextResponse.json({ error: "Failed to fetch subscription details" }, { status: 502 });
+  }
+
+  const data = (await detailRes.json()).data;
+
+  // ── Get local subscription status ───────────────────────────────────────
+  const { data: sub } = await db
+    .from("subscriptions")
+    .select("status, expires_at")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
   return NextResponse.json({
     update_payment_method_url: data?.management_urls?.update_payment_method ?? null,
-    next_billed_at:            data?.next_billed_at ?? data?.current_billing_period?.ends_at ?? sub.expires_at,
+    next_billed_at:            data?.next_billed_at ?? data?.current_billing_period?.ends_at ?? sub?.expires_at,
     billing_cycle_interval:    data?.billing_cycle?.interval ?? null,
-    status:                    sub.status,
+    status:                    sub?.status ?? "active",
   });
 }

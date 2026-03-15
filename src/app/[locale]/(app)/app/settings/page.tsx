@@ -27,7 +27,6 @@ interface UserSettings {
 interface SubStatus {
   status:                   string | null;
   expires_at:               string | null;
-  paddle_subscription_id:   string | null;
 }
 
 // ── Plan display config ────────────────────────────────────────────────────
@@ -402,7 +401,7 @@ export default function SettingsPage() {
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           const { data: sub } = await (supabase as any)
             .from("subscriptions")
-            .select("status, expires_at, paddle_subscription_id")
+            .select("status, expires_at")
             .eq("user_id", auth.id)
             .maybeSingle() as { data: SubStatus | null; error: unknown };
           if (sub) {
@@ -706,7 +705,7 @@ export default function SettingsPage() {
           </div>
 
           {/* Cancel subscription */}
-          {!isFree && subStatus?.paddle_subscription_id && !cancelledUntil && (
+          {!isFree && subStatus?.status === "active" && !cancelledUntil && (
             <button
               onClick={() => setShowCancelModal(true)}
               className="text-xs text-[var(--muted-foreground)] hover:text-rose-400 transition-colors"
@@ -716,7 +715,7 @@ export default function SettingsPage() {
           )}
 
           {/* Restore purchase — shown on free plan or when subscription record is missing */}
-          {(isFree || !subStatus?.paddle_subscription_id) && (
+          {(isFree || !subStatus) && (
             <div className="flex items-center gap-3">
               <button
                 onClick={restorePurchase}
@@ -746,7 +745,7 @@ export default function SettingsPage() {
       />
 
       {/* ── Billing ── */}
-      {!isFree && subStatus?.paddle_subscription_id && (
+      {!isFree && subStatus && (
         <Section title={t("billing")}>
           <div className="px-5 py-4 space-y-3">
 
