@@ -75,6 +75,7 @@ export function LanguageSwitcher() {
   }, [open, updatePosition]);
 
   function switchLocale(next: Locale) {
+    document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
     router.replace(pathname, { locale: next });
     setOpen(false);
   }
