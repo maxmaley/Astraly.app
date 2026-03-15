@@ -67,13 +67,13 @@ export default async function AdminDashboard({
     { count: horoscopesToday },
     { count: activeSubs },
   ] = await Promise.all([
-    admin.from("users").select("*", { count: "exact", head: true }),
-    admin.from("users").select("*", { count: "exact", head: true }).gte("created_at", dayAgo),
-    admin.from("users").select("*", { count: "exact", head: true }).gte("created_at", weekAgo),
-    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "free"),
-    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "moonlight"),
-    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "solar"),
-    admin.from("users").select("*", { count: "exact", head: true }).eq("subscription_tier", "cosmic"),
+    admin.from("users").select("*", { count: "exact", head: true }).neq("is_test", true),
+    admin.from("users").select("*", { count: "exact", head: true }).neq("is_test", true).gte("created_at", dayAgo),
+    admin.from("users").select("*", { count: "exact", head: true }).neq("is_test", true).gte("created_at", weekAgo),
+    admin.from("users").select("*", { count: "exact", head: true }).neq("is_test", true).eq("subscription_tier", "free"),
+    admin.from("users").select("*", { count: "exact", head: true }).neq("is_test", true).eq("subscription_tier", "moonlight"),
+    admin.from("users").select("*", { count: "exact", head: true }).neq("is_test", true).eq("subscription_tier", "solar"),
+    admin.from("users").select("*", { count: "exact", head: true }).neq("is_test", true).eq("subscription_tier", "cosmic"),
     admin.from("users")
       .select("id, name, email, subscription_tier, created_at")
       .order("created_at", { ascending: false })

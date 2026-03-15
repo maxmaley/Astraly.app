@@ -48,6 +48,14 @@ export async function GET(request: NextRequest) {
   for (const sub of expired) {
     const userId = sub.user_id as string;
 
+    // Skip test users — they have permanent access
+    const { data: usr } = await db
+      .from("users")
+      .select("is_test")
+      .eq("id", userId)
+      .single();
+    if (usr?.is_test) continue;
+
     // Downgrade user to free
     await db.from("users").update({
       subscription_tier: "free",

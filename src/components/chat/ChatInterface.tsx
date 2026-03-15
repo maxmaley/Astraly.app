@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { getUsageLevel, PLANS, canAccess } from "@/lib/plans";
 import { LimitModal } from "@/components/shared/LimitModal";
 import type { SubscriptionTier } from "@/types/database";
-import { trackEvent } from "@/lib/analytics";
+import { trackEvent, setIsTestUser } from "@/lib/analytics";
 import { VoiceInputButton } from "./VoiceInputButton";
 
 // ── Types ──────────────────────────────────────────────────────────────────────
@@ -543,10 +543,11 @@ export function ChatInterface({
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (supabase as any)
         .from("users")
-        .select("subscription_tier, tokens_left, tokens_reset_at")
+        .select("subscription_tier, tokens_left, tokens_reset_at, is_test")
         .eq("id", user.id)
         .single();
       if (data) {
+        if (data.is_test) setIsTestUser(true);
         setTier(data.subscription_tier);
         setTokensLeft(data.tokens_left);
         setTokensReset(data.tokens_reset_at);

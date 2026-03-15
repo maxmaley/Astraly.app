@@ -1,6 +1,15 @@
 import { track } from "@vercel/analytics";
 import type { SubscriptionTier } from "@/types/database";
 
+// ── Test-user guard ──────────────────────────────────────────────────────────
+// Set once on app load; when true every trackEvent call is silently skipped.
+
+let _isTestUser = false;
+
+export function setIsTestUser(value: boolean) {
+  _isTestUser = value;
+}
+
 // ── Event definitions ────────────────────────────────────────────────────────
 
 type AnalyticsEvents = {
@@ -29,5 +38,6 @@ export function trackEvent<K extends keyof AnalyticsEvents>(
   event: K,
   props: AnalyticsEvents[K],
 ) {
+  if (_isTestUser) return;
   track(event, props as Record<string, string | number | boolean>);
 }

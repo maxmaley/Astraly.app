@@ -8,7 +8,7 @@ import { useTheme }                                           from "@/components
 import type { SubscriptionTier }                              from "@/types/database";
 import type { Locale }                                        from "@/routing";
 import { Link }                                               from "@/navigation";
-import { trackEvent }                                         from "@/lib/analytics";
+import { trackEvent, setIsTestUser }                          from "@/lib/analytics";
 import { canAccess }                                          from "@/lib/plans";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -349,11 +349,12 @@ export default function SettingsPage() {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data } = await (supabase as any)
         .from("users")
-        .select("id, email, name, subscription_tier, tokens_left, lang, theme, notify_email, memory_enabled")
+        .select("id, email, name, subscription_tier, tokens_left, lang, theme, notify_email, memory_enabled, is_test")
         .eq("id", auth.id)
-        .single() as { data: (UserSettings & { memory_enabled?: boolean }) | null; error: unknown };
+        .single() as { data: (UserSettings & { memory_enabled?: boolean; is_test?: boolean }) | null; error: unknown };
 
       if (data) {
+        if (data.is_test) setIsTestUser(true);
         setUser(data);
         setMemoryEnabled(!!data.memory_enabled);
         // Check if user has email/password identity
