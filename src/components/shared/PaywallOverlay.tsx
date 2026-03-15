@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter } from "@/navigation";
 import { useLocale } from "next-intl";
 import { PLANS, cheapestPlanFor, type Feature } from "@/lib/plans";
+import { trackEvent } from "@/lib/analytics";
 
 // ── Feature display config ────────────────────────────────────────────────────
 
@@ -97,6 +99,10 @@ export function PaywallOverlay({ feature }: { feature: Feature }) {
   const locale = useLocale() as "ru" | "uk" | "en" | "pl";
   const router = useRouter();
   const l = locale in COPY.viewPlans ? locale : "ru";
+
+  useEffect(() => {
+    trackEvent("paywall_hit", { feature, tier: "free" });
+  }, [feature]);
 
   const meta     = FEATURE_META[feature];
   const minPlan  = cheapestPlanFor(feature);

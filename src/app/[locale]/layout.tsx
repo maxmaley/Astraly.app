@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import { routing, type Locale } from "@/routing";
 import { ThemeProvider } from "@/components/shared/ThemeProvider";
 import { CookieBanner } from "@/components/shared/CookieBanner";
@@ -55,6 +57,8 @@ export default async function LocaleLayout({
           <ThemeProvider>{children}</ThemeProvider>
           <CookieBanner />
         </NextIntlClientProvider>
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

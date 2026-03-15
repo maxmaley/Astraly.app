@@ -8,6 +8,7 @@ import { useTheme }                                           from "@/components
 import type { SubscriptionTier }                              from "@/types/database";
 import type { Locale }                                        from "@/routing";
 import { Link }                                               from "@/navigation";
+import { trackEvent }                                         from "@/lib/analytics";
 import { canAccess }                                          from "@/lib/plans";
 
 // ── Types ──────────────────────────────────────────────────────────────────
@@ -403,10 +404,12 @@ export default function SettingsPage() {
 
   async function applyTheme(t: "dark" | "light") {
     setTheme(t);
+    trackEvent("theme_changed", { theme: t });
     await patch({ theme: t });
   }
 
   async function switchLang(next: Locale) {
+    trackEvent("language_changed", { lang: next });
     document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
     await patch({ lang: next });
     router.replace(pathname, { locale: next });
@@ -474,6 +477,7 @@ export default function SettingsPage() {
 
   async function toggleMemoryEnabled(enabled: boolean) {
     if (!user) return;
+    trackEvent("memory_toggled", { enabled });
     setMemoryToggleBusy(true);
     setMemoryEnabled(enabled);
     try {
