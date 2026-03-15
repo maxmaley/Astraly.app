@@ -60,6 +60,7 @@ export async function changePlanAction(formData: FormData) {
     .update({ subscription_tier: tier, tokens_left })
     .eq("id", userId);
 
+  revalidatePath(`/${locale}/admin/users/${userId}`);
   redirect(`/${locale}/admin/users/${userId}?msg=plan`);
 }
 
@@ -84,6 +85,7 @@ export async function resetTokensAction(formData: FormData) {
     await db.from("users").update({ tokens_left }).eq("id", userId);
   }
 
+  revalidatePath(`/${locale}/admin/users/${userId}`);
   redirect(`/${locale}/admin/users/${userId}?msg=reset`);
 }
 
@@ -112,6 +114,7 @@ export async function grantTokensAction(formData: FormData) {
       .eq("id", userId);
   }
 
+  revalidatePath(`/${locale}/admin/users/${userId}`);
   redirect(`/${locale}/admin/users/${userId}?msg=grant`);
 }
 
@@ -184,6 +187,7 @@ export async function setExpiresAtAction(formData: FormData) {
     }
   }
 
+  revalidatePath(`/${locale}/admin/users/${userId}`);
   redirect(`/${locale}/admin/users/${userId}?msg=expiry`);
 }
 
@@ -201,5 +205,6 @@ export async function toggleAdminAction(formData: FormData) {
     .update({ is_admin })
     .eq("id", userId);
 
+  revalidatePath(`/${locale}/admin/users/${userId}`);
   redirect(`/${locale}/admin/users/${userId}?msg=admin`);
 }
