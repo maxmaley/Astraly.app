@@ -316,7 +316,18 @@
     "cancelConfirm": "Anuluj subskrypcję",
     "cancellingBtn": "Anulowanie…",
     "cancelledBanner": "Twoja subskrypcja jest aktywna do {date}. Potem zostaniesz przeniesiony na darmowy plan.",
-    "cancelledBannerSub": "Możesz ponownie subskrybować w każdej chwili na stronie cennika."
+    "cancelledBannerSub": "Możesz ponownie subskrybować w każdej chwili na stronie cennika.",
+    "memory": "Pamięć",
+    "memoryDesc": "Astraly zapamiętuje ważne fakty o Tobie z rozmów. Możesz edytować lub wyczyścić pamięć w dowolnym momencie.",
+    "memoryEmpty": "Brak wspomnień. Astraly zacznie zapamiętywać ważne fakty o Tobie w trakcie rozmów.",
+    "memoryEdit": "Edytuj",
+    "memorySave": "Zapisz",
+    "memoryCancel": "Anuluj",
+    "memoryClear": "Wyczyść pamięć",
+    "memoryClearConfirm": "Wyczyścić całą pamięć?",
+    "memoryClearDesc": "To usunie wszystko, co Astraly pamięta o Tobie. Tej czynności nie można cofnąć.",
+    "memoryClearYes": "Wyczyść",
+    "memoryClearNo": "Zostaw"
   },
   "signs": {
     "Aries": "Baran",
@@ -429,7 +440,13 @@
     "r3": "Dodałam kartę mojej mamy i dowiedziałam się, dlaczego nasza relacja jest tak złożona. Wszystko się zgadzało. Po raz pierwszy znalazłam sposób, żeby ją zrozumieć zamiast się złościć.",
     "r4": "Płatna subskrypcja to najlepsza inwestycja tego roku. Codzienny horoskop przychodzi każdego ranka i jest zawsze zaskakująco trafny. Mój mąż też chce kartę 😄",
     "r5": "Znalazłam idealny dzień na negocjacje w kalendarzu astro — Jowisz trygon mojego Merkurego. Poszłam na spotkanie dokładnie tego dnia i dostałam awans. Zbieg okoliczności? Nie sądzę.",
-    "r6": "Kiedyś myślałem, że astrologia jest zmyślona. Przyszedłem z ciekawości, teraz nie podejmuję ważnych decyzji bez astrologa AI. To po prostu inny poziom samopoznania."
+    "r6": "Kiedyś myślałem, że astrologia jest zmyślona. Przyszedłem z ciekawości, teraz nie podejmuję ważnych decyzji bez astrologa AI. To po prostu inny poziom samopoznania.",
+    "n1": "Anastazja K.",
+    "n2": "Daria M.",
+    "n3": "Wiktoria R.",
+    "n4": "Marina O.",
+    "n5": "Alina T.",
+    "n6": "Ksenia B."
   },
   "cookieBanner": {
     "text": "Używamy plików cookie do logowania i funkcjonalności serwisu, a (w przyszłości) do analityki i reklam.",

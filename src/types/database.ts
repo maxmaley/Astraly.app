@@ -58,6 +58,7 @@ export interface Database {
           notify_email: boolean;
           is_admin: boolean;
           is_banned: boolean;
+          memory: string;
           created_at: string;
           updated_at: string;
         };
@@ -73,6 +74,7 @@ export interface Database {
           notify_email?: boolean;
           is_admin?: boolean;
           is_banned?: boolean;
+          memory?: string;
           created_at?: string;
           updated_at?: string;
         };
@@ -86,6 +88,7 @@ export interface Database {
           notify_email?: boolean;
           is_admin?: boolean;
           is_banned?: boolean;
+          memory?: string;
           updated_at?: string;
         };
       };
@@ -167,6 +170,7 @@ export interface Database {
           chart_id: string | null;
           chart_ids: string[];
           summary: string;
+          conversation_summary: string | null;
           messages_count: number;
           created_at: string;
         };
@@ -177,10 +181,14 @@ export interface Database {
           chart_id?: string | null;
           chart_ids?: string[];
           summary: string;
+          conversation_summary?: string | null;
           messages_count: number;
           created_at?: string;
         };
-        Update: never;
+        Update: {
+          messages_count?: number;
+          conversation_summary?: string | null;
+        };
       };
       daily_horoscopes: {
         Row: {

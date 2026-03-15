@@ -1,12 +1,12 @@
 import { getTranslations } from "next-intl/server";
 
 const REVIEWS = [
-  { name: "Анастасия К.", sign: "Sagittarius", avatar: "А", rating: 5, planKey: "solar",    textKey: "r1" },
-  { name: "Дарья М.",     sign: "Scorpio",     avatar: "Д", rating: 5, planKey: "moonlight", textKey: "r2" },
-  { name: "Виктория Р.",  sign: "Aries",       avatar: "В", rating: 5, planKey: "solar",    textKey: "r3" },
-  { name: "Марина О.",    sign: "Libra",       avatar: "М", rating: 5, planKey: "cosmic",   textKey: "r4" },
-  { name: "Алина Т.",     sign: "Pisces",      avatar: "А", rating: 5, planKey: "cosmic",   textKey: "r5" },
-  { name: "Ксения Б.",    sign: "Cancer",      avatar: "К", rating: 5, planKey: "moonlight", textKey: "r6" },
+  { nameKey: "n1", sign: "Sagittarius", rating: 5, planKey: "solar",    textKey: "r1" },
+  { nameKey: "n2", sign: "Scorpio",     rating: 5, planKey: "moonlight", textKey: "r2" },
+  { nameKey: "n3", sign: "Aries",       rating: 5, planKey: "solar",    textKey: "r3" },
+  { nameKey: "n4", sign: "Libra",       rating: 5, planKey: "cosmic",   textKey: "r4" },
+  { nameKey: "n5", sign: "Pisces",      rating: 5, planKey: "cosmic",   textKey: "r5" },
+  { nameKey: "n6", sign: "Cancer",      rating: 5, planKey: "moonlight", textKey: "r6" },
 ];
 
 const SIGN_SYMBOLS: Record<string, string> = {
@@ -53,19 +53,22 @@ export async function Reviews() {
 
         {/* Reviews grid */}
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {REVIEWS.map((r) => (
+          {REVIEWS.map((r) => {
+            const name = tr(r.nameKey as Parameters<typeof tr>[0]);
+            const avatar = name[0]?.toUpperCase() ?? "?";
+            return (
             <div
-              key={r.name}
+              key={r.nameKey}
               className="flex flex-col gap-4 rounded-2xl border border-[var(--border)] bg-[var(--card)] p-5 transition-all duration-300 hover:border-cosmic-500/30 hover:shadow-cosmic"
             >
               {/* Header */}
               <div className="flex items-start justify-between">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-cosmic-500 to-nebula-500 font-bold text-white">
-                    {r.avatar}
+                    {avatar}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-[var(--foreground)]">{r.name}</p>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">{name}</p>
                     <p className="text-xs text-[var(--muted-foreground)]">
                       {SIGN_SYMBOLS[r.sign]} {ts(r.sign as Parameters<typeof ts>[0])}
                     </p>
@@ -86,7 +89,8 @@ export async function Reviews() {
                 </span>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Social proof bar */}
