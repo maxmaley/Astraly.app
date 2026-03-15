@@ -8,7 +8,7 @@ type AnalyticsEvents = {
   chart_created:          { relation?: string };
   // Engagement
   chat_message_sent:      { tier: SubscriptionTier; has_chart: boolean };
-  voice_input_used:       {};
+  voice_input_used:       Record<string, never>;
   horoscope_generated:    { tier: SubscriptionTier };
   // Revenue funnel
   pricing_viewed:         { current_tier: SubscriptionTier };
